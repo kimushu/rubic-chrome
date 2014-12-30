@@ -2,8 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <link href="bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet">
-    <!--<link href="bootstrap-3.2.0-dist/css/bootstrap-theme.min.css" rel="stylesheet">-->
+    <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!--<link href="bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">-->
     <style type="text/css" media="screen">
       body {
         padding-top: 32px;
@@ -14,7 +14,7 @@
         padding: 5px;
       }
       .navbar-sketch .navbar-brand {
-        width: 200px;
+        width: 160px;
         color: #ffffff;
         padding: 0;
         margin: 0 5px;
@@ -29,6 +29,9 @@
     </style>
   </head>
   <body>
+    <div class="title-area">
+      PERIDOT Sketch
+    </div>
     <div class="navbar navbar-inverse navbar-fixed-top navbar-sketch" role="navigation">
       <div class="navbar-header">
         <a class="navbar-brand">PERIDOT Sketch</a>
@@ -38,28 +41,42 @@
               <button class="btn btn-xs" title=""><span class="glyphicon-save"></span> Save</button>
               <button class="btn btn-xs" title=""><span class="glyphicon-open"></span> Open</button>
             </div><!-- /.btn-group -->
-            <span class="dropdown">
-              <button class="btn btn-xs dropdown-toggle" title=""><span class="glyphicon-save"></span>
-                Board
-                <span class="caret"></span>
+            <div class="btn-group">
+              <button class="btn btn-xs dropdown-toggle" type="button" id="dropdown-board" data-toggle="dropdown" aria-expanded="true">
+                Select Board <span class="caret"></span>
               </button>
-            </span><!-- /.dropdown -->
-            <button class="btn btn-xs btn-primary pull-right" title=""><span class="glyphicon-play-circle"></span> Run</button>
+              <ul class="dropdown-menu" id="dropdown-board-list" role="menu" aria-labelledby="dropdown-board">
+              </ul><!-- /.dropdown-menu -->
+            </div><!-- /.btn-group -->
+            <div class="btn-group">
+              <button class="btn btn-xs dropdown-toggle" type="button" id="dropdown-port" data-toggle="dropdown" aria-expanded="true" disabled>
+                Select Port <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" id="dropdown-port-list" role="menu" aria-labelledby="dropdown-port">
+              </ul><!-- /.dropdown-menu -->
+            </div><!-- /.btn-group -->
+            <div class="btn-toolbar pull-right">
+              <div class="btn-group">
+                <button class="btn btn-xs btn-primary" title=""><span class="glyphicon-play-circle"></span> Build</button> 
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-xs btn-primary" title=""><span class="glyphicon-play-circle"></span> Run</button>
+              </div>
+            </div>
           </li>
         </ul><!-- /.nav -->
       </div><!-- /.navbar-header -->
     </div><!-- /.navbar -->
-    test
     <div id="wrapper">
       <div id="main-wrapper">
         <div id="editor-wrapper">
           <div id="editor"># require 'peridot'
-led = Peridot.start_led
-led.output
+led = Peridot.start_led.enable_output
 loop {
   led.toggle!
   sleep 0.5
-}</div>
+}
+</div>
         </div><!-- /#editor -->
         <div id="status-bar">
           status
@@ -70,7 +87,7 @@ loop {
       </div><!-- /#main-wrapper -->
     </div><!-- /#wrapper -->
     <script src="jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="bootstrap-3.2.0-dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="bootstrap/dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="app.js" type="text/javascript" charset="utf-8"></script>
   </body>

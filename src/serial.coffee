@@ -8,6 +8,8 @@ class Serial
         {name: port.displayName, path: port.path}
       callback(list)
     )
+    #debug
+    callback([{name: "COM 99", path: "/path/to/ser99"}])
 
   @connect: (path, options, callback) ->
     chrome.serial.connect(path, options, (connectionInfo) ->

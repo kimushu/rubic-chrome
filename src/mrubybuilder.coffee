@@ -1,2 +1,2 @@
-class MrubyBuilder extends Builder
+class MRubyBuilder extends Builder
   build: () ->
