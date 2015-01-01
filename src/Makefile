@@ -5,8 +5,9 @@ Q ?= @
 TARGET = app.js
 RUNNER = node
 SOURCES = \
-	common.coffee \
-	serial.coffee \
+	base.coffee \
+	comm.coffee \
+		serialcomm.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
 	board.coffee \
@@ -16,7 +17,8 @@ SOURCES = \
 	builder.coffee \
 		mrubybuilder.coffee \
 	sketch.coffee \
-	sandbox.coffee
+	marshal.coffee \
+	sandbox.coffee \
 
 all:
 
@@ -26,7 +28,7 @@ run: all
 	$(Q)$(RUNNER) $(TARGET)
 
 .PHONY: all
-all: app.js
+all: $(TARGET) background.js
 
 $(TARGET): $(SOURCES:.coffee=.js)
 	@echo "[Generating $@]"
@@ -35,7 +37,7 @@ $(TARGET): $(SOURCES:.coffee=.js)
 .PHONY: clean
 clean:
 	@echo "[Cleaning]"
-	$(Q)rm -f $(TARGET) $(SOURCES:.coffee=.js)
+	$(Q)rm -f $(TARGET) background.js $(SOURCES:.coffee=.js)
 
 .PHONY: coffee-is-required
 coffee-is-required:

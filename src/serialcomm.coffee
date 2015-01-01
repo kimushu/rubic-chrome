@@ -1,19 +1,21 @@
 # Serial I/O wrapper for Chrome App
 # Reference: https://developer.chrome.com/apps/serial
 # Target version: >= 33
-class Serial
+class SerialComm extends Comm
+  Comm.add(this)
+
   @enumerate: (callback) ->
     chrome.serial.getDevices((ports) ->
-      list = for port of ports
-        {name: port.displayName, path: port.path}
+      list = for port in ports
+        {name: port.displayName or port.path, path: port.path}
       callback(list)
     )
     #debug
-    callback([{name: "COM 99", path: "/path/to/ser99"}])
+    #  callback([{name: "COM 3", path: "/path/to/ser3"}])
 
   @connect: (path, options, callback) ->
     chrome.serial.connect(path, options, (connectionInfo) ->
-      instance = new Serial(path, connectionInfo)
+      instance = new SerialComm(path, connectionInfo)
       callback(instance)
     )
 

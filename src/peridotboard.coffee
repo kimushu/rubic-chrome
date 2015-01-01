@@ -1,14 +1,15 @@
 class PeridotBoard extends Board
+  Board.add(this)
+
   @boardname: "PERIDOT"
   @author: "@s_osafune"
   @website: "https://peridotcraft.com/"
-  @interface: [Serial]
+  @comm: [SerialComm]
 
   constructor: (config) ->
-    config = config or {}
-    @_port = config.port
+    config ?= {}
+    @_comm = Comm.load(config.comm)
 
   selected: ->
     super()
 
-Board.list.push PeridotBoard

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "PERIDOT Sketch",
-  "version": "0.1.14.1106",
+  "version": "0.1.14.1229",
   /*"default_locale": "jp",*/
   "description": "Sketch IDE for PERIDOT",
   "icons": {
