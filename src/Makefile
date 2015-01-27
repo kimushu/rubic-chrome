@@ -1,15 +1,21 @@
 
-COFFEE := $(shell which coffee 2>/dev/null)
+COFFEE    := $(shell which coffee 2>/dev/null)
+JSDUCKIFY := $(shell which jsduckify 2>/dev/null)
+UGLIFYJS  := $(shell which uglifyjs 2>/dev/null)
 
 Q ?= @
-TARGET = app.js
+TARGET = app.js lib.js
+RELEASE = $(TARGET:.js=.min.js)
 RUNNER = node
+DOCDIR = docs
 SOURCES = \
 	base.coffee \
 	comm.coffee \
 		serialcomm.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
+	fileutil.coffee \
+	filesystem.coffee \
 	board.coffee \
 		peridotboard.coffee \
 		de0board.coffee \
@@ -18,34 +24,72 @@ SOURCES = \
 		mrubybuilder.coffee \
 	sketch.coffee \
 	marshal.coffee \
-	sandbox.coffee \
+	sandbox.coffee
 
-all:
+LIB_SOURCES = \
+	../../../libs/mruby/build/emscripten/bin/mrbc.js
+
+.PHONY: all
+all: $(TARGET)
 
 .PHONY: run
 run: all
 	@echo "[Running]"
-	$(Q)$(RUNNER) $(TARGET)
+	$(Q)$(RUNNER) $(RELEASE) $(LIB)
 
-.PHONY: all
-all: $(TARGET) background.js
-
-$(TARGET): $(SOURCES:.coffee=.js)
-	@echo "[Generating $@]"
-	$(Q)cat $^ > $@ || (rm -f $@; false)
+.PHONY: release
+release: $(RELEASE)
 
 .PHONY: clean
 clean:
 	@echo "[Cleaning]"
-	$(Q)rm -f $(TARGET) background.js $(SOURCES:.coffee=.js)
+	$(Q)rm -f $(TARGET) $(RELEASE)
 
-.PHONY: coffee-is-required
-coffee-is-required:
-	@echo "**** CoffeeScript is required to compile this project."
+%.min.js: %.js $(firstword $(UGLIFYJS) uglifyjs-is-missing)
+	@echo "[Minimizing $<]"
+	$(Q)$(UGLIFYJS) -o $@ $< || (rm -f $@; false)
+
+app.js: $(SOURCES) $(firstword $(COFFEE) coffee-is-missing) $(MAKEFILE_LIST)
+	@echo "[Compiling CoffeeScript files]"
+	$(Q)cat $(filter %.coffee,$^) | coffee -c -s > $@ || (rm -f $@; false)
+
+lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
+	@echo "[Importing external libraries]"
+	$(Q)echo "var Lib;Lib=(function(){function Lib(){}" > $@.tmp
+	$(Q)true $(foreach f,$(filter %.js,$^), \
+		&& echo "\
+		Lib.$(notdir $(basename $(f)))=function(Module){\
+		Module['preInit'] = Module['preInit'] || [];\
+		Module['preInit'].unshift(function(){\
+		  Module['exports'] = {FS: FS, MEMFS: MEMFS};\
+		});" >> $@.tmp \
+		&& cat $(f) >> $@.tmp \
+		&& echo "};" >> $@.tmp)
+	$(Q)echo "return Lib;})();" >> $@.tmp
+	$(Q)mv $@.tmp $@
+#		&& echo "Module.exports={};" >> $@.tmp \
+#		&& echo "Module.exports.fs=FS;" >> $@.tmp \
+
+.PHONY: doc
+doc: $(TARGET) $(firstword $(JSDUCKIFY) jsduckify-is-missing)
+	@echo "[Generating document]"
+	$(Q)$(JSDUCKIFY)
+
+.PHONY: uglifyjs-is-missing
+uglifyjs-is-missing:
+	@echo "**** UglifyJS is required to build this project."
+	@echo "**** Please visit https://github.com/mishoo/UglifyJS"
+	@false
+
+.PHONY: coffee-is-missing
+coffee-is-missing:
+	@echo "**** CoffeeScript is required to build this project."
 	@echo "**** Please visit http://coffeescript.org/"
 	@false
 
-%.js: %.coffee $(firstword $(COFFEE) coffee-is-required) $(MAKEFILE_LIST)
-	@echo "[Compiling $<]"
-	$(Q)$(COFFEE) --bare --compile $<
+.PHONY: jsduckify-is-missing
+jsduckify-is-missing:
+	@echo "**** jsduckify is required to generate document for this project."
+	@echo "**** Please visit https://github.com/lmaccherone/jsduckify"
+	@false
 
