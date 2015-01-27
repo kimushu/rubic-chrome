@@ -54,6 +54,7 @@ $(->
           """
         )
       $("a#board-#{b.name}").click(->
-        sketch.board = new b
+        console.log({"Board selected": b})
+        App.sketch.board = new b
       )
 )

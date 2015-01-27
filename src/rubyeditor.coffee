@@ -1,12 +1,8 @@
 class RubyEditor extends Editor
+  Editor._extendedBy(this)
+
   @suffix: ["rb"]
 
-  _session: null
+  constructor: (fileEntry) ->
+    super(fileEntry, "ace/mode/ruby")
 
-  constructor: (@_document)->
-    @_session = ace.EditSession(@_document, 'ace/mode/ruby')
-
-  activate: () ->
-    
-
-Editor.list.push RubyEditor

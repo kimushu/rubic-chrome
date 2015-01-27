@@ -4,47 +4,16 @@
     <meta charset="utf-8">
     <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <!--<link href="bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">-->
-    <style type="text/css" media="screen">
-      body {
-        padding-top: 32px;
-      }
-      .navbar-sketch {
-        max-height: 32px;
-        min-height: 32px;
-        padding: 5px;
-      }
-      .navbar-sketch .navbar-brand {
-        width: 160px;
-        color: #ffffff;
-        padding: 0;
-        margin: 0 5px;
-      }
-      #editor {
-        position: absolute;
-        top: 32px;
-        right: 0;
-        bottom: 0;
-        left: 0;
-      }
-      span.ph-alt {
-        display: none;
-      }
-      span.ph-body:empty + span.ph-alt {
-        display: inline;
-      }
-    </style>
+    <link href="window.css" rel="stylesheet">
   </head>
   <body>
-    <div class="title-area">
-      PERIDOT Sketch
-    </div>
     <div class="navbar navbar-inverse navbar-fixed-top navbar-sketch" role="navigation">
       <div class="navbar-header">
         <a class="navbar-brand">PERIDOT Sketch</a>
         <ul class="nav">
           <li>
             <div class="btn-group">
-              <button class="btn btn-xs" title=""><span class="glyphicon glyphicon-save"></span> Save</button>
+              <button class="btn btn-xs" title="" id="save-sketch"><span class="glyphicon glyphicon-save"></span> Save</button>
               <button class="btn btn-xs" title=""><span class="glyphicon glyphicon-open"></span> Open</button>
             </div><!-- /.btn-group -->
             <div class="btn-group">
@@ -73,29 +42,24 @@
         </ul><!-- /.nav -->
       </div><!-- /.navbar-header -->
     </div><!-- /.navbar -->
-    <div id="wrapper">
-      <div id="main-wrapper">
-        <div id="editor-wrapper">
-          <div id="editor"># require 'peridot'
-led = Peridot.start_led.enable_output
-loop {
-  led.toggle!
-  sleep 0.5
-}
-</div>
-        </div><!-- /#editor -->
-        <div id="status-bar">
-          status
-        </div><!-- /#status-bar -->
-        <div id="output-bar">
-          output
-        </div><!-- /#status-bar -->
-      </div><!-- /#main-wrapper -->
-    </div><!-- /#wrapper -->
+    <div class="workspace">
+      <header>
+        <ul class="tabbar">
+          <li class="active"><span id="test1">main.rb</span></li>
+          <!--<li>hoge</li>
+          <li>foo</li>
+          <li>bar</li>-->
+        </ul>
+      </header><!-- /header -->
+      <div id="editor"></div>
+      <footer class="footer">
+        status
+      </footer><!-- /footer -->
+    </div><!-- /.container -->
     <script src="jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootstrap/dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib.js" type="text/javascript" charset="utf-8"></script>
     <script src="app.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>
-
