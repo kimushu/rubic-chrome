@@ -14,29 +14,39 @@
           <li>
             <div class="btn-group">
               <button class="btn btn-xs" title="" id="save-sketch"><span class="glyphicon glyphicon-save"></span> Save</button>
-              <button class="btn btn-xs" title=""><span class="glyphicon glyphicon-open"></span> Open</button>
+              <button class="btn btn-xs" title="" id="open-sketch"><span class="glyphicon glyphicon-open"></span> Open</button>
             </div><!-- /.btn-group -->
-            <div class="btn-group">
-              <button class="btn btn-xs dropdown-toggle" type="button" id="dropdown-board" data-toggle="dropdown" aria-expanded="true">
+            <div class="btn-group" id="group-board">
+              <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" disabled>
                 <span class="ph-body"></span><span class="ph-alt">Select Board</span> <span class="caret"></span>
               </button>
-              <ul class="dropdown-menu" id="dropdown-board-list" role="menu" aria-labelledby="dropdown-board">
+              <ul class="dropdown-menu" role="menu">
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
-            <div class="btn-group">
-              <button class="btn btn-xs dropdown-toggle" type="button" id="dropdown-port" data-toggle="dropdown" aria-expanded="true" disabled>
+            <div class="btn-group" id="group-port">
+              <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" disabled>
                 <span class="ph-body"></span><span class="ph-alt">Select Port</span> <span class="caret"></span>
               </button>
-              <ul class="dropdown-menu" id="dropdown-port-list" role="menu" aria-labelledby="dropdown-port">
+              <ul class="dropdown-menu" role="menu">
+                <li class="btn-xs">
+                  <a href="#" class="list-refresh">Rescan ports</a>
+                </li>
+                <li class="divider"></li>
+                <li class="btn-xs list-alt disabled"><a>No available port</a></li>
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
+            <div class="btn-group" id="group-board-info">
+              <button class="btn btn-xs" title="" disabled><span class="glyphicon glyphicon-info-sign"></span></button>
+            </div><!-- /.btn-group -->
             <div class="btn-toolbar pull-right">
-              <div class="btn-group">
-                <button class="btn btn-xs btn-primary" title=""><span class="glyphicon glyphicon-random"></span> Build</button>
+              <div class="btn-group" id="group-build">
+                <button class="btn btn-xs btn-primary" id="build" title=""><span class="glyphicon glyphicon-random"></span> Build</button>
               </div>
-              <div class="btn-group">
-                <button class="btn btn-xs btn-primary" title=""><span class="glyphicon glyphicon-play-circle"></span> Run</button>
+              <div class="btn-group" id="group-run">
+                <button class="btn btn-xs btn-primary" id="run" title="" disabled><span class="glyphicon glyphicon-play-circle"></span> Run</button>
               </div>
+              <!--<input type="text" id="hoge1" value="0x0"/>-->
+              <!--<input type="text" id="hoge2" value="0x4"/>-->
             </div>
           </li>
         </ul><!-- /.nav -->
@@ -53,13 +63,19 @@
       </header><!-- /header -->
       <div id="editor"></div>
       <footer class="footer">
-        status
+        <div id="hoge">status</div>
       </footer><!-- /footer -->
     </div><!-- /.container -->
+    <div class="modal" id="modal-spin">
+    </div>
     <script src="jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootstrap/dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-    <script src="lib.js" type="text/javascript" charset="utf-8"></script>
+    <script src="bootbox/bootbox.js" type="text/javascript" charset="utf-8"></script>
+    <script src="spin.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="jquery.spin.js" type="text/javascript" charset="utf-8"></script>
+    <script src="canarium.js" type="text/javascript" charset="utf-8"></script>
     <script src="app.js" type="text/javascript" charset="utf-8"></script>
+    <script src="lib.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>

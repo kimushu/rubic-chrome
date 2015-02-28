@@ -1,102 +1,108 @@
 class Sketch
-  @defaultSuffix: ".rb"
-  @quota: 1*1024*1024
-  @template: {
-    ".rb":
-      """
-      # Hello mruby world!
-      # Write your code
-
-      """
-  }
-  @instance: null
-
+  ###*
+  @property {DirectoryEntry} dirEntry
+  @readonly
+  DirectoryEntry of directory which contains sketch files
+  ###
   dirEntry: null
-  config: null
-  name: null
-  editors: []
 
-  @property('board',
-    get: -> @_board
-    set: (b) ->
-      @_board = b
-      @_board.selected()
-  )
+  ###*
+  @property {Object} config
+  Configuration of sketch
+  ###
+  config: null
+
+  ###*
+  @property {String} name
+  @readonly
+  Name of sketch
+  ###
+  name: null
+
+  ###*
+  @property {Board} board
+  @readonly
+  Board selection
+  ###
+  board: null
+
+  editors: []
 
   ###*
   Open an existing sketch / Create a new sketch
-  @param dirEntry         Directory to open (if null, create new one)
-  @param successCallback  Callback on success
-  @param errorCallback    Callback on error (optional)
+  @param {DirectoryEntry} dirEntry  Directory to open (if null, create new one)
+  @param {Function}       callback  Callback ({Boolean} result, {Sketch} sketch)
   ###
-  @open: (dirEntry, successCallback, errorCallback) ->
-    return Sketch.create(successCallback, errorCallback) unless dirEntry
-    errorCallback or= -> null
+  @open: (dirEntry, callback) ->
+    return @create(callback) unless dirEntry
     FileUtil.readText(
-      dirEntry,
-      "sketch.json",
+      [dirEntry, "sketch.json"],
       null,
-      ((json) ->
-        if json
-          successCallback(new Sketch(dirEntry, JSON.parse(json)))
-        else
-          errorCallback()
-      ),
-      errorCallback
+      ((result, readdata) =>
+        return callback(false) unless result
+        callback(true, new this(dirEntry, JSON.parse(readdata)))
+      )
     )
 
   ###*
   Create a new sketch
-  @param successCallback  Callback on success
-  @param errorCallback    Callback on error (optional)
+  @param {Function} callback  Callback ({Boolean} result, {Sketch} sketch)
   ###
-  @create: (successCallback, errorCallback) ->
-    errorCallback or= -> null
+  @create: (callback) ->
     window.webkitRequestFileSystem(
       TEMPORARY,
-      Sketch.quota,
+      @quota,
       ((fs) ->
         now = new Date
         m2s = ["jan", "feb", "mar", "apr", "may", "jun",
                "jul", "aug", "sep", "oct", "nov", "dec"]
-        base = "sketch_#{m2s[now.getMonth()] + now.getDate()}"
-        AsyncFor(
+        base = "sketch_#{m2s[now.getMonth()]}#{now.getDate()}"
+        suffix = App.defaultSuffix
+        bootFile = "main#{suffix}"
+        Async.each(
           [1..26],
-          ((next, done) ->
+          ((num, next, done) =>
             fs.root.getDirectory(
-              base + String.fromCharCode(0x60 + this),
+              base + String.fromCharCode(0x60 + num),
               {create: true, exclusive: false},
-              ((dirEntry) ->
-                suffix = Sketch.defaultSuffix
-                bootFile = "main#{suffix}"
+              ((dirEntry) =>
                 FileUtil.writeText(
-                  dirEntry,
-                  "sketch.json",
+                  [dirEntry, "sketch.json"],
                   "{\"bootFile\": \"#{bootFile}\"}",
-                  (->
+                  ((result) =>
+                    return next() unless result
                     FileUtil.writeText(
-                      dirEntry,
-                      bootFile,
+                      [dirEntry, bootFile],
                       Sketch.template[suffix],
-                      (-> Sketch.open(dirEntry, done, next)
-                      ),
-                      next
-                    )
-                  ),
-                  next
-                )
+                      ((result) =>
+                        return next() unless result
+                        Sketch.open(dirEntry, callback)
+                      )
+                    ) # FileUtil.writeText()
+                  )
+                ) # FileUtil.writeText()
               ),
               next
             ) # fs.root.getDirectory()
-          ),  # (next, done) ->
-          ((sketch) ->
-            errorCallback() unless sketch
-            successCallback(sketch)
-          )
-        ) # async_for()
-      ),  # (fs) ->
-      errorCallback
+          ),
+          (-> callback(false))
+        ) # Async.each()
+      ),# (fs) ->
+      (-> callback(false))
     ) # window.webkitRequestFileSystem()
+
+  ###*
+  Change board of sketch
+  @param {Board}    new board
+  @param {Function} callback ({Boolean} result)
+  ###
+  changeBoard: (board, callback) ->
+    @board or= {disconnect: (cb) -> cb(true)}
+    @board.disconnect((result) =>
+      return callback(false) unless result
+      @board = board
+      callback(true)
+    )
 
   ###*
   Open an editor for a single file
@@ -168,25 +174,48 @@ class Sketch
   constructor: (@dirEntry, @config) ->
     @name = @dirEntry.name
 
-#  sketch = null # An instance of current sketch
-#  sketch = new Sketch
-$(->
-  Sketch.create(
-    ((sketch) ->
-      App.sketch = sketch
-      console.log({"New sketch": sketch})
-      sketch.openEditor(sketch.config.bootFile,
-        ((e) ->
-          e.load(->
-            e.activate()
+  ###*
+  @property {Integer} quota
+  @readonly
+  Quota size of sketch (in bytes)
+  ###
+  @quota: 1 * 1024 * 1024
+
+  ###*
+  @property {Object} template
+  @readonly
+  Template source code for each language
+  ###
+  @template: {
+    ".rb":
+      """
+      #!mruby
+
+      """
+  }
+
+  $(=>
+    @create(
+      ((result, sketch) ->
+        return unless result
+        App.sketch = sketch
+        console.log({"New sketch": sketch})
+        sketch.openEditor(sketch.config.bootFile,
+          ((e) ->
+            e.load(->
+              e.activate()
+            )
           )
         )
       )
-    ),
-    -> null
+    )
   )
+
+$("button#open-sketch").click(->
+  #  ModalSpin.show()
+  App.sketch.board.test()
 )
-$("#save-sketch").click(->
+$("button#save-sketch").click(->
   App.sketch.build(->
     console.log({"build succeeded": arguments})
   )

@@ -1,44 +1,58 @@
 class FileUtil
-  @readEntryText: (fileEntry, defaultText, successCallback, errorCallback) ->
-    errorCallback or= -> successCallback(defaultText)
-    fileEntry.file(
-      ((file) ->
-        reader = new FileReader
-        reader.onload = -> successCallback(this.result)
-        reader.onerror = errorCallback
-        reader.readAsText(file)
-      ),
-      errorCallback
-    )
+  ###*
+  Read text to FileEntry or pair of DirectoryEntry and path
+  @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
+  @param {String}   defaultText Default text if failed
+  @param {Function} callback    Callback ({Boolean} result, {String} readdata)
+  ###
+  @readText: (entry, defaultText, callback) ->
+    if entry instanceof Array
+      [dirEntry, path] = entry
+      dirEntry.getFile(
+        path,
+        {create: false},
+        ((fileEntry) -> FileUtil.readText(fileEntry, defaultText, callback)),
+        (-> callback(false, defaultText))
+      )
+    else
+      entry.file(
+        ((file) ->
+          reader = new FileReader
+          reader.onload = -> callback(true, @result)
+          reader.onerror = -> callback(false, defaultText)
+          reader.readAsText(file)
+        ),
+        (-> callback(false, defaultText))
+      )
 
-  @readText: (dirEntry, path, defaultText, successCallback, errorCallback) ->
-    errorCallback or= -> successCallback(defaultText)
-    dirEntry.getFile(
-      path,
-      {create: false},
-      ((fileEntry) ->
-        FileUtil.readEntryText(fileEntry, null, successCallback, errorCallback)
-      ),
-      errorCallback
-    )
-
-  @writeText: (dirEntry, path, text, successCallback, errorCallback) ->
-    errorCallback or= -> null
-    dirEntry.getFile(
-      path,
-      {create: true},
-      ((fileEntry) ->
-        fileEntry.createWriter(
-          ((writer) ->
-            writer.onwrite = successCallback
-            writer.onerror = errorCallback
-            writer.write(new Blob([text]))
-          ),
-          errorCallback
-        )
-      ),
-      errorCallback
-    )
+  ###*
+  Write text to FileEntry or pair of DirectoryEntry and path
+  @param {Object}   entry       FileEntry or [DirectoryEntry, path] to write
+  @param {String}   defaultText Default text if failed
+  @param {Function} callback    Callback ({Boolean} result)
+  ###
+  @writeText: (entry, text, callback) ->
+    if entry instanceof Array
+      [dirEntry, path] = entry
+      dirEntry.getFile(
+        path,
+        {create: true},
+        ((fileEntry) -> FileUtil.writeText(fileEntry, text, callback)),
+        (-> callback(false))
+      )
+    else
+      entry.createWriter(
+        ((writer) ->
+          truncated = false
+          writer.onwriteend = ->
+            return callback(true) if truncated
+            truncated = true
+            @write(new Blob([text]))
+          writer.onerror = -> callback(false)
+          writer.truncate(0)
+        ),
+        (-> callback(false))
+      )
 
   @readEntries: (dirEntry, successCallback, errorCallback) ->
     errorCallback or= -> null

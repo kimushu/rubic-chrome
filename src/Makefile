@@ -9,22 +9,25 @@ RELEASE = $(TARGET:.js=.min.js)
 RUNNER = node
 DOCDIR = docs
 SOURCES = \
+	async.coffee \
 	base.coffee \
-	comm.coffee \
-		serialcomm.coffee \
+	port.coffee \
+		serialport.coffee \
+	memhttprequest.coffee \
+	board.coffee \
+		peridotboard.coffee \
+		wakayamarbboard.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
 	fileutil.coffee \
 	filesystem.coffee \
-	board.coffee \
-		peridotboard.coffee \
-		de0board.coffee \
-		de0nanoboard.coffee \
 	builder.coffee \
 		mrubybuilder.coffee \
 	sketch.coffee \
-	marshal.coffee \
-	sandbox.coffee
+#	marshal.coffee \
+#	sandbox.coffee
+#		de0board.coffee \
+#		de0nanoboard.coffee \
 
 LIB_SOURCES = \
 	../../../libs/mruby/build/emscripten/bin/mrbc.js
@@ -49,9 +52,12 @@ clean:
 	@echo "[Minimizing $<]"
 	$(Q)$(UGLIFYJS) -o $@ $< || (rm -f $@; false)
 
-app.js: $(SOURCES) $(firstword $(COFFEE) coffee-is-missing) $(MAKEFILE_LIST)
+%.js: %.coffee $(firstword $(COFFEE) coffee-is-missing) $(MAKEFILE_LIST)
 	@echo "[Compiling CoffeeScript files]"
-	$(Q)cat $(filter %.coffee,$^) | coffee -c -s > $@ || (rm -f $@; false)
+	$(Q)coffee -c $< > $@ || (rm -f $@; false)
+
+app.coffee: $(SOURCES) $(MAKEFILE_LIST)
+	$(Q)cat /dev/null $(filter %.coffee,$^) > $@ || (rm -f $@; false)
 
 lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
 	@echo "[Importing external libraries]"
