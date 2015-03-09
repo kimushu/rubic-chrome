@@ -20,17 +20,17 @@ SOURCES = \
 	editor.coffee \
 		rubyeditor.coffee \
 	fileutil.coffee \
-	filesystem.coffee \
 	builder.coffee \
 		mrubybuilder.coffee \
 	sketch.coffee \
+#	filesystem.coffee \
 #	marshal.coffee \
 #	sandbox.coffee
 #		de0board.coffee \
 #		de0nanoboard.coffee \
 
 LIB_SOURCES = \
-	../../../libs/mruby/build/emscripten/bin/mrbc.js
+	mruby/build/emscripten/bin/mrbc.js
 
 .PHONY: all
 all: $(TARGET)
