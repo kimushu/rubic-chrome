@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "PERIDOT Sketch",
-  "version": "0.1.14.1229",
+  "name": "Rubic",
+  "version": "0.1.15.310",
   /*"default_locale": "jp",*/
-  "description": "Sketch IDE for PERIDOT",
+  "description": "Prototyping tool for embedded-boards with ruby",
   "icons": {
   },
   "app": {
