@@ -7,3 +7,6 @@
 [submodule "src/ace-builds"]
 	path = src/ace-builds
 	url = https://github.com/ajaxorg/ace-builds.git
+[submodule "src/mruby"]
+	path = src/mruby
+	url = https://github.com/kimushu/mruby.git
