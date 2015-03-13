@@ -1,6 +1,9 @@
 body {
-  padding-top: 32px;
   margin: 0px;
+  height: 100%;
+}
+.btn {
+  border: 1px solid rgba(0, 0, 0, .2);
 }
 .navbar-sketch {
   min-height: 32px;
@@ -8,38 +11,52 @@ body {
   margin: 0px;
   padding: 5px;
 }
-.navbar-sketch .navbar-brand {
-  width: 160px;
+.navbar-inverse {
+  /*background-color: #400010;*/
+}
+/*.navbar-sketch .navbar-brand {
+  width: 88px;
   color: #ffffff;
   padding: 0;
-  margin: 0 5px;
-}
+  margin: 0 0px;
+}*/
 .navbar-header {
   float: none; /* FIXME */
 }
+.navbar-text {
+  color: #fff;
+  font-size: 18px;
+  height: 22px;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  width: 64px;
+}
+.workspace {
+  height: 100%;
+}
 #editor {
   position: absolute;
-  top: 56px;
+  top: calc(32px + 24px);
   right: 0;
-  bottom: 0;
+  bottom: 32px;
   left: 0;
 }
 ul.tabbar {
+  background-color: #999;
   border-width: 1px;
   border-style: none none solid;
   padding: 3px 3px 0px;
   margin: 0px;
   overflow: hidden;
-}
-ul.tabbar:hover {
-  background-color: #faa;
+  height: 24px;
 }
 ul.tabbar > li {
   cursor: pointer;
   background-color: #eee;
   border-width: 1px;
   border-style: solid solid none;
-  border-color: #aaa;
+  border-color: #999;
   border-radius: 4px 4px 0px 0px;
   padding: 2px 8px 0px;
   font-size: 12px;
@@ -48,8 +65,31 @@ ul.tabbar > li {
   line-height: 17px;
   margin-right: 4px;
 }
+#tabbar {
+  position: absolute;
+  top: 32px;
+  width: 100%;
+  height: 24px;
+}
+#statusbar {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  height: 32px;
+  background-color: #ddd;
+}
+ul.tabbar > li.active {
+  /*background: -webkit-linear-gradient(top, #ffffff 0%,#a0c0f0 100%);*/
+  background-color: #fff;
+}
+ul.tabbar > li.active:hover {
+  background-color: #fff;
+}
 ul.tabbar > li:hover {
   background-color: #ccc;
+}
+ul.tabbar > li {
+  background-color: #bbb;
 }
 span.ph-alt {
   display: none;
@@ -71,10 +111,10 @@ div.modal-compact-frame {
   left: 0;
   bottom: 0;
   right: 0;
-  background-color: #eee;
-  border-style: solid;
-  border-color: #aaa;
-  border-width: 1px;
+  background-color: #fff;
+  /*border-style: solid;
+  border-color: #fff;
+  border-width: 1px;*/
   border-radius: 5px;
   box-shadow: 4px 4px 5px rgba(0, 0, 0, .5);
 }
@@ -86,12 +126,4 @@ div.modal-compact-footer {
   padding: 4px;
   height: 24px;
   bottom: 8px;
-}
-.footer {
-  position: absolute;
-  bottom: 0px;
-  width: 100%;
-  height: 48px;
-  z-index: 1024;
-  background-color: #ddd;
 }

@@ -22,6 +22,7 @@ class PeridotBoard extends Board
     @onConnected(false)
     @canarium.open(port.name, (result) =>
       return callback(false) unless result
+      callback(true)
       xhr = new XMLHttpRequest
       url = chrome.runtime.getURL("firmware.rpd")
       xhr.open("GET", url, true)

@@ -13,9 +13,7 @@
   },
   "permissions": [
     "serial",
+    "syncFileSystem",
     {"fileSystem": ["directory", "write"]}
-  ]/*,
-  "content_security_policy": [
-    {"script-src": ["self", "unsafe-eval"]}
-  ]*/
+  ]
 }

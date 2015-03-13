@@ -140,14 +140,14 @@ class Sketch
   ###*
   Build sketch
   ###
-  build: (successCallback, errorCallback) -> do (self = this) ->
+  build: (successCallback, errorCallback) ->
     FileUtil.readEntries(
-      self.dirEntry,
-      ((entries) ->
+      @dirEntry,
+      ((entries) =>
         AsyncFor(
           entries,
-          ((next, abort) ->
-            builder = Builder.createBuilder(self.dirEntry, this)
+          ((next, abort) =>
+            builder = Builder.createBuilder(@dirEntry, this)
             return next() unless builder
             console.log({"build": builder})
             builder.build(next, abort)
@@ -194,6 +194,12 @@ class Sketch
       """
   }
 
+  $("#save-sketch").click(=>
+    bootbox.dialog(
+      title: "Save as ...",
+      message: "hogehoge",
+    )
+  )
   $(=>
     @create(
       ((result, sketch) ->
@@ -215,8 +221,8 @@ $("button#open-sketch").click(->
   #  ModalSpin.show()
   App.sketch.board.test()
 )
-$("button#save-sketch").click(->
-  App.sketch.build(->
-    console.log({"build succeeded": arguments})
-  )
-)
+#  $("button#save-sketch").click(->
+#    App.sketch.build(->
+#      console.log({"build succeeded": arguments})
+#    )
+#  )
