@@ -10,3 +10,6 @@
 [submodule "src/mruby"]
 	path = src/mruby
 	url = https://github.com/kimushu/mruby.git
+[submodule "src/js-yaml"]
+	path = src/js-yaml
+	url = https://github.com/nodeca/js-yaml.git
