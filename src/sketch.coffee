@@ -1,32 +1,12 @@
 class Sketch
-  ###*
-  @property {DirectoryEntry} dirEntry
-  @readonly
-  DirectoryEntry of directory which contains sketch files
-  ###
-  dirEntry: null
+  #----------------------------------------------------------------
+  # Private constants
 
-  ###*
-  @property {Object} config
-  Configuration of sketch
-  ###
-  config: null
+  CONFIG_FILE = "sketch.yml"  # Configuration file name
+  TEMP_QUOTA  = 1*1024*1024   # Quota (in bytes) for TEMPORARY filesystem
 
-  ###*
-  @property {String} name
-  @readonly
-  Name of sketch
-  ###
-  name: null
-
-  ###*
-  @property {Board} board
-  @readonly
-  Board selection
-  ###
-  board: null
-
-  editors: []
+  #----------------------------------------------------------------
+  # Class attributes/methods
 
   ###*
   Open an existing sketch / Create a new sketch
@@ -36,60 +16,272 @@ class Sketch
   @open: (dirEntry, callback) ->
     return @create(callback) unless dirEntry
     FileUtil.readText(
-      [dirEntry, "sketch.json"],
-      null,
-      ((result, readdata) =>
-        return callback(false) unless result
-        callback(true, new this(dirEntry, JSON.parse(readdata)))
-      )
-    )
+      [dirEntry, CONFIG_FILE]
+      (result, readdata) =>
+        unless result
+          App.lastError = "Failed to open sketch (Cannot open #{CONFIG_FILE})"
+          return callback(false)
+        callback(true, new this(dirEntry, jsyaml.safeLoad(readdata)))
+    ) # FileUtil.readText
 
   ###*
   Create a new sketch
   @param {Function} callback  Callback ({Boolean} result, {Sketch} sketch)
   ###
   @create: (callback) ->
+    failed = (detail) ->
+      App.lastError = "Failed to create sketch (#{detail})"
+      callback(false)
     window.webkitRequestFileSystem(
-      TEMPORARY,
-      @quota,
-      ((fs) ->
+      TEMPORARY
+      TEMP_QUOTA
+      (fs) =>
         now = new Date
-        m2s = ["jan", "feb", "mar", "apr", "may", "jun",
-               "jul", "aug", "sep", "oct", "nov", "dec"]
-        base = "sketch_#{m2s[now.getMonth()]}#{now.getDate()}"
-        suffix = App.defaultSuffix
-        bootFile = "main#{suffix}"
+        base = "sketch_#{now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate()}"
         Async.each(
-          [1..26],
-          ((num, next, done) =>
+          [1..26]
+          (num, next, done) =>
+            name = base + String.fromCharCode(0x60 + num)
             fs.root.getDirectory(
-              base + String.fromCharCode(0x60 + num),
-              {create: true, exclusive: false},
-              ((dirEntry) =>
-                FileUtil.writeText(
-                  [dirEntry, "sketch.json"],
-                  "{\"bootFile\": \"#{bootFile}\"}",
-                  ((result) =>
-                    return next() unless result
-                    FileUtil.writeText(
-                      [dirEntry, bootFile],
-                      Sketch.template[suffix],
-                      ((result) =>
-                        return next() unless result
-                        Sketch.open(dirEntry, callback)
-                      )
-                    ) # FileUtil.writeText()
+              name
+              {create: true, exclusive: false}
+              (dirEntry) =>
+                @saveEmptySketch(dirEntry, (result) =>
+                  return next() unless result
+                  @open(dirEntry, (result, sketch) ->
+                    sketch.isTemporary = true if result
+                    callback(result, sketch)
                   )
-                ) # FileUtil.writeText()
-              ),
+                ) # @saveEmptySketch
               next
             ) # fs.root.getDirectory()
-          ),
-          (-> callback(false))
+          -> failed("Directory already exists")
         ) # Async.each()
-      ),# (fs) ->
-      (-> callback(false))
+      -> failed("Failed to request file system")
     ) # window.webkitRequestFileSystem()
+
+  ###*
+  Save a new empty sketch
+  @param {Function} callback  Callback ({Boolean} result)
+  ###
+  @saveEmptySketch: (dirEntry, callback) ->
+    suffix = App.defaultSuffix
+    bootFile = "main#{suffix}"
+    config = {
+      bootFile: bootFile
+      sketch: {files: {}, downloadAll: false}
+    }
+    config.sketch.files[bootFile] = {}
+    FileUtil.writeText(
+      [dirEntry, CONFIG_FILE]
+      jsyaml.safeDump(config)
+      (result) =>
+        return callback(false) unless result
+        FileUtil.writeText(
+          [dirEntry, bootFile]
+          @template[suffix]
+          callback
+        ) # FileUtil.writeText
+    ) # FileUtil.writeText
+
+  #----------------------------------------------------------------
+  # User interface
+
+  ###*
+  [UI action] Open sketch
+  ###
+  @uiOpenSketch: (callback) ->
+    # TODO: select location (GoogleDrive/LocalStorage/Browser/etc.)
+    ModalSpin.show()
+    final = (result, sketch) ->
+      ModalSpin.hide()
+      unless result
+        Notify.error(App.lastError)
+        return callback?(false)
+      App.sketch = sketch
+      sketch.openEditor(
+        sketch.config.bootFile
+        (result, editor) ->
+          return callback(false) unless result
+          editor.load(->
+            editor.activate()
+            callback(true)
+          )
+      ) # sketch.openEditor
+
+    chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
+      unless dirEntry
+        # cancelled by user
+        chrome.runtime.lastError
+        return final(true)  # close spin without error message
+      @open(dirEntry, final)
+    ) # chrome.fileSystem.chooseEntry
+
+  ###
+  [UI event] Clicking "Open sketch" button
+  ###
+  $("#open-sketch").click(=>
+    return @uiOpenSketch() unless App.sketch
+    @uiCloseSketch((result) => @uiOpenSketch() if result)
+  )
+
+  ###*
+  [UI action] Save sketch (overwrite)
+  ###
+  @uiSaveSketch: (callback) ->
+    sketch = App.sketch
+    return Notify.warning("No sketch to save") unless sketch
+    ModalSpin.show()
+    sketch.save((result) ->
+      if result
+        Notify.success("Sketch has saved.")
+      else
+        Notify.error(App.lastError)
+      ModalSpin.hide()
+      callback?(result)
+    )
+
+  ###
+  [UI event] Clicking "Save sketch" button
+  ###
+  $("#save-sketch").click(=>
+    #  return @uiSaveSketchAs() if App.sketch?.isTemporary
+    @uiSaveSketch()
+  )
+
+  ###*
+  [UI action] Save sketch (to new location)
+  ###
+  @uiSaveSketchAs: (callback) ->
+    sketch = App.sketch
+    return Notify.warning("No sketch to save") unless sketch
+    ModalSpin.show()
+    final = (result) ->
+      Notify.error(App.lastError) unless result
+      ModalSpin.hide()
+      callback?(result)
+    chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
+      unless dirEntry
+        # cancelled by user
+        chrome.runtime.lastError
+        return final(true)  # close spin without error message
+      sketch.saveAs(dirEntry, (result) ->
+        Notify.error("Failed to save sketch (#{App.lastError})") unless result
+        ModalSpin.hide()
+      )
+    ) # chrome.fileSystem.chooseEntry
+
+  ###
+  [UI event] Clicking "Save as..." button
+  ###
+  $("#save-sketch-as").click(=>
+    @uiSaveSketchAs()
+  )
+
+  ###*
+  [UI action] Close sketch
+  @param {Function} callback  Callback ({Boolean} result)
+  ###
+  @uiCloseSketch: (callback) ->
+    return callback(true) unless App.sketch
+    bootbox.dialog({
+      title: "Current sketch was modified"
+      message: "Are you want to discard modifications?"
+      buttons: {
+        discard: {
+          label: "Yes. I discard them."
+          className: "btn-danger"
+          callback: ->
+            App.sketch.close((result) ->
+              App.sketch = null if result
+              callback(result)
+            )
+        }
+        save: {
+          label: "No. I want to save before close."
+          className: "btn-success"
+          callback: => @uiSaveSketch(callback)
+        }
+      }
+    })  # bootbox.dialog
+
+  ###*
+  [UI action] Build sketch
+  ###
+  @uiBuildSketch: ->
+    return Notify.error("No sketch to build") unless App.sketch
+    ModalSpin.show()
+    App.sketch.build((result) ->
+      if result
+        Notify.success("Build succeeded")
+      else
+        Notify.error("Build failed (#{App.lastError})")
+      ModalSpin.hide()
+    )
+
+  ###
+  [UI event] Clicking "Build" button
+  ###
+  $("#build").click(=>
+    @uiBuildSketch()
+  )
+
+  #----------------------------------------------------------------
+  # Instance attributes/methods
+
+  ###*
+  @property {DirectoryEntry}
+  @readonly
+  DirectoryEntry of directory which contains sketch files
+  ###
+  dirEntry: null
+
+  ###*
+  @property {Object}
+  Configuration of sketch
+  ###
+  config: null
+
+  ###*
+  @property {String}
+  @readonly
+  Name of sketch
+  ###
+  name: null
+
+  ###*
+  @property {Board}
+  @readonly
+  Board selection
+  ###
+  board: null
+
+  ###*
+  @property {Editor[]}
+  @readonly
+  List of opened editors
+  ###
+  editors: []
+
+  ###*
+  @property {Boolean}
+  @readonly
+  Saved in TEMPORARY storage
+  ###
+  isTemporary: false
+
+  ###*
+  @property {Boolean}
+  @readonly
+  Is sketch modified?
+  ###
+  modified: false
+
+  ###*
+  Mark as modified
+  ###
+  markModified: (value = true) ->
+    @modified = value
 
   ###*
   Change board of sketch
@@ -102,84 +294,108 @@ class Sketch
       return callback(false) unless result
       @board = board
       callback(true)
-    )
+    ) # @board.disconnect
 
   ###*
   Open an editor for a single file
+  @param {Function} callback  Callback ({Boolean} result, {Editor} editor)
   ###
-  openEditor: (path, successCallback, errorCallback) ->
-    self = this
+  openEditor: (path, callback) ->
     FileUtil.readEntries(
-      @dirEntry,
-      ((entries) ->
+      @dirEntry
+      (entries) =>
         for e in entries
-          continue if e.name != path
+          continue unless e.name == path
           editor = Editor.open(e)
-          self.editors.push(editor)
-          return successCallback(editor)
-      ),
-      errorCallback
-    )
+          @editors.push(editor)
+          callback(true, editor)
+      -> callback(false)
+    ) # FileUtil.readEntries
 
   ###*
   Save sketch (including all files in sketch)
+  @param {Function} callback  Callback ({Boolean} result)
   ###
-  save: (successCallback, errorCallback) ->
-    errorCallback or= -> null
-    AsyncFor(
-      @editors,
-      ((next, abort) ->
-        this.save(next, (-> abort(true)))
-      ),
-      ((aborted) ->
-        return errorCallback() if aborted
-        successCallback()
-      )
-    )
+  save: (callback) ->
+    @saveAs(null, callback)
+
+  ###*
+  Save to another directory
+  @param {DirectoryEntry} dirEntry  New directory to store sketch files @nullable
+  @param {Function}       callback  Callback ({Boolean} result)
+  ###
+  saveAs: (dirEntry, callback) ->
+    Async.apply_each(
+      @editors
+      (next, abort) ->
+        @saveAs(dirEntry, (result) -> if result then next() else abort())
+      (done) =>
+        return callback(false) unless done
+        @dirEntry = dirEntry if dirEntry
+        @saveConfig((result) ->
+          @modified = false if result
+          callback(result)
+        )
+    ) # Async.apply_each
+
+  ###*
+  Save configuration
+  @param {Function} callback  Callback ({Boolean} result)
+  ###
+  saveConfig: (callback) ->
+    FileUtil.writeText(
+      [@dirEntry, CONFIG_FILE]
+      jsyaml.safeDump(@config)
+      callback
+    ) # FileUtil.writeText
+
+  ###*
+  Close sketch
+  ###
+  close: (callback) ->
+    # TODO
+    callback(true)
 
   ###*
   Build sketch
+  @param {Function} callback  Callback ({Boolean} result)
   ###
-  build: (successCallback, errorCallback) ->
-    FileUtil.readEntries(
-      @dirEntry,
-      ((entries) =>
-        AsyncFor(
-          entries,
-          ((next, abort) =>
-            builder = Builder.createBuilder(@dirEntry, this)
-            return next() unless builder
-            console.log({"build": builder})
-            builder.build(next, abort)
-          ),
-          ((aborted) ->
-            return errorCallback() if aborted
-            successCallback()
-          )
-        )
-      ),
-      errorCallback
-    )
-
-  ###*
-  Transport sketch to new location
-  ###
-  transport: (dirEntry, successCallback, errorCallback) ->
-    null
+  build: (callback) ->
+    Async.each(
+      (name for name of @config.sketch.files)
+      (name, next, abort) =>
+        console.log("build:#{name}")
+        @dirEntry.getFile(
+          name
+          {}
+          (fileEntry) =>
+            cfg = @config.sketch.files[name]
+            return next() if cfg.build? and (not cfg.build)
+            builder = Builder.createBuilder(
+              @dirEntry
+              fileEntry
+              cfg.build_options
+              cfg.builder
+            )
+            unless builder
+              return abort() if cfg.build
+              cfg.build = false
+              return next()
+            builder.build((result) -> if result then next() else abort())
+          abort
+        ) # @dirEntry.getFile
+      (done) ->
+        callback(done)
+    ) # Async.apply
 
   ###*
   @private
-  Construct class
+  Constructor
+  @param {DirectoryEntry} dirEntry    Directory to be associated with this sketch
+  @param {Object}         config      Initial configuration
   ###
   constructor: (@dirEntry, @config) ->
     @name = @dirEntry.name
-
-  ###*
-  @property {Integer} quota
-  @readonly
-  Quota size of sketch (in bytes)
-  ###
-  @quota: 1 * 1024 * 1024
 
   ###*
   @property {Object} template
@@ -194,33 +410,20 @@ class Sketch
       """
   }
 
-  $("#save-sketch").click(=>
-    bootbox.dialog(
-      title: "Save as ...",
-      message: "hogehoge",
-    )
-  )
   $(=>
     @create(
-      ((result, sketch) ->
+      (result, sketch) ->
         return unless result
         App.sketch = sketch
         console.log({"New sketch": sketch})
-        sketch.openEditor(sketch.config.bootFile,
-          ((e) ->
-            e.load(->
-              e.activate()
-            )
-          )
-        )
-      )
-    )
+        sketch.openEditor(
+          sketch.config.bootFile
+          (result, editor) ->
+            editor.load(-> editor.activate())
+        ) # sketch.openEditor
+    ) # @create
   )
 
-$("button#open-sketch").click(->
-  #  ModalSpin.show()
-  App.sketch.board.test()
-)
 #  $("button#save-sketch").click(->
 #    App.sketch.build(->
 #      console.log({"build succeeded": arguments})

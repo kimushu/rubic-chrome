@@ -10,37 +10,40 @@
     <div class="navbar navbar-inverse navbar-fixed-top navbar-sketch" role="navigation">
       <div class="navbar-header">
         <ul class="nav">
-          <li>
+          <div class="btn-toolbar">
             <!--<div class="btn-group">
               <button class="btn btn-xs" title="Menu" id="menu"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
             </div>-->
-            <div class="btn-group">
+            <div class="btn-group btn-group-xs">
               <p class="navbar-text"> Rubic</p>
             </div>
-            <div class="btn-group">
-              <button class="btn btn-xs" title="New sketch" id="new-sketch"><span class="glyphicon glyphicon-asterisk"></span></button>
-              <button class="btn btn-xs" title="Open sketch" id="open-sketch"><span class="glyphicon glyphicon-open"></span></button>
-              <button class="btn btn-xs" title="Save sketch" id="save-sketch"><span class="glyphicon glyphicon-save"></span></button>
-            </div><!-- /.btn-group -->
-            <div class="btn-group" id="group-board-info">
-              <button class="btn btn-xs" title="" disabled><span class="glyphicon glyphicon-info-sign"></span></button>
-            </div><!-- /.btn-group -->
+            <div class="btn-group btn-group-xs">
+              <button class="btn" title="New sketch" id="new-sketch"><span class="glyphicon glyphicon-asterisk"></span> New</button>
+            </div>
+            <div class="btn-group btn-group-xs">
+              <button class="btn" title="Open sketch" id="open-sketch"><span class="glyphicon glyphicon-open"></span> Open</button>
+            </div>
+            <div class="btn-group btn-group-xs">
+              <button class="btn" title="Save sketch" id="save-sketch"><span class="glyphicon glyphicon-save"></span> Save</button>
+              <button type="button" class="btn" title="Save sketch dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#" id="save-sketch-as">Save as...</a></li>
+              </ul>
+            </div>
             <div class="btn-toolbar pull-right">
-              <div class="btn-group" id="group-build">
-                <button class="btn btn-xs btn-primary" id="build" title=""><span class="glyphicon glyphicon-random"></span> Build</button>
+              <div class="btn-group btn-group-xs">
+                <button class="btn" id="build" title=""><span class="glyphicon glyphicon-random"></span> Build</button>
               </div>
-              <div class="btn-group" id="group-run">
-                <button class="btn btn-xs btn-primary" id="run" title="" disabled><span class="glyphicon glyphicon-play-circle"></span> Run</button>
+              <div class="btn-group btn-group-xs">
+                <button class="btn btn-primary" id="run" title="" disabled><span class="glyphicon glyphicon-play-circle"></span> Run</button>
               </div>
             </div>
-          </li>
+          </div><!-- /.btn-toolbar -->
         </ul><!-- /.nav -->
       </div><!-- /.navbar-header -->
     </div><!-- /.navbar -->
-    <header id="tabbar">
-      <ul class="tabbar">
-        <li class="active"><span id="main.rb">main.rb</span></li>
-        <li><span id="sketch.json">sketch.json</span></li>
+    <header class="tabbar">
+      <ul class="tabbar" id="file-tabbar">
       </ul>
     </header><!-- /header -->
     <div id="editor"></div>
@@ -67,6 +70,9 @@
                 <li class="btn-xs list-alt disabled"><a>No available port</a></li>
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
+            <div class="btn-group" id="group-board-info">
+              <button class="btn btn-xs" title="Board information" disabled><span class="glyphicon glyphicon-info-sign"></span></button>
+            </div><!-- /.btn-group -->
           </li>
         </ul><!-- /.nav -->
       </div><!-- .navbar-header -->
@@ -75,11 +81,13 @@
     </div>
     <script src="jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootstrap/dist/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="bootstrap-notify/dist/bootstrap-notify.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootbox/bootbox.js" type="text/javascript" charset="utf-8"></script>
     <script src="spin.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="jquery.spin.js" type="text/javascript" charset="utf-8"></script>
     <script src="canarium.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js-yaml/dist/js-yaml.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="app.js" type="text/javascript" charset="utf-8"></script>
     <script src="lib.js" type="text/javascript" charset="utf-8"></script>
   </body>

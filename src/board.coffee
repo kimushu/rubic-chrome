@@ -1,10 +1,29 @@
+###*
+@class
+Base class for embedded boards
+###
 class Board
-  ###*
-  Constructor
-  ###
-  constructor: ->
+  #----------------------------------------------------------------
+  # Class attributes/methods
 
   ###*
+  @protected
+  Register board class
+  ###
+  @addBoard: (board) -> @_boards.push(board)
+
+  ###*
+  @private
+  @property
+  List of board classes
+  ###
+  @_boards: []
+
+  #----------------------------------------------------------------
+  # Instance attributes/methods
+
+  ###*
+  @property
   Connection state
   ###
   isConnected: false
@@ -47,6 +66,7 @@ class Board
 
   ###*
   Callback called when connection state is changed
+  @param {Boolean} state      New state
   ###
   onConnected: (state) ->
     @isConnected = state
@@ -62,19 +82,14 @@ class Board
     @onConnected(false)
     callback(true)
 
-  fileSystem: null
-
-  ###*
-  @protected
-  Register board class
-  ###
-  @addBoard: (board) -> @_boards.push(board)
-
   ###*
   @private
-  List of board classes
+  Constructor
   ###
-  @_boards: []
+  constructor: @pureClass
+
+  #----------------------------------------------------------------
+  # UI initializations
 
   $(=>
     for boardClass in @_boards
@@ -101,21 +116,21 @@ class Board
         b.find(".btn").prop("disabled", false)
   )
 
-  $("#group-board-info").find(".btn").click(->
-    console.log("sandbox")
-    return App.sketch.board.dumpMemory(parseInt($("#hoge1").val()), parseInt($("#hoge2").val()))
-    App.sketch.board.verbose = 3
-    App.sketch.board.sendHttpRequest("GET", "/hoge", null, (code, response) ->
-      console.log("code: #{code}, response: #{response}")
-    )
-    return
-    ModalSpin.show()
-    App.sketch.board.getInfo((result, info) ->
-      ModalSpin.hide()
-      bootbox.alert({
-        title: "Board information",
-        message: info
-      })
-    )
-  )
+  # $("#group-board-info").find(".btn").click(->
+  #   console.log("sandbox")
+  #   return App.sketch.board.dumpMemory(parseInt($("#hoge1").val()), parseInt($("#hoge2").val()))
+  #   App.sketch.board.verbose = 3
+  #   App.sketch.board.sendHttpRequest("GET", "/hoge", null, (code, response) ->
+  #     console.log("code: #{code}, response: #{response}")
+  #   )
+  #   return
+  #   ModalSpin.show()
+  #   App.sketch.board.getInfo((result, info) ->
+  #     ModalSpin.hide()
+  #     bootbox.alert({
+  #       title: "Board information",
+  #       message: info
+  #     })
+  #   )
+  # )
 

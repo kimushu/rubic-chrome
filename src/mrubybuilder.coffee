@@ -1,33 +1,49 @@
 class MRubyBuilder extends Builder
-  Builder._extendedBy(this)
+  Builder.addBuilder(this)
+
+  #----------------------------------------------------------------
+  # Class attributes/methods
+
   @suffix = ["rb"]
 
-  constructor: (@dirEntry, @fileEntry, @flags) -> null
+  #----------------------------------------------------------------
+  # Instance attributes/methods
 
-  build: (successCallback, errorCallback) -> do (self = this) ->
-    FileUtil.readEntryText(
-      self.fileEntry,
-      null,
-      ((rb_contents) ->
-        console.log({"compiling mruby...": self.fileEntry})
-        rb_name = "/#{self.fileEntry.name}"
+  ###*
+  Constructor
+  @param {DirectoryEntry} dirEntry      Directory to store output files
+  @param {FileEntry}      fileEntry     Source file
+  @param {String}         opt.version   Prefered version @nullable
+  ###
+  constructor: (@dirEntry, @fileEntry, opt) ->
+    @options = $.extend({version: "1.0.0"}, opt)
+
+  ###*
+  Build mruby source
+  @param {Function} callback  Callback ({Boolean} result)
+  ###
+  build: (callback) ->
+    FileUtil.readText(
+      @fileEntry
+      (result, readdata) =>
+        return callback(false) unless result
+        rb_name = "/#{@fileEntry.name}"
         mrb_name = "/out.mrb"
         module = {
           print: (data) ->
             console.log({"stdout": data})
           printErr: (data) ->
             console.log({"stderr": data})
-          read: (filename, binary) ->
-            console.log("Module.read: " + filename)
           preRun: [->
-            module.exports.FS.writeFile(rb_name, rb_contents, {encoding: "binary"})
+            module.exports.FS.writeFile(rb_name, readdata, {encoding: "utf8"})
           ]
-          "arguments": ["-o#{mrb_name}", rb_name].concat(self.flags || [])
+          "arguments": ["-o#{mrb_name}", rb_name].concat(@options.flags or [])
         }
         Lib.mrbc(module)
-        console.log({result: module.exports.FS.readFile(mrb_name)})
-        successCallback()
-      ),
-      errorCallback
-    )
+        FileUtil.writeText( # TODO bad name "writeText"
+          [@dirEntry, @fileEntry.name.replace(/\.[^.]+$/, "") + ".mrb"]
+          module.exports.FS.readFile(mrb_name)
+          callback
+        ) # FileUtil.writeText
+    ) # FileUtil.readText
 

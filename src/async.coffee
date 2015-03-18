@@ -1,10 +1,14 @@
+###*
+@class
+Asynchronous utilities for CoffeeScript
+###
 class Async
   #----------------------------------------------------------------
   # Walker (with binding each object to callback)
   #
   # Script:
   #   Async.apply_each(
-  #     [a, b, c],
+  #     [a, b, c]
   #     (next, abort) ->      # (callback next, callback abort)
   #       @save(next, abort)
   #     (done) =>             # (boolean done)
@@ -15,19 +19,19 @@ class Async
   #   a.save(
   #     -> b.save(
   #       -> c.save(
-  #         -> console.log(false),
-  #         -> console.log(true),
-  #       ),
-  #       -> console.log(true),
-  #     ),
-  #     ->console.log(true)
+  #         -> console.log(true)
+  #         -> console.log(false)
+  #       )
+  #       -> console.log(false)
+  #     )
+  #     -> console.log(false)
   #   )
   #
   @apply_each: (objects, callback, final) ->
     final or= -> null
     next = (index, next) ->
       return final(true) unless index < objects.length
-      each.call(
+      callback.call(
         objects[index],
         (-> next(index + 1, next)),
         (-> final(false))
@@ -39,7 +43,7 @@ class Async
   #
   # Script:
   #   Async.each(
-  #     [a, b, c],
+  #     [a, b, c]
   #     (item, next, abort) ->  # (object item,
   #                             #  callback next, callback abort)
   #       item.save(next, abort)
@@ -51,12 +55,12 @@ class Async
   #   a.save(
   #     -> b.save(
   #       -> c.save(
-  #         -> console.log(false),
-  #         -> console.log(true),
-  #       ),
-  #       -> console.log(true),
-  #     ),
-  #     ->console.log(true)
+  #         -> console.log(false)
+  #         -> console.log(true)
+  #       )
+  #       -> console.log(true)
+  #     )
+  #     -> console.log(true)
   #   )
   @each: (objects, callback, final) ->
     final or= -> null

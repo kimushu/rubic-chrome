@@ -19,11 +19,14 @@ SOURCES = \
 		wakayamarbboard.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
+		yamleditor.coffee \
 	fileutil.coffee \
 	builder.coffee \
 		mrubybuilder.coffee \
 	sketch.coffee \
-#	filesystem.coffee \
+	filesystem.coffee \
+		localfilesystem.coffee \
+		googledrivefilesystem.coffee \
 #	marshal.coffee \
 #	sandbox.coffee
 #		de0board.coffee \

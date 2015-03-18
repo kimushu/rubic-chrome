@@ -2,33 +2,32 @@ class FileUtil
   ###*
   Read text to FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
-  @param {String}   defaultText Default text if failed
   @param {Function} callback    Callback ({Boolean} result, {String} readdata)
   ###
-  @readText: (entry, defaultText, callback) ->
+  @readText: (entry, callback) ->
     if entry instanceof Array
       [dirEntry, path] = entry
       dirEntry.getFile(
         path,
         {create: false},
-        ((fileEntry) -> FileUtil.readText(fileEntry, defaultText, callback)),
-        (-> callback(false, defaultText))
+        ((fileEntry) -> FileUtil.readText(fileEntry, callback)),
+        (-> callback(false))
       )
     else
       entry.file(
         ((file) ->
           reader = new FileReader
           reader.onload = -> callback(true, @result)
-          reader.onerror = -> callback(false, defaultText)
+          reader.onerror = -> callback(false)
           reader.readAsText(file)
         ),
-        (-> callback(false, defaultText))
+        (-> callback(false))
       )
 
   ###*
   Write text to FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to write
-  @param {String}   defaultText Default text if failed
+  @param {String}   text        Text to write
   @param {Function} callback    Callback ({Boolean} result)
   ###
   @writeText: (entry, text, callback) ->

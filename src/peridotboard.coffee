@@ -1,15 +1,25 @@
+###*
+@class
+PERIDOT board support
+###
 class PeridotBoard extends Board
   Board.addBoard(this)
+
+  #----------------------------------------------------------------
+  # Class attributes/methods
+
   @boardname: "PERIDOT"
   @author: "Shun Osafune (@s_osafune)"
   @website: "https://peridotcraft.com/"
   @portClasses: [SerialPort]
 
+  #----------------------------------------------------------------
+  # Instance attributes/methods
+
   ###*
   Constructor
   ###
   constructor: (config) ->
-    super()
     @canarium = new Canarium()
 
   ###*

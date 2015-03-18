@@ -1,6 +1,9 @@
 Function::property = (prop, desc) ->
   Object.defineProperty @prototype, prop, desc
 
+Function::pureClass = ->
+  throw new Error("#{@constructor.name} cannot be instantiated")
+
 #  AsyncFor = (list, each, done) ->
 #    done or= -> null
 #    next = (index, next) ->
@@ -64,66 +67,57 @@ Function::property = (prop, desc) ->
 
 class App
   ###*
-  @property {Sketch} sketch
+  @property {String}
+  @nullable
+  Last error message
+  ###
+  @lastError: null
+
+  ###*
+  @property {Sketch}
+  @nullable
   Current sketch
   ###
   @sketch: null
 
   ###*
-  @property {String} defaultSuffix
+  @property {String}
   Default suffix (language) for new sketches including "." character
   ###
   @defaultSuffix: ".rb"
 
+###*
+@class
+Helper class for spin.js with modal backdrop
+###
 class ModalSpin
   $(=> @el = $("#modal-spin").spin({color: "#fff"}))
   @show: ->
     @el.modal({
-      show: true,
-      backdrop: "static",
-      keyboard: false,
+      show: true
+      backdrop: "static"
+      keyboard: false
     })
   @hide: ->
     @el.hide()
 
 ###*
-Async method invoker (serial version)
-@param list             List of objects to walk
-@param invoker          Invoke method for each object
-@param successCallback  Callback on success (no_argument)
-@param errorCallback    Callback on error (failed_object)
+@class
+Helper class for bootstrap-notify ($.notify)
 ###
-serialInvoker = (list, invoker, successCallback, errorCallback) ->
-  errorCallback or= -> null
-  next = (index, next) ->
-    return successCallback() if index >= list.length
-    obj = list[index]
-    invoker.apply(obj, [(-> next(index + 1, next)), (-> errorCallback(obj))])
-  next(0, next)
-
-###*
-Async method invoker (parallel version)
-@param list             List of objects to walk
-@param invoker          Invoke method for each object
-@param successCallback  Callback on success (no_argument)
-@param errorCallback    Callback on error (list_of_failed_objects)
-###
-parallelInvoker = (list, invoker, successCallback, errorCallback) ->
-  errorCallback or= -> null
-  count = list.length
-  failed = []
-  next = (obj) ->
-    count -= 1
-    failed.push(obj) if obj
-    if count > 0
-      null
-    else if failed.length > 0
-      errorCallback(failed)
-    else
-      successCallback()
-  for obj in list
-    do (obj) ->
-      invoker.apply(obj, [(-> next()), (-> next(obj))])
+class Notify
+  @error:   -> @notify(arguments, "danger")
+  @warning: -> @notify(arguments, "warning")
+  @info:    -> @notify(arguments, "info")
+  @success: -> @notify(arguments, "success")
+  @notify: ([message, options], type) ->
+    $.notify(message, $.extend({
+      type: type
+      allow_dismiss: true
+      placement: {from: "bottom", align: "center"}
+      delay: 3000
+      offset: 52
+    }, options))
 
 class Marshal
   @loadClass: (data, classes) ->
