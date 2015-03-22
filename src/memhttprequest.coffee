@@ -1,5 +1,5 @@
 class MemHttpRequest
-  DEBUG = 0
+  DEBUG = 1
 
   # XMLHttpRequest compatible constants
   @UNSENT:            XMLHttpRequest.UNSENT
@@ -220,8 +220,11 @@ class MemHttpRequest
   TX_RETRY_MS = 100
   RX_RETRY_MS = 100
 
-  constructor: (@datalink) ->
-    null
+  ###*
+  Constructor of MemHttpRequest
+  @param {Object} datalink    Object with data-link (getTxPacket/getRxPacket)
+  ###
+  constructor: (@datalink) -> null
 
   ###*
   @private

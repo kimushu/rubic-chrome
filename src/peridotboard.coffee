@@ -21,6 +21,8 @@ class PeridotBoard extends Board
   ###
   constructor: (config) ->
     @canarium = new Canarium()
+    @rbf_url = chrome.runtime.getURL("firmware/peridot-ram.rbf")
+    @rbf_array = null
 
   ###*
   Connect to PERIDOT board
@@ -29,29 +31,33 @@ class PeridotBoard extends Board
   ###
   connect: (port, callback) ->
     return callback(true) if @isConnected
-    @onConnected(false)
     @canarium.open(port.name, (result) =>
       return callback(false) unless result
-      callback(true)
-      xhr = new XMLHttpRequest
-      url = chrome.runtime.getURL("firmware.rpd")
-      xhr.open("GET", url, true)
-      xhr.responseType = "arraybuffer"
-      self = this
-      xhr.onload = ->
-        unless @status == 200
-          self._log(1, "connect>canarium.open>xhr>send>failed!")
-          return callback(false)
-        #  self.canarium.config(null, @response, (result) ->
-        self.canarium.avm.option({forceConfigured: true}, (result) ->
+      config = =>
+        # @canarium.config(null, @rbf_array, (result) =>
+        @canarium.avm.option({forceConfigured: true}, (result) =>
           return callback(false) unless result
-          self.canarium.reset((result) ->
+          # @canarium.reset((result) =>
+          do () =>
             return callback(false) unless result
-            self.onConnected(true)
+            @isConnected = true
             callback(true)
-          )
+          # )
         )
-      xhr.send()
+      if @rbf_array
+        config()
+      else
+        xhr = new XMLHttpRequest
+        xhr.open("GET", @rbf_url, true)
+        xhr.responseType = "arraybuffer"
+        xhr.onload = =>
+          unless xhr.status == 200
+            App.lastError = "Failed to receive firmware from #{@rbf_url}"
+            return callback(false)
+          @rbf_array = xhr.response
+          console.log({firmware: @rbf_array})
+          config()
+        xhr.send()
     )
 
   ###*
@@ -65,7 +71,7 @@ class PeridotBoard extends Board
       super(callback)
     )
 
-  dumpMemory: (addr, words) ->
+  dumpMemory: (addr, words, callback) ->
     @canarium.avm.read(addr, words * 4, (result, readdata) =>
       return console.log("MEM_READ @ 0x#{addr.toString(16)}: failed") unless result
       arr = new Uint8Array(readdata)
@@ -77,16 +83,18 @@ class PeridotBoard extends Board
         v += ("0" + arr[i*4+0].toString(16)).substr(-2)
         console.log("MEM_READ @ 0x#{addr.toString(16)}: #{v}")
         addr += 4
+      callback()
     )
   ###*
   Get board information
-  @param {Function} callback  Callback ({Object} result)
+  @param {Function} callback  Callback ({Boolean} result, {Object} info)
   ###
   getInfo: (callback) ->
     return callback(false) unless @isConnected
+    return @dumpMemory(0xfffc000, 8, -> null)
     @canarium.getinfo((result) =>
-      return callback(null) unless result
-      callback(@canarium.boardInfo)
+      return callback(false) unless result
+      callback(true, @canarium.boardInfo)
     )
 
   ###*
@@ -99,8 +107,35 @@ class PeridotBoard extends Board
       callback(result)
     )
 
+  ###*
+  Download sketch
+  ###
+  download: (sketch, callback) ->
+    FileUtil.readArrayBuf(
+      [sketch.dirEntry, 'main.mrb']
+      (result, readdata) =>
+        return callback(false) unless result
+        req = @newHttpRequest()
+        req.timeout = 3000
+        req.onreadystatechange = =>
+          return callback(false) unless req.readyState == req.DONE
+          @run(callback)
+        req.open("PUT", "http://#{SERVER_HOST}#{SERVER_FS_PATH}/main.mrb")
+        req.send(new Uint8Array(readdata))
+    )
+
+  run: (callback) ->
+    req = @newHttpRequest()
+    req.timeout = 3000
+    req.onreadystatechange = =>
+      return callback(false) unless req.readyState == req.DONE
+      callback(true)
+    req.open("POST", "http://#{SERVER_HOST}/start")
+    req.send()
+
   SERVER_HOST         = "peridot"
-  SERVER_FS_PATH      = "/mnt/spiffs"
+  # SERVER_FS_PATH      = "/mnt/spiffs"
+  SERVER_FS_PATH      = "/ram"
 
   test: (callback) ->
     req = @newHttpRequest()
@@ -118,9 +153,9 @@ class PeridotBoard extends Board
   @method newHttpRequest
   Make new XMLHttpRequest compatible object
   ###
-  newHttpRequest: () ->
-    new MemHttpRequest(this)
+  newHttpRequest: () -> new MemHttpRequest(this)
 
+  DEBUG               = 1
   MEM_BASE            = 0xfffc000
   MEM_HTTP_SIGNATURE  = "MHttp1.0"
   MEM_HTTP_VALID      = 1
@@ -147,6 +182,7 @@ class PeridotBoard extends Board
           length: null
           buffer: null
           transmit: (tx_callback) ->
+            console.log({tx_packet1: {base: base, data: @buffer}}) if DEBUG > 0
             @peridot.canarium.avm.write(base + 8, @buffer, (result) =>
               return tx_callback(false) unless result
               word = (@length << 16) | MEM_HTTP_VALID
@@ -154,11 +190,13 @@ class PeridotBoard extends Board
               word |= MEM_HTTP_EOM if @endOfMessage
               @peridot.canarium.avm.iowr(base, 1, word, (result) =>
                 return tx_callback(false) unless result
+                console.log({tx_packet2: {base: base, flags: word & 0xffff, length: word >> 16}}) if DEBUG > 0
                 @peridot.raiseIrq((result) => tx_callback(result))
               )
             )
           peridot: this
         @nextTxPacket = MEM_BASE + ((header[1] << 8) | header[0])
+        console.log({tx_packet0: {base: base, packet: packet}}) if DEBUG > 0
         callback(packet)
       )
     )
@@ -188,10 +226,12 @@ class PeridotBoard extends Board
             discard: (rx_callback) ->
               @peridot.canarium.avm.iowr(base, 1, 0, (result) =>
                 return rx_callback(false) unless result
+                console.log({rx_packet1: {base: base, discarded: true}}) if DEBUG > 0
                 @peridot.raiseIrq((result) => rx_callback(result))
               )
             peridot: this
           @nextRxPacket = MEM_BASE + ((header[1] << 8) | header[0])
+          console.log({rx_packet0: {base: base, packet: packet}}) if DEBUG > 0
           callback(packet)
         )
       )
@@ -211,6 +251,7 @@ class PeridotBoard extends Board
       @irqBase = (array[11] << 24) | (array[10] << 16) | (array[9] << 8) | array[8]
       @nextTxPacket = MEM_BASE + ((array[13] << 8) | array[12])
       @nextRxPacket = MEM_BASE + ((array[15] << 8) | array[14])
+      console.log({datalink: {irq_base: @irqBase, tx_packet: @nextTxPacket, rx_packet: @nextRxPacket}}) if DEBUG > 0
       callback(true)
     )
 
@@ -222,6 +263,7 @@ class PeridotBoard extends Board
     return callback(false) unless @irqBase?
     return callback(true) if @irqBase == 0
     @canarium.avm.iowr(@irqBase, 0, 1, (result) ->
+      console.log({raise_irq: result}) if DEBUG > 0
       callback(result)
     )
 

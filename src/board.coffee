@@ -23,27 +23,47 @@ class Board
   # Instance attributes/methods
 
   ###*
+  Get board information
+  @param {Function} callback  Callback ({Boolean} result, {Object} info)
+  ###
+  getInfo: (callback) ->
+    callback(true, {message: "No information for this board"})
+
+  ###*
+  Disconnect from board
+  @param {Function} callback  Callback ({Boolean} result)
+  ###
+  disconnect: (callback) ->
+    return callback(true) unless @isConnected
+    @isConnected = false
+    callback(true)
+
+  ###*
   @property
+  @readonly
   Connection state
   ###
   isConnected: false
 
   ###*
-  Callback called when user selects board
+  @private
+  Constructor
   ###
-  onSelected: ->
+  constructor: @pureClass
+
+  ###*
+  [UI action] Refresh port list
+  ###
+  uiRefreshPorts: ->
     b = $("#group-board")
     p = $("#group-port")
-    b.find(".ph-body").text(@constructor.boardname)
     p.find(".list-item").remove()
-    p.find(".list-refresh").unbind("click").click(=>
-      @onSelected()
-    )
+    p.find(".list-refresh").unbind("click").click(=> @uiRefreshPorts())
     p.find(".btn").prop("disabled", true).find(".ph-body").empty()
-    p.find(".btn").prop("disabled", false)
+    #  p.find(".btn").prop("disabled", false)
     index = 0
     portClass.enumerate((ports) =>
-      return if ports.length == 0
+      return unless ports.length > 0
       for port in ports
         do (port) =>
           p.find(".list-alt").before("""
@@ -53,48 +73,46 @@ class Board
             """
           )
           p.find("#port-item-#{index}").unbind("click").click(=>
-            console.log("connecting to #{@constructor.boardname} via #{port.name}...")
             p.find(".ph-body").text(port.name)
             ModalSpin.show()
             @connect(port, (result) =>
               ModalSpin.hide()
-              console.log({connect_status: result})
+              if result
+                @port = port
+                Notify.success("Connected #{@constructor.boardname} on #{port.name}")
+              else
+                @port = null
+                Notify.error("Cannot connect #{@constructor.boardname} on #{port.name}")
+              @constructor.uiChangeButtonState(result)
             )
           )
+          p.find(".btn").prop("disabled", false) if index == 0
           index += 1
     ) for portClass in @constructor.portClasses
 
   ###*
-  Callback called when connection state is changed
-  @param {Boolean} state      New state
+  [UI action] Select new board
   ###
-  onConnected: (state) ->
-    @isConnected = state
-    $("#group-board-info").find(".btn").prop("disabled", !state)
-    $("#group-run").find(".btn").prop("disabled", !state)
+  @uiSelectNewBoard: (boardClass) ->
+    b = $("#group-board")
+    sketch = App.sketch
+    unless sketch
+      b.find(".ph-body").empty()
+      return
+    sketch.setBoard(boardClass, (result, board) =>
+      return unless result
+      @uiChangeButtonState(false)
+      b.find(".ph-body").text(boardClass.boardname)
+      board.uiRefreshPorts()
+    )
 
-  ###*
-  Disconnect from board
-  @param {Function} callback  Callback ({Boolean} result)
   ###
-  disconnect: (callback) ->
-    return callback(true) unless @isConnected
-    @onConnected(false)
-    callback(true)
-
-  ###*
-  @private
-  Constructor
+  [UI initialization]
   ###
-  constructor: @pureClass
-
-  #----------------------------------------------------------------
-  # UI initializations
-
   $(=>
+    b = $("#group-board")
     for boardClass in @_boards
-      do (boardClass) ->
-        b = $("#group-board")
+      do (boardClass) =>
         b.find(".dropdown-menu").append("""
           <li class="btn-xs">
             <a href="#" id="board-item-#{boardClass.name\
@@ -105,32 +123,49 @@ class Board
           """
         )
         b.find("#board-item-#{boardClass.name}").unbind("click").click(=>
-          board = new boardClass()
-          App.sketch.changeBoard(
-            board,
-            ((result) ->
-              board.onSelected() if result
-            )
-          )
+          @uiSelectNewBoard(boardClass)
         )
         b.find(".btn").prop("disabled", false)
   )
 
-  # $("#group-board-info").find(".btn").click(->
-  #   console.log("sandbox")
-  #   return App.sketch.board.dumpMemory(parseInt($("#hoge1").val()), parseInt($("#hoge2").val()))
-  #   App.sketch.board.verbose = 3
-  #   App.sketch.board.sendHttpRequest("GET", "/hoge", null, (code, response) ->
-  #     console.log("code: #{code}, response: #{response}")
-  #   )
-  #   return
-  #   ModalSpin.show()
-  #   App.sketch.board.getInfo((result, info) ->
-  #     ModalSpin.hide()
-  #     bootbox.alert({
-  #       title: "Board information",
-  #       message: info
-  #     })
-  #   )
-  # )
+  ###
+  [UI action] Enable board access
+  ###
+  @uiChangeButtonState: (enabled) ->
+    $("#board-info").prop("disabled", !enabled)
+    $("#run").prop("disabled", !enabled)
+
+  ###*
+  [UI action] Show board information
+  ###
+  uiShowInfo: ->
+    ModalSpin.show()
+    @getInfo((result, info) =>
+      ModalSpin.hide()
+      return Notify.error("Failed to get board information") unless result
+      message = ("#{key}: #{val}" for key, val of info).join("<br/>")
+      bootbox.alert({
+        title: "Board information (#{@constructor.boardname} on #{@port.name})"
+        message:message
+      })
+    )
+
+  ###
+  [UI event] Clicking "Board info" button
+  ###
+  $("#board-info").click(-> App.sketch?.board?.uiShowInfo())
+
+  ###
+  [UI event] Clicking "Run" button
+  ###
+  $("#run").click(->
+    ModalSpin.show()
+    Sketch.uiBuildSketch((result) ->
+      sketch = App.sketch
+      sketch.board.download(sketch, (result) ->
+        ModalSpin.hide()
+        Notify.success("Download succeeded") if result
+      )
+    )
+  )
 

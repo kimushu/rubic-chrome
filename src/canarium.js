@@ -908,6 +908,14 @@ var Canarium = function() {
 			callback(result);
 		};
 
+		if (option.forceConfigured != null) {
+			if (option.forceConfigured) {
+				confrun = true;
+			} else {
+				confrun = false;
+			}
+		}
+
 		if (option.fastAcknowledge != null) {
 			if (option.fastAcknowledge) {
 				avmSendImmediate = true;

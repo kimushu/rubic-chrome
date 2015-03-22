@@ -1,57 +1,83 @@
 class FileUtil
   ###*
-  Read text to FileEntry or pair of DirectoryEntry and path
+  Read text from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {String} readdata)
   ###
   @readText: (entry, callback) ->
+    @_read(entry, callback, (reader, file) -> reader.readAsText(file))
+
+  ###*
+  Read data as ArrayBuffer from FileEntry or pair of DirectoryEntry and path
+  @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
+  @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
+  ###
+  @readArrayBuf: (entry, callback) ->
+    @_read(entry, callback, (reader, file) -> reader.readAsArrayBuffer(file))
+
+  ###*
+  @private
+  Read data from FileEntry or pair of DirectoryEntry and path
+  ###
+  @_read: (entry, callback, invoke) ->
     if entry instanceof Array
       [dirEntry, path] = entry
       dirEntry.getFile(
-        path,
-        {create: false},
-        ((fileEntry) -> FileUtil.readText(fileEntry, callback)),
-        (-> callback(false))
-      )
+        path
+        {create: false}
+        (fileEntry) => @_read(fileEntry, callback, invoke)
+        -> callback(false)
+      ) # dirEntry.getFile
     else
       entry.file(
-        ((file) ->
+        (file) ->
           reader = new FileReader
-          reader.onload = -> callback(true, @result)
+          reader.onload = -> callback(true, this.result)
           reader.onerror = -> callback(false)
-          reader.readAsText(file)
-        ),
-        (-> callback(false))
-      )
+          invoke(reader, file)
+        -> callback(false)
+      ) # entry.file
 
   ###*
   Write text to FileEntry or pair of DirectoryEntry and path
-  @param {Object}   entry       FileEntry or [DirectoryEntry, path] to write
-  @param {String}   text        Text to write
-  @param {Function} callback    Callback ({Boolean} result)
+  (Alias of FileUtil.write)
   ###
-  @writeText: (entry, text, callback) ->
+  @writeText: -> @_write.apply(this, arguments)
+
+  ###*
+  Write ArrayBuffer to FileEntry or pair of DirectoryEntry and path
+  (Alias of FileUtil.write)
+  ###
+  @writeArrayBuf: -> @_write.apply(this, arguments)
+
+  ###*
+  @private
+  Write data to FileEntry or pair of DirectoryEntry and path
+  @param {Object}                         entry     FileEntry or [DirectoryEntry, path] to write
+  @param {String/ArrayBuffer/TypedArray}  data      Data to write
+  @param {Function}                       callback  Callback ({Boolean} result)
+  ###
+  @_write: (entry, data, callback) ->
     if entry instanceof Array
       [dirEntry, path] = entry
       dirEntry.getFile(
-        path,
-        {create: true},
-        ((fileEntry) -> FileUtil.writeText(fileEntry, text, callback)),
-        (-> callback(false))
-      )
+        path
+        {create: true}
+        (fileEntry) => @_write(fileEntry, data, callback)
+        -> callback(false)
+      ) # dirEntry.getFile
     else
       entry.createWriter(
-        ((writer) ->
+        (writer) ->
           truncated = false
           writer.onwriteend = ->
             return callback(true) if truncated
             truncated = true
-            @write(new Blob([text]))
+            this.write(new Blob([data]))
           writer.onerror = -> callback(false)
           writer.truncate(0)
-        ),
-        (-> callback(false))
-      )
+        -> callback(false)
+      ) # entry.createWriter
 
   @readEntries: (dirEntry, successCallback, errorCallback) ->
     errorCallback or= -> null
@@ -60,13 +86,12 @@ class FileUtil
     readEntries = null
     readEntries = ->
       reader.readEntries(
-        ((entries) ->
+        (entries) ->
           if(entries.length == 0)
             successCallback(result)
           else
             result = result.concat(entries)
             readEntries()
-        ),
         errorCallback
       )
     readEntries()

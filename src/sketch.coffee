@@ -102,10 +102,10 @@ class Sketch
       sketch.openEditor(
         sketch.config.bootFile
         (result, editor) ->
-          return callback(false) unless result
+          return callback?(false) unless result
           editor.load(->
             editor.activate()
-            callback(true)
+            callback?(true)
           )
       ) # sketch.openEditor
 
@@ -183,9 +183,9 @@ class Sketch
   @param {Function} callback  Callback ({Boolean} result)
   ###
   @uiCloseSketch: (callback) ->
-    return callback(true) unless App.sketch
+    return callback?(true) unless App.sketch
     bootbox.dialog({
-      title: "Current sketch was modified"
+      title: "Current sketch has been modified"
       message: "Are you want to discard modifications?"
       buttons: {
         discard: {
@@ -194,7 +194,7 @@ class Sketch
           callback: ->
             App.sketch.close((result) ->
               App.sketch = null if result
-              callback(result)
+              callback?(result)
             )
         }
         save: {
@@ -208,15 +208,19 @@ class Sketch
   ###*
   [UI action] Build sketch
   ###
-  @uiBuildSketch: ->
-    return Notify.error("No sketch to build") unless App.sketch
-    ModalSpin.show()
-    App.sketch.build((result) ->
+  @uiBuildSketch: (callback) ->
+    sketch = App.sketch
+    unless sketch
+      Notify.error("No sketch to build")
+      return callback?(false)
+    ModalSpin.show() unless callback
+    sketch.build((result) ->
+      ModalSpin.hide() unless callback
       if result
-        Notify.success("Build succeeded")
+        Notify.success("Build succeeded") unless callback
       else
         Notify.error("Build failed (#{App.lastError})")
-      ModalSpin.hide()
+      callback?(result)
     )
 
   ###
@@ -284,16 +288,16 @@ class Sketch
     @modified = value
 
   ###*
-  Change board of sketch
-  @param {Board}    new board
-  @param {Function} callback ({Boolean} result)
+  Set board of sketch
+  @param {Function} boardClass  Constructor of new board
+  @param {Function} callback    Callback ({Boolean} result, {Board} board instance)
   ###
-  changeBoard: (board, callback) ->
-    @board or= {disconnect: (cb) -> cb(true)}
+  setBoard: (boardClass, callback) ->
+    @board or= {disconnect: (callback) -> callback(true)}
     @board.disconnect((result) =>
       return callback(false) unless result
-      @board = board
-      callback(true)
+      @board = new boardClass()
+      callback(true, @board)
     ) # @board.disconnect
 
   ###*
@@ -353,8 +357,13 @@ class Sketch
   Close sketch
   ###
   close: (callback) ->
-    # TODO
-    callback(true)
+    Async.apply_each(
+      @editors,
+      (next, abort) ->
+        this.close((result) -> if result then next() else abort())
+      (done) ->
+        callback(done)
+    ) # Async.apply_each
 
   ###*
   Build sketch

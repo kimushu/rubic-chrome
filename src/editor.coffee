@@ -46,6 +46,7 @@ class Editor
   @_aceEditor: null
   $(=>
     @_aceEditor = ace.edit("editor")
+    @_aceEmptySession = @_aceEditor.getSession()
     ace.Document = ace.require("./document").Document
     @_aceEditor.on("changeSession", ({oldSession, session}) ->
       oldSession._editor?.onDeactivated()
@@ -57,6 +58,12 @@ class Editor
     )
   )
 
+  ###*
+  @private
+  Empty session
+  ###
+  @_aceEmptySession: null
+
   #----------------------------------------------------------------
   # Instance attributes/methods
 
@@ -67,8 +74,8 @@ class Editor
   @param {String}         mode        Mode string for ace
   ###
   constructor: (@fileEntry, mode) ->
-    @_domId = "editor-#{@constructor._nextId}"
-    @constructor._nextId += 1
+    @_domId = "editor-#{Editor._nextId}"
+    Editor._nextId += 1
     @_session = new ace.createEditSession("", mode)
     @_session._editor = this
     li = $("<li id=\"#{@_domId}\">#{@fileEntry.name}"+
@@ -122,7 +129,11 @@ class Editor
       ) # dirEntry.getFile
     )
 
-  close: ->
+  close: (callback) ->
+    $("li##{@_domId}").remove()
+    if Editor._aceEditor.getSession() == @_session
+      Editor._aceEditor.setSession(Editor._aceEmptySession)
+    callback(true)
 
   ###*
   Activate editor

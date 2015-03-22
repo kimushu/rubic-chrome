@@ -102,3 +102,22 @@ jsduckify-is-missing:
 	@echo "**** Please visit https://github.com/lmaccherone/jsduckify"
 	@false
 
+.PHONY: dist
+dist: $(TARGET) background.js manifest.json \
+	ace-builds/src-noconflict/ace.js ace-builds/src-noconflict/mode-ruby.js \
+	bootbox/bootbox.js \
+	bootstrap-notify/dist/bootstrap-notify.min.js \
+	bootstrap/dist/css/bootstrap.min.css bootstrap/dist/js/bootstrap.min.js \
+	bootstrap/dist/fonts/glyphicons-halflings-regular.woff \
+	js-yaml/dist/js-yaml.min.js \
+	canarium.js \
+	jquery-2.1.1.min.js \
+	jquery.spin.js \
+	spin.min.js \
+	window.css window.html
+	@echo "[Packing distribution files]"
+	$(Q)mkdir -p ../dist
+	$(Q)cp --parent $^ ../dist
+	$(Q)rm -f ../rubic.zip
+	$(Q)cd .. && zip -r rubic.zip dist
+
