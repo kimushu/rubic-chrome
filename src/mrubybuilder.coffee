@@ -20,7 +20,7 @@ class MRubyBuilder extends Builder
 
   ###*
   Build mruby source
-  @param {Function} callback  Callback ({Boolean} result)
+  @param {Function} callback  Callback ({Boolean} result, {Number} length)
   ###
   build: (callback) ->
     FileUtil.readText(
@@ -31,19 +31,22 @@ class MRubyBuilder extends Builder
         mrb_name = "/out.mrb"
         module = {
           print: (data) ->
-            console.log({"stdout": data})
+            console.log("mruby(stdout):#{data}")
           printErr: (data) ->
-            console.log({"stderr": data})
+            console.log("mruby(stderr):#{data}")
           preRun: [->
             module.exports.FS.writeFile(rb_name, readdata, {encoding: "utf8"})
           ]
           "arguments": ["-o#{mrb_name}", rb_name].concat(@options.flags or [])
         }
         Lib.mrbc(module)
-        FileUtil.writeText( # TODO bad name "writeText"
+        output = module.exports.FS.readFile(mrb_name)
+        FileUtil.writeArrayBuf(
           [@dirEntry, @fileEntry.name.replace(/\.[^.]+$/, "") + ".mrb"]
-          module.exports.FS.readFile(mrb_name)
-          callback
-        ) # FileUtil.writeText
+          output
+          (result) ->
+            return callback(false) unless result
+            callback(true, output.byteLength)
+        ) # FileUtil.writeArrayBuf
     ) # FileUtil.readText
 

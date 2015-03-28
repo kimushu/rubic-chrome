@@ -217,10 +217,10 @@ class Sketch
       Notify.error("No sketch to build")
       return callback?(false)
     ModalSpin.show() unless callback
-    sketch.build((result) ->
+    sketch.build((result, message) ->
       ModalSpin.hide() unless callback
       if result
-        Notify.success("Build succeeded") unless callback
+        Notify.success("Build succeeded (#{message})") unless callback
       else
         Notify.error("Build failed (#{App.lastError})")
       callback?(result)
@@ -371,13 +371,13 @@ class Sketch
 
   ###*
   Build sketch
-  @param {Function} callback  Callback ({Boolean} result)
+  @param {Function} callback  Callback ({Boolean} result, {String} usage)
   ###
   build: (callback) ->
+    total_length = 0
     Async.each(
       (name for name of @config.sketch.files)
       (name, next, abort) =>
-        console.log("build:#{name}")
         @dirEntry.getFile(
           name
           {}
@@ -394,11 +394,19 @@ class Sketch
               return abort() if cfg.build
               cfg.build = false
               return next()
-            builder.build((result) -> if result then next() else abort())
+            builder.build(
+              (result, length) ->
+                return abort() unless result
+                console.log({len: length})
+                total_length += length
+                next()
+            ) # builder.build
           abort
         ) # @dirEntry.getFile
       (done) ->
-        callback(done)
+        return callback(false) unless done
+        usage = "#{(total_length/1024).toFixed(1)} kB used"
+        callback(true, usage)
     ) # Async.apply
 
   ###*
