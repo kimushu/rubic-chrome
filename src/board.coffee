@@ -59,8 +59,7 @@ class Board
     p = $("#group-port")
     p.find(".list-item").remove()
     p.find(".list-refresh").unbind("click").click(=> @uiRefreshPorts())
-    p.find(".btn").prop("disabled", true).find(".ph-body").empty()
-    #  p.find(".btn").prop("disabled", false)
+    p.find(".btn").prop("disabled", false).find(".ph-body").empty()
     index = 0
     portClass.enumerate((ports) =>
       return unless ports.length > 0
@@ -123,6 +122,7 @@ class Board
           """
         )
         b.find("#board-item-#{boardClass.name}").unbind("click").click(=>
+          Editor.focus()
           @uiSelectNewBoard(boardClass)
         )
         b.find(".btn").prop("disabled", false)
@@ -153,12 +153,16 @@ class Board
   ###
   [UI event] Clicking "Board info" button
   ###
-  $("#board-info").click(-> App.sketch?.board?.uiShowInfo())
+  $("#board-info").click(->
+    Editor.focus()
+    App.sketch?.board?.uiShowInfo()
+  )
 
   ###
   [UI event] Clicking "Run" button
   ###
   $("#run").click(->
+    Editor.focus()
     ModalSpin.show()
     Sketch.uiBuildSketch((result) ->
       sketch = App.sketch

@@ -21,6 +21,12 @@ class Editor
     throw new Error("Editor not found for *.#{ext} file")
 
   ###*
+  Set focus on editor
+  ###
+  @focus: ->
+    @_aceEditor.textInput.focus()
+
+  ###*
   @protected
   Register editor/viewer class
   @param {Function}       editor      Class constructor

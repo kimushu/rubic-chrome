@@ -121,6 +121,7 @@ class Sketch
   [UI event] Clicking "Open sketch" button
   ###
   $("#open-sketch").click(=>
+    Editor.focus()
     return @uiOpenSketch() unless App.sketch
     @uiCloseSketch((result) => @uiOpenSketch() if result)
   )
@@ -145,7 +146,8 @@ class Sketch
   [UI event] Clicking "Save sketch" button
   ###
   $("#save-sketch").click(=>
-    #  return @uiSaveSketchAs() if App.sketch?.isTemporary
+    Editor.focus()
+    # return @uiSaveSketchAs() if App.sketch?.isTemporary
     @uiSaveSketch()
   )
 
@@ -175,6 +177,7 @@ class Sketch
   [UI event] Clicking "Save as..." button
   ###
   $("#save-sketch-as").click(=>
+    Editor.focus()
     @uiSaveSketchAs()
   )
 
@@ -227,6 +230,7 @@ class Sketch
   [UI event] Clicking "Build" button
   ###
   $("#build").click(=>
+    Editor.focus()
     @uiBuildSketch()
   )
 
