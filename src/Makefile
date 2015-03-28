@@ -27,6 +27,7 @@ SOURCES = \
 	filesystem.coffee \
 		localfilesystem.coffee \
 		googledrivefilesystem.coffee \
+	about.coffee \
 #	marshal.coffee \
 #	sandbox.coffee
 #		de0board.coffee \

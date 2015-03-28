@@ -18,6 +18,9 @@
               <p class="navbar-text"> Rubic</p>
             </div>
             <div class="btn-group btn-group-xs">
+              <button class="btn" title="Menu" id="menu"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
+            </div>
+            <div class="btn-group btn-group-xs">
               <button class="btn" title="New sketch" id="new-sketch"><span class="glyphicon glyphicon-asterisk"></span> New</button>
             </div>
             <div class="btn-group btn-group-xs">
@@ -42,6 +45,30 @@
         </ul><!-- /.nav -->
       </div><!-- /.navbar-header -->
     </div><!-- /.navbar -->
+    <div id="sidebar-wrapper">
+      <ul class="sidebar-nav">
+        <li>
+          <a href="#">New sketch</a>
+        </li>
+        <li>
+          <a href="#">Open sketch...</a>
+        </li>
+        <li>
+          <a href="#">Save sketch</a>
+        </li>
+        <li>
+          <a href="#">Save sketch as...</a>
+        </li>
+        <li class="divider"></li>
+        <li>
+          <a href="#">Preferences</a>
+        </li>
+        <li class="divider"></li>
+        <li>
+          <a href="#">About this application</a>
+        </li>
+      </ul><!-- /.sidebar-nav -->
+    </div><!-- /#sidebar-wrapper -->
     <header class="tabbar">
       <ul class="tabbar" id="file-tabbar">
       </ul>
@@ -51,20 +78,20 @@
       <div class="navbar-header">
         <ul class="nav">
           <li>
-            <div class="btn-group dropup" id="group-board">
-              <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" disabled>
+            <div class="btn-group btn-group-xs dropup" id="group-board">
+              <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" disabled>
                 <span class="ph-body"></span><span class="ph-alt">Select Board</span> <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" role="menu">
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
-            <div class="btn-group dropup" id="group-port">
-              <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" disabled>
+            <div class="btn-group btn-group-xs dropup" id="group-port">
+              <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" disabled>
                 <span class="ph-body"></span><span class="ph-alt">Select Port</span> <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" role="menu">
                 <li class="btn-xs">
-                  <a href="#" class="list-refresh">Rescan ports</a>
+                <a href="#" class="list-refresh"><span class="glyphicon glyphicon-refresh menu-icon" aria-hidden="true"></span>Rescan ports</a>
                 </li>
                 <li class="divider"></li>
                 <li class="btn-xs list-alt disabled"><a>No available port</a></li>

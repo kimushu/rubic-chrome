@@ -21,8 +21,6 @@ class PeridotBoard extends Board
   ###
   constructor: (config) ->
     @canarium = new Canarium()
-    @rbf_url = chrome.runtime.getURL("firmware/peridot-ram.rbf")
-    @rbf_array = null
 
   ###*
   Connect to PERIDOT board
@@ -33,31 +31,11 @@ class PeridotBoard extends Board
     return callback(true) if @isConnected
     @canarium.open(port.name, (result) =>
       return callback(false) unless result
-      config = =>
-        # @canarium.config(null, @rbf_array, (result) =>
-        @canarium.avm.option({forceConfigured: true}, (result) =>
-          return callback(false) unless result
-          # @canarium.reset((result) =>
-          do () =>
-            return callback(false) unless result
-            @isConnected = true
-            callback(true)
-          # )
-        )
-      if @rbf_array
-        config()
-      else
-        xhr = new XMLHttpRequest
-        xhr.open("GET", @rbf_url, true)
-        xhr.responseType = "arraybuffer"
-        xhr.onload = =>
-          unless xhr.status == 200
-            App.lastError = "Failed to receive firmware from #{@rbf_url}"
-            return callback(false)
-          @rbf_array = xhr.response
-          console.log({firmware: @rbf_array})
-          config()
-        xhr.send()
+      @canarium.avm.option({forceConfigured: true}, (result) =>
+        return callback(false) unless result
+        @isConnected = true
+        callback(true)
+      )
     )
 
   ###*
@@ -91,7 +69,7 @@ class PeridotBoard extends Board
   ###
   getInfo: (callback) ->
     return callback(false) unless @isConnected
-    return @dumpMemory(0xfffc000, 8, -> null)
+    # return @dumpMemory(0xfffc000, 8, -> null)
     @canarium.getinfo((result) =>
       return callback(false) unless result
       callback(true, @canarium.boardInfo)

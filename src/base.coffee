@@ -91,15 +91,22 @@ class App
 Helper class for spin.js with modal backdrop
 ###
 class ModalSpin
-  $(=> @el = $("#modal-spin").spin({color: "#fff"}))
+  $(=>
+    @spin = $("#modal-spin").spin({color: "#fff"})
+    @count = 0
+  )
   @show: ->
-    @el.modal({
+    console.log("ModalSpin.show(#{@count} -> #{@count+1})")
+    @spin.modal({
       show: true
       backdrop: "static"
       keyboard: false
-    })
+    }) if @count == 0
+    @count += 1
   @hide: ->
-    @el.hide()
+    console.log("ModalSpin.hide(#{@count} -> #{@count-1})")
+    @count -= 1
+    @spin.hide() if @count == 0
 
 ###*
 @class
@@ -129,3 +136,7 @@ class Marshal
   @saveClass: (instance) ->
     return {classname: instance.name, content: instance.save()}
 
+$("#menu").click(->
+  # $("#sidebar-wrapper").toggleClass("toggled")
+  About.show()
+)

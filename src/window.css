@@ -127,6 +127,11 @@ div.modal-compact-footer {
   height: 24px;
   bottom: 8px;
 }
+span.menu-icon {
+  margin-left: -16px;
+  margin-right: 2px;
+  width: 14px;
+}
 .modal-dialog {
   top: 58px;
 }
@@ -137,4 +142,50 @@ div.modal-compact-footer {
   left: 0px;
   width: 100%;
   height: 3px;
+}
+#sidebar-wrapper {
+  z-index: 1000;
+  position: fixed;
+  left: 200px;
+  width: 0;
+  height: 100%;
+  margin-top: 32px;
+  margin-left: -200px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  background: #333;
+  transition: all 0.5s ease;
+}
+#sidebar-wrapper.toggled {
+  width: 200px;
+}
+.sidebar-nav {
+  position: absolute;
+  top: 0;
+  width: 200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sidebar-nav li {
+  text-indent: 10px;
+  line-height: 32px;
+}
+.sidebar-nav li a {
+  display: block;
+  text-decoration: none;
+  color: #999;
+}
+.sidebar-nav li a:hover {
+  text-decoration: none;
+  color: #fff;
+}
+.sidebar-nav li.divider {
+  border-top: 1px #666 dotted;
+  margin: 1px 20px 1px 4px;
+  padding: 0;
+}
+img.supporter-logo {
+  max-width: 30%;
+  max-height: 64px;
 }
