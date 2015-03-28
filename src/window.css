@@ -186,6 +186,20 @@ span.menu-icon {
   padding: 0;
 }
 img.supporter-logo {
-  max-width: 30%;
-  max-height: 64px;
+  max-width: 90%;
+  max-height: 48px;
+}
+.row-vcenter {
+  display: table;
+  table-layout: fixed;
+  min-height: 24px;
+}
+.col-vcenter {
+  vertical-align: middle;
+  display: table-cell;
+  float: none;
+}
+.thin-hr {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
