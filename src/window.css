@@ -32,21 +32,18 @@ body {
   text-align: center;
   width: 64px;
 }
-.workspace {
-  height: 100%;
-}
 #editor {
   position: absolute;
-  top: calc(32px + 24px);
+  top: 24px;
   right: 0;
-  bottom: 32px;
+  bottom: 0;
   left: 0;
 }
 ul.tabbar {
   background-color: #999;
-  border-width: 1px;
-  border-style: none none solid;
-  padding: 3px 3px 0px;
+  /*border-width: 1px;
+  border-style: none none solid;*/
+  padding: 2px 2px 0px;
   margin: 0px;
   overflow: hidden;
   height: 24px;
@@ -64,10 +61,11 @@ ul.tabbar > li {
   list-style: none;
   line-height: 17px;
   margin-right: 4px;
+  height: 22px;
 }
 header.tabbar {
   position: absolute;
-  top: 32px;
+  top: 0;
   width: 100%;
   height: 24px;
 }
@@ -135,6 +133,10 @@ span.menu-icon {
 .modal-dialog {
   top: 58px;
 }
+.btn-thin {
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
 [data-notify="progressbar"] {
   margin-bottom: 0px;
   position: absolute;
@@ -143,21 +145,54 @@ span.menu-icon {
   width: 100%;
   height: 3px;
 }
+#wrapper {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: calc(100% - 32px - 32px);
+}
 #sidebar-wrapper {
   z-index: 1000;
-  position: fixed;
-  left: 200px;
-  width: 0;
-  height: 100%;
-  margin-top: 32px;
-  margin-left: -200px;
+  position: absolute;
+  top: 0;
+  left: -200px;
+  width: 200px;
+  bottom: 0;
+  /*margin-top: 32px;*/
+  /*margin-left: -200px;*/
   overflow-x: hidden;
   overflow-y: scroll;
   background: #333;
   transition: all 0.5s ease;
 }
-#sidebar-wrapper.toggled {
-  width: 200px;
+#sidebar-wrapper::-webkit-scrollbar {
+  background-color: #555;
+}
+#sidebar-wrapper::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+}
+#sidebar-wrapper::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(0, 0, 0, 0);
+  background-clip: padding-box;
+  background-color: #888;
+}
+#wrapper.toggled #sidebar-wrapper {
+  left: 0;
+}
+#content-wrapper {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  transition: all 0.5s ease;
+}
+#wrapper.toggled #content-wrapper {
+  margin-left: 200px;
 }
 .sidebar-nav {
   position: absolute;

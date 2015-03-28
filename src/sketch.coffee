@@ -120,7 +120,7 @@ class Sketch
   ###
   [UI event] Clicking "Open sketch" button
   ###
-  $("#open-sketch").click(=>
+  $(".action-open-sketch").click(=>
     Editor.focus()
     return @uiOpenSketch() unless App.sketch
     @uiCloseSketch((result) => @uiOpenSketch() if result)
@@ -145,9 +145,17 @@ class Sketch
   ###
   [UI event] Clicking "Save sketch" button
   ###
-  $("#save-sketch").click(=>
+  $(".action-save-sketch").click(=>
     Editor.focus()
     # return @uiSaveSketchAs() if App.sketch?.isTemporary
+    @uiSaveSketch()
+  )
+
+  ###
+  [UI event] Pressing Ctrl+S
+  ###
+  $(document).keydown((event) =>
+    return unless (event.keyCode == 0x53 and event.ctrlKey)
     @uiSaveSketch()
   )
 
@@ -176,7 +184,7 @@ class Sketch
   ###
   [UI event] Clicking "Save as..." button
   ###
-  $("#save-sketch-as").click(=>
+  $(".action-save-sketch-as").click(=>
     Editor.focus()
     @uiSaveSketchAs()
   )
@@ -217,7 +225,9 @@ class Sketch
       Notify.error("No sketch to build")
       return callback?(false)
     ModalSpin.show() unless callback
+    progress = Notify.info("Building...")
     sketch.build((result, message) ->
+      progress.close()
       ModalSpin.hide() unless callback
       if result
         Notify.success("Build succeeded (#{message})") unless callback
@@ -229,8 +239,12 @@ class Sketch
   ###
   [UI event] Clicking "Build" button
   ###
-  $("#build").click(=>
+  $(".action-build-sketch").click(=>
     Editor.focus()
+    @uiBuildSketch()
+  )
+  $(document).keydown((event) =>
+    return unless (event.keyCode == 0x76 and not event.ctrlKey)
     @uiBuildSketch()
   )
 

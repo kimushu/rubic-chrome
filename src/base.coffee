@@ -123,6 +123,7 @@ class Notify
       allow_dismiss: true
       placement: {from: "bottom", align: "center"}
       delay: 2000
+      newest_on_top: true
       offset: 52
     }, options))
 
@@ -137,6 +138,6 @@ class Marshal
     return {classname: instance.name, content: instance.save()}
 
 $("#menu").click(->
-  # $("#sidebar-wrapper").toggleClass("toggled")
-  About.show()
+  Editor.focus()
+  $("#wrapper").toggleClass("toggled")
 )

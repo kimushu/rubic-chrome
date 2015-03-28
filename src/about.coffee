@@ -4,20 +4,27 @@ About dialog
 ###
 class About
   ###*
-  Show about dialog
+  [UI action] Show about dialog
   ###
   @show: ->
     manifest = chrome.runtime.getManifest()
     # Make message of self information
     msg = """
-    <div class="row row-vcenter"><div class="col-xs-12">About this application:</div></div>
-    <div class="row row-vcenter">
-      <div class="col-xs-4 col-vcenter text-center"><h1>#{manifest.name}</h1></div>
-      <div class="col-xs-8 col-vcenter">
-        Version: #{manifest.version}<br>
-        (#{manifest.version_name})
+    <div style="
+      overflow-x: hidden;
+      overflow-y: scroll;
+      max-height: 250px;
+      margin-left: 16px;
+      margin-right: 16px;">
+      <div class="row row-vcenter"><div class="col-xs-12" style="font-size: large;">About this application:</div></div>
+      <div class="row row-vcenter">
+        <div class="col-xs-4 col-vcenter text-center"><h1>#{manifest.name}</h1></div>
+        <div class="col-xs-8 col-vcenter" style="font-size: small;">
+          #{manifest.name} is an IDE for prototyping on embedded-boards with Ruby language.
+          <br><span style="font-weight: bold;">Version: #{manifest.version}</span>
+          <br>Author: <a href="http://github.com/kimushu/rubic" target="_blank">@kimu_shu</a>
+        </div>
       </div>
-    </div>
     """
     # Make supporters list
     for key in ["platform", "application"]
@@ -47,7 +54,19 @@ class About
           <div class="col-xs-#{(3-(index%3))*4} col-vcenter"></div>
         </div><!-- /.row -->
         """
-    bootbox.dialog({message: msg})
+    msg += "</div>"
+    bootbox.dialog({
+      message: msg
+      closeButton: false
+      buttons: {success: {label: "OK"}}
+    })
+
+  ###
+  [UI event] Show about dialog
+  ###
+  $(".action-about").click(=>
+    @show()
+  )
 
   ###*
   @private

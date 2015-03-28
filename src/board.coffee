@@ -132,8 +132,8 @@ class Board
   [UI action] Enable board access
   ###
   @uiChangeButtonState: (enabled) ->
-    $("#board-info").prop("disabled", !enabled)
-    $("#run").prop("disabled", !enabled)
+    $(".action-board-info").prop("disabled", !enabled)
+    $(".action-run-group").prop("disabled", !enabled)
 
   ###*
   [UI action] Show board information
@@ -153,7 +153,7 @@ class Board
   ###
   [UI event] Clicking "Board info" button
   ###
-  $("#board-info").click(->
+  $(".action-board-info").click(->
     Editor.focus()
     App.sketch?.board?.uiShowInfo()
   )
@@ -161,7 +161,7 @@ class Board
   ###
   [UI event] Clicking "Run" button
   ###
-  $("#run").click(->
+  $(".action-run-sketch").click(->
     Editor.focus()
     ModalSpin.show()
     Sketch.uiBuildSketch((result) ->
