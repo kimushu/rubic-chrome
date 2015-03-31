@@ -2,13 +2,14 @@
 Rubic(ルービック)は、Ruby言語を用いた組込みボードのプロトタイピング環境です。
 
 Rubyスクリプト入力画面でプログラムを書いたら、接続しているボードを選択して実行ボタンを押すだけで、プログラムがボード上で走り出します。
+
 本ソフトウェアは、Google Chrome&trade;アプリとして提供され、Chromeの動作環境(Windows / Mac OS X / Linux / Chrome OS)であればどの環境でも使うことができます。
 
 ## 機能
 - スケッチの編集/保存 (保存先はPCのローカルストレージ)
 - Rubyからmruby中間コードへのビルドおよび対応ボードへの転送
 
-### 対応ボード (バージョン 0.1.* 時点)
+## 対応ボード (バージョン 0.1.* 時点)
 - PERIDOT (https://peridotcraft.com/)
 
 ## 構造
@@ -23,5 +24,6 @@ Rubicアプリ本体はCoffeeScriptから変換されたJavaScriptで構成さ�
 
 ## ライセンス
 Rubic本体のソースコードは、MIT Licenseで公開されています。
-https://github.com/kimushu/rubic/
+- https://github.com/kimushu/rubic/
+
 同梱された各ライブラリのライセンスについては、Menu→About this applicationから確認できます。
