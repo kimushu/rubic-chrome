@@ -9,15 +9,18 @@ Rubyスクリプト入力画面でプログラムを書いたら、接続して�
 - スケッチの編集/保存 (保存先はPCのローカルストレージ)
 - Rubyからmruby中間コードへのビルドおよび対応ボードへの転送
 
-## 対応ボード (バージョン 0.1.* 時点)
+## 対応ボード (バージョン 0.1.\* 時点)
 - PERIDOT (https://peridotcraft.com/)
+  - 0.1.\* 時点では、ファームウェアの書き込みに対応していません。
+    別途 RBF-Writer (https://chrome.google.com/webstore/detail/peridot-rbf-writer/lchhhfhfikpnikljdaefcllbfblabibg) を用いて、
+    下記のファームウェアを事前に書き込んでおく必要があります。
 
-## 構造
+    https://github.com/kimushu/rubic-catalog/tree/v0.1.x/PERIDOT
+
+## 仕組み
 Rubicアプリ本体はCoffeeScriptから変換されたJavaScriptで構成されており、その内部には、emscriptenでビルドすることでJavaScriptに変換されたmrubyが同梱されています。
 
-[Run]ボタンが押されると、同梱されたmrubyが内部で起動してスケッチのRubyスクリプト(.rb)をmrubyの中間コードファイル(.mrb)に変換します。
-
-変換が成功すれば、すぐに中間コードファイルは接続した組込みボードに書き込まれ、ボードがリセットされてすぐに動き始めます。
+[Run]ボタンが押されると、同梱されたmrubyが起動してスケッチのRubyスクリプト(.rb)をmrubyの中間コードファイル(.mrb)に変換します。変換された中間コードファイルは接続した組込みボードに書き込まれ、ボードがリセットされてすぐに動き始めます。
 
 ## 今後の予定
 - 対応ボードの追加 (直近では Wakayama.rb を予定)
