@@ -13,9 +13,7 @@ Rubyスクリプト入力画面でプログラムを書いたら、接続して�
 
 ## 対応ボード (バージョン 0.1.\* 時点)
 - PERIDOT (https://peridotcraft.com/)
-  - 0.1.\* 時点では、ファームウェアの書き込みに対応していません。
-    別途 RBF-Writer (https://chrome.google.com/webstore/detail/peridot-rbf-writer/lchhhfhfikpnikljdaefcllbfblabibg) を用いて、
-    下記のファームウェアを事前に書き込んでおく必要があります。
+  - 0.1.\* 時点ではボード側ファームウェアの書き込みに対応していません。RBF-Writer (https://chrome.google.com/webstore/detail/peridot-rbf-writer/lchhhfhfikpnikljdaefcllbfblabibg)を用いて、下記のファームウェアを事前に書き込んでおく必要があります。
 
     https://github.com/kimushu/rubic-catalog/tree/v0.1.x/PERIDOT
 
