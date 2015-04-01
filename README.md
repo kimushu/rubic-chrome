@@ -5,6 +5,8 @@ Rubyスクリプト入力画面でプログラムを書いたら、接続して�
 
 本ソフトウェアは、Google Chrome&trade;アプリとして提供され、Chromeの動作環境(Windows / Mac OS X / Linux / Chrome OS)であればどの環境でも使うことができます。
 
+![Rubic Introduction](http://drive.google.com/uc?export=view&id=0Bwxb9sJ6SGTDZzFGb2dtM1N4OG8)
+
 ## 機能
 - スケッチの編集/保存 (保存先はPCのローカルストレージ)
 - Rubyからmruby中間コードへのビルドおよび対応ボードへの転送
