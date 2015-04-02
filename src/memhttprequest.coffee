@@ -253,7 +253,7 @@ class MemHttpRequest
     console.log({"MemHttpRequest#failed": this, message: message})
     @errorFlag = true
     @changeState(@DONE)
-    callback() if callback
+    callback?()
 
   ###*
   @private

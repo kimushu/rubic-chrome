@@ -23,6 +23,7 @@ SOURCES = \
 	fileutil.coffee \
 	builder.coffee \
 		mrubybuilder.coffee \
+		mrbviewer.coffee \
 	sketch.coffee \
 	filesystem.coffee \
 		localfilesystem.coffee \

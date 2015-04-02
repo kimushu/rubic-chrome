@@ -94,14 +94,21 @@ class Editor
   @param {Function}       callback    Callback ({Boolean} result)
   ###
   load: (callback) ->
-    FileUtil.readText(@fileEntry, (result, readdata) =>
+    readCallback = (result, readdata) =>
       unless result
         Notify.error("Failed to read #{@fileEntry.name}")
-        return callback(false)
+        return callback?(false)
+      if @convertOnLoad
+        readdata = @convertOnLoad(readdata)
+        return callback?(false) unless readdata
       @_session.getDocument().setValue(readdata)
       @modified = false
-      callback(true)
-    )
+      callback?(true)
+
+    if @convertOnLoad
+      FileUtil.readArrayBuf(@fileEntry, readCallback)
+    else
+      FileUtil.readText(@fileEntry, readCallback)
 
   ###*
   Save text to file
@@ -122,16 +129,16 @@ class Editor
     FileUtil.writeText(dest, doc.getValue(), (result) =>
       unless result
         Notify.error("Failed to write #{name}")
-        return callback(false)
+        return callback?(false)
       @markModified(false)
-      return callback(true) unless dirEntry
+      return callback?(true) unless dirEntry
       dirEntry.getFile(
         name
         {}
-        (@fileEntry) => callback(true)
+        (@fileEntry) => callback?(true)
         ->
           Notify.error("Failed to reopen #{name}")
-          callback(false)
+          callback?(false)
       ) # dirEntry.getFile
     )
 
@@ -139,13 +146,22 @@ class Editor
     $("li##{@_domId}").remove()
     if Editor._aceEditor.getSession() == @_session
       Editor._aceEditor.setSession(Editor._aceEmptySession)
-    callback(true)
+    callback?(true)
 
   ###*
   Activate editor
   ###
   activate: ->
     Editor._aceEditor.setSession(@_session)
+
+  ###*
+  @protected
+  @nullable
+  Convert contents on load (if null, no conversion needed)
+  @param {ArrayBuffer} arrayBuf   Data to convert
+  @return {String} Converted string
+  ###
+  convertOnLoad: null
 
   ###*
   @private

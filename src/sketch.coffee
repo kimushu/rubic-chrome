@@ -20,8 +20,8 @@ class Sketch
       (result, readdata) =>
         unless result
           App.lastError = "Failed to open sketch (Cannot open #{CONFIG_FILE})"
-          return callback(false)
-        callback(true, new this(dirEntry, jsyaml.safeLoad(readdata)))
+          return callback?(false)
+        callback?(true, new this(dirEntry, jsyaml.safeLoad(readdata)))
     ) # FileUtil.readText
 
   ###*
@@ -31,7 +31,7 @@ class Sketch
   @create: (callback) ->
     failed = (detail) ->
       App.lastError = "Failed to create sketch (#{detail})"
-      callback(false)
+      callback?(false)
     window.webkitRequestFileSystem(
       TEMPORARY
       TEMP_QUOTA
@@ -50,7 +50,7 @@ class Sketch
                   return next() unless result
                   @open(dirEntry, (result, sketch) ->
                     sketch.isTemporary = true if result
-                    callback(result, sketch)
+                    callback?(result, sketch)
                   )
                 ) # @saveEmptySketch
               next
@@ -76,7 +76,7 @@ class Sketch
       [dirEntry, CONFIG_FILE]
       jsyaml.safeDump(config)
       (result) =>
-        return callback(false) unless result
+        return callback?(false) unless result
         FileUtil.writeText(
           [dirEntry, bootFile]
           @template[suffix]
@@ -91,6 +91,12 @@ class Sketch
   [UI action] Open sketch
   ###
   @uiOpenSketch: (callback) ->
+    if App.sketch
+      @uiCloseSketch((result) =>
+        return unless result
+        App.sketch = null
+        @uiOpenSketch(callback)
+      )
     # TODO: select location (GoogleDrive/LocalStorage/Browser/etc.)
     ModalSpin.show()
     final = (result, sketch) ->
@@ -122,9 +128,9 @@ class Sketch
   ###
   $(".action-open-sketch").click(=>
     Editor.focus()
-    return @uiOpenSketch() unless App.sketch
-    @uiCloseSketch((result) => @uiOpenSketch() if result)
+    @uiOpenSketch()
   )
+  KeyBind.add("Ctrl+O", "Open sketch", => @uiOpenSketch())
 
   ###*
   [UI action] Save sketch (overwrite)
@@ -135,7 +141,7 @@ class Sketch
     ModalSpin.show()
     sketch.save((result) ->
       if result
-        Notify.success("Sketch has saved.")
+        Notify.success("Sketch has been saved.")
       else
         Notify.error(App.lastError)
       ModalSpin.hide()
@@ -150,14 +156,7 @@ class Sketch
     # return @uiSaveSketchAs() if App.sketch?.isTemporary
     @uiSaveSketch()
   )
-
-  ###
-  [UI event] Pressing Ctrl+S
-  ###
-  $(document).keydown((event) =>
-    return unless (event.keyCode == 0x53 and event.ctrlKey)
-    @uiSaveSketch()
-  )
+  KeyBind.add("Ctrl+S", "Save sketch", => @uiSaveSketch())
 
   ###*
   [UI action] Save sketch (to new location)
@@ -188,6 +187,7 @@ class Sketch
     Editor.focus()
     @uiSaveSketchAs()
   )
+  KeyBind.add("Ctrl+Shift+S", "Save sketch as", => @uiSaveSketchAs())
 
   ###*
   [UI action] Close sketch
@@ -231,6 +231,8 @@ class Sketch
       ModalSpin.hide() unless callback
       if result
         Notify.success("Build succeeded (#{message})") unless callback
+        # # for debugging
+        # sketch.openEditor("main.mrb", (result, sketch) -> sketch.load())
       else
         Notify.error("Build failed (#{App.lastError})")
       callback?(result)
@@ -243,10 +245,7 @@ class Sketch
     Editor.focus()
     @uiBuildSketch()
   )
-  $(document).keydown((event) =>
-    return unless (event.keyCode == 0x76 and not event.ctrlKey)
-    @uiBuildSketch()
-  )
+  KeyBind.add("Ctrl+R", "Build", => @uiBuildSketch())
 
   #----------------------------------------------------------------
   # Instance attributes/methods
@@ -311,11 +310,11 @@ class Sketch
   @param {Function} callback    Callback ({Boolean} result, {Board} board instance)
   ###
   setBoard: (boardClass, callback) ->
-    @board or= {disconnect: (callback) -> callback(true)}
+    @board or= {disconnect: (callback) -> callback?(true)}
     @board.disconnect((result) =>
-      return callback(false) unless result
+      return callback?(false) unless result
       @board = new boardClass()
-      callback(true, @board)
+      callback?(true, @board)
     ) # @board.disconnect
 
   ###*
@@ -330,8 +329,8 @@ class Sketch
           continue unless e.name == path
           editor = Editor.open(e)
           @editors.push(editor)
-          callback(true, editor)
-      -> callback(false)
+          callback?(true, editor)
+      -> callback?(false)
     ) # FileUtil.readEntries
 
   ###*
@@ -352,11 +351,11 @@ class Sketch
       (next, abort) ->
         @saveAs(dirEntry, (result) -> if result then next() else abort())
       (done) =>
-        return callback(false) unless done
+        return callback?(false) unless done
         @dirEntry = dirEntry if dirEntry
         @saveConfig((result) ->
           @modified = false if result
-          callback(result)
+          callback?(result)
         )
     ) # Async.apply_each
 
@@ -380,7 +379,7 @@ class Sketch
       (next, abort) ->
         this.close((result) -> if result then next() else abort())
       (done) ->
-        callback(done)
+        callback?(done)
     ) # Async.apply_each
 
   ###*
@@ -418,9 +417,9 @@ class Sketch
           abort
         ) # @dirEntry.getFile
       (done) ->
-        return callback(false) unless done
+        return callback?(false) unless done
         usage = "#{(total_length/1024).toFixed(1)} kB used"
-        callback(true, usage)
+        callback?(true, usage)
     ) # Async.apply
 
   ###*

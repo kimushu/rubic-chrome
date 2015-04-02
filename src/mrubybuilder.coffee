@@ -26,7 +26,7 @@ class MRubyBuilder extends Builder
     FileUtil.readText(
       @fileEntry
       (result, readdata) =>
-        return callback(false) unless result
+        return callback?(false) unless result
         rb_name = "/#{@fileEntry.name}"
         mrb_name = "/out.mrb"
         module = {
@@ -45,8 +45,8 @@ class MRubyBuilder extends Builder
           [@dirEntry, @fileEntry.name.replace(/\.[^.]+$/, "") + ".mrb"]
           output
           (result) ->
-            return callback(false) unless result
-            callback(true, output.byteLength)
+            return callback?(false) unless result
+            callback?(true, output.byteLength)
         ) # FileUtil.writeArrayBuf
     ) # FileUtil.readText
 

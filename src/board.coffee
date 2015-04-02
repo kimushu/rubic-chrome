@@ -27,16 +27,17 @@ class Board
   @param {Function} callback  Callback ({Boolean} result, {Object} info)
   ###
   getInfo: (callback) ->
-    callback(true, {message: "No information for this board"})
+    callback?(true, {message: "No information for this board"})
 
   ###*
   Disconnect from board
   @param {Function} callback  Callback ({Boolean} result)
   ###
   disconnect: (callback) ->
-    return callback(true) unless @isConnected
+    return callback?(true) unless @isConnected
+    Notify.info("Disconnected")
     @isConnected = false
-    callback(true)
+    callback?(true)
 
   ###*
   @property

@@ -26,16 +26,16 @@ class FileUtil
         path
         {create: false}
         (fileEntry) => @_read(fileEntry, callback, invoke)
-        -> callback(false)
+        -> callback?(false)
       ) # dirEntry.getFile
     else
       entry.file(
         (file) ->
           reader = new FileReader
-          reader.onload = -> callback(true, this.result)
-          reader.onerror = -> callback(false)
+          reader.onload = -> callback?(true, this.result)
+          reader.onerror = -> callback?(false)
           invoke(reader, file)
-        -> callback(false)
+        -> callback?(false)
       ) # entry.file
 
   ###*
@@ -64,19 +64,19 @@ class FileUtil
         path
         {create: true}
         (fileEntry) => @_write(fileEntry, data, callback)
-        -> callback(false)
+        -> callback?(false)
       ) # dirEntry.getFile
     else
       entry.createWriter(
         (writer) ->
           truncated = false
           writer.onwriteend = ->
-            return callback(true) if truncated
+            return callback?(true) if truncated
             truncated = true
             this.write(new Blob([data]))
-          writer.onerror = -> callback(false)
+          writer.onerror = -> callback?(false)
           writer.truncate(0)
-        -> callback(false)
+        -> callback?(false)
       ) # entry.createWriter
 
   @readEntries: (dirEntry, successCallback, errorCallback) ->
@@ -88,7 +88,7 @@ class FileUtil
       reader.readEntries(
         (entries) ->
           if(entries.length == 0)
-            successCallback(result)
+            successCallback?(result)
           else
             result = result.concat(entries)
             readEntries()

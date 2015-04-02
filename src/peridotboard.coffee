@@ -28,13 +28,13 @@ class PeridotBoard extends Board
   @param {Function} callback  Callback ({Boolean} result)
   ###
   connect: (port, callback) ->
-    return callback(true) if @isConnected
+    return callback?(true) if @isConnected
     @canarium.open(port.name, (result) =>
-      return callback(false) unless result
+      return callback?(false) unless result
       @canarium.avm.option({forceConfigured: true}, (result) =>
-        return callback(false) unless result
+        return callback?(false) unless result
         @isConnected = true
-        callback(true)
+        callback?(true)
       )
     )
 
@@ -43,9 +43,9 @@ class PeridotBoard extends Board
   @param {Function} callback  Callback ({Boolean} result)
   ###
   disconnect: (callback) ->
-    return callback(true) unless @isConnected
+    return callback?(true) unless @isConnected
     @canarium.close((result) =>
-      return callback(false) unless result
+      return callback?(false) unless result
       super(callback)
     )
 
@@ -61,18 +61,18 @@ class PeridotBoard extends Board
         v += ("0" + arr[i*4+0].toString(16)).substr(-2)
         console.log("MEM_READ @ 0x#{addr.toString(16)}: #{v}")
         addr += 4
-      callback()
+      callback?()
     )
   ###*
   Get board information
   @param {Function} callback  Callback ({Boolean} result, {Object} info)
   ###
   getInfo: (callback) ->
-    return callback(false) unless @isConnected
+    return callback?(false) unless @isConnected
     # return @dumpMemory(0xfffc000, 8, -> null)
     @canarium.getinfo((result) =>
-      return callback(false) unless result
-      callback(true, @canarium.boardInfo)
+      return callback?(false) unless result
+      callback?(true, @canarium.boardInfo)
     )
 
   ###*
@@ -82,7 +82,7 @@ class PeridotBoard extends Board
   reset: (callback) ->
     @irqBase = @nextTxPacket = @nextRxPacket = null
     @canarium.reset((result, respbyte) =>
-      callback(result)
+      callback?(result)
     )
 
   ###*
@@ -92,11 +92,11 @@ class PeridotBoard extends Board
     FileUtil.readArrayBuf(
       [sketch.dirEntry, 'main.mrb']
       (result, readdata) =>
-        return callback(false) unless result
+        return callback?(false) unless result
         req = @newHttpRequest()
         req.timeout = 3000
         req.onreadystatechange = =>
-          return callback(false) unless req.readyState == req.DONE
+          return callback?(false) unless req.readyState == req.DONE
           @run(callback)
         req.open("PUT", "http://#{SERVER_HOST}#{SERVER_FS_PATH}/main.mrb")
         req.send(new Uint8Array(readdata))
@@ -106,8 +106,8 @@ class PeridotBoard extends Board
     req = @newHttpRequest()
     req.timeout = 3000
     req.onreadystatechange = =>
-      return callback(false) unless req.readyState == req.DONE
-      callback(true)
+      return callback?(false) unless req.readyState == req.DONE
+      callback?(true)
     req.open("POST", "http://#{SERVER_HOST}/start")
     req.send()
 
@@ -121,7 +121,7 @@ class PeridotBoard extends Board
     req.onreadystatechange = ->
       switch req.readyState
         when req.DONE
-          null#  callback(not req.errorFlag)
+          null#  callback?(not req.errorFlag)
     #  req.open("GET", "http://#{SERVER_HOST}/dev/epcs")
     req.open("GET", "http://#{SERVER_HOST}#{SERVER_FS_PATH}/main.rb")
     req.send()
@@ -146,13 +146,13 @@ class PeridotBoard extends Board
   ###
   getTxPacket: (callback) ->
     @connectDataLink((result) =>
-      return callback(null) unless result
+      return callback?(null) unless result
       base = @nextTxPacket
       @canarium.avm.read(base, 8, (result, readdata) =>
-        return callback(null) unless result
+        return callback?(null) unless result
         header = new Uint8Array(readdata)
         flags = (header[5] << 8) | header[4]
-        return callback(null) unless (flags & MEM_HTTP_VALID) == 0
+        return callback?(null) unless (flags & MEM_HTTP_VALID) == 0
         packet =
           capacity: (header[3] << 8) | header[2]
           startOfMessage: null
@@ -162,20 +162,20 @@ class PeridotBoard extends Board
           transmit: (tx_callback) ->
             console.log({tx_packet1: {base: base, data: @buffer}}) if DEBUG > 0
             @peridot.canarium.avm.write(base + 8, @buffer, (result) =>
-              return tx_callback(false) unless result
+              return tx_callback?(false) unless result
               word = (@length << 16) | MEM_HTTP_VALID
               word |= MEM_HTTP_SOM if @startOfMessage
               word |= MEM_HTTP_EOM if @endOfMessage
               @peridot.canarium.avm.iowr(base, 1, word, (result) =>
-                return tx_callback(false) unless result
+                return tx_callback?(false) unless result
                 console.log({tx_packet2: {base: base, flags: word & 0xffff, length: word >> 16}}) if DEBUG > 0
-                @peridot.raiseIrq((result) => tx_callback(result))
+                @peridot.raiseIrq((result) => tx_callback?(result))
               )
             )
           peridot: this
         @nextTxPacket = MEM_BASE + ((header[1] << 8) | header[0])
         console.log({tx_packet0: {base: base, packet: packet}}) if DEBUG > 0
-        callback(packet)
+        callback?(packet)
       )
     )
 
@@ -185,16 +185,16 @@ class PeridotBoard extends Board
   ###
   getRxPacket: (callback) ->
     @connectDataLink((result) =>
-      return callback(null) unless result
+      return callback?(null) unless result
       base = @nextRxPacket
       @canarium.avm.read(base, 8, (result, readdata) =>
-        return callback(null) unless result
+        return callback?(null) unless result
         header = new Uint8Array(readdata)
         flags = (header[5] << 8) | header[4]
         length = (header[7] << 8) | header[6]
-        return callback(null) unless (flags & MEM_HTTP_VALID) != 0
+        return callback?(null) unless (flags & MEM_HTTP_VALID) != 0
         @canarium.avm.read(base + 8, length, (result, readdata) =>
-          return callback(null) unless result
+          return callback?(null) unless result
           packet =
             capacity: (header[3] << 8) | header[2]
             startOfMessage: (flags & MEM_HTTP_SOM) != 0
@@ -203,14 +203,14 @@ class PeridotBoard extends Board
             buffer: readdata
             discard: (rx_callback) ->
               @peridot.canarium.avm.iowr(base, 1, 0, (result) =>
-                return rx_callback(false) unless result
+                return rx_callback?(false) unless result
                 console.log({rx_packet1: {base: base, discarded: true}}) if DEBUG > 0
-                @peridot.raiseIrq((result) => rx_callback(result))
+                @peridot.raiseIrq((result) => rx_callback?(result))
               )
             peridot: this
           @nextRxPacket = MEM_BASE + ((header[1] << 8) | header[0])
           console.log({rx_packet0: {base: base, packet: packet}}) if DEBUG > 0
-          callback(packet)
+          callback?(packet)
         )
       )
     )
@@ -220,17 +220,17 @@ class PeridotBoard extends Board
   @method connectDataLink
   ###
   connectDataLink: (callback) ->
-    return callback(true) if @irqBase? and @nextTxPacket? and @nextRxPacket?
+    return callback?(true) if @irqBase? and @nextTxPacket? and @nextRxPacket?
     @canarium.avm.read(MEM_BASE, 16, (result, readdata) =>
-      return callback(false) unless result
+      return callback?(false) unless result
       sign = String.fromCharCode.apply(null, new Uint8Array(readdata.slice(0, 8)))
-      return callback(false) unless sign == MEM_HTTP_SIGNATURE
+      return callback?(false) unless sign == MEM_HTTP_SIGNATURE
       array = new Uint8Array(readdata)
       @irqBase = (array[11] << 24) | (array[10] << 16) | (array[9] << 8) | array[8]
       @nextTxPacket = MEM_BASE + ((array[13] << 8) | array[12])
       @nextRxPacket = MEM_BASE + ((array[15] << 8) | array[14])
       console.log({datalink: {irq_base: @irqBase, tx_packet: @nextTxPacket, rx_packet: @nextRxPacket}}) if DEBUG > 0
-      callback(true)
+      callback?(true)
     )
 
   ###*
@@ -238,11 +238,11 @@ class PeridotBoard extends Board
   @method raiseIrq
   ###
   raiseIrq: (callback) ->
-    return callback(false) unless @irqBase?
-    return callback(true) if @irqBase == 0
+    return callback?(false) unless @irqBase?
+    return callback?(true) if @irqBase == 0
     @canarium.avm.iowr(@irqBase, 0, 1, (result) ->
       console.log({raise_irq: result}) if DEBUG > 0
-      callback(result)
+      callback?(result)
     )
 
   ###*
@@ -265,20 +265,20 @@ class PeridotBoard extends Board
     arr[i] = req.charCodeAt(i) for i in [0...length]
     arr.set(data, req.length) if dataLength > 0
     @sendRequest(arr.buffer, (response) ->
-      return callback(null) unless response
+      return callback?(null) unless response
       arr = new Uint8Array(response)
       offset = null
       #for i in [4..arr.byteLength]
       #  if (arr[i-4] == 0xd and arr[i-3] == 0xa and arr[i-2] == 0xd and arr[i-1] == 0xa)
       #    offset = i
       #    break
-      return callback(null) unless offset
+      return callback?(null) unless offset
       res = String.fromCharCode.apply(null, arr.subarray(0, offset - 4))
       @_log(1, "sendHttpRequest>recv(\"#{res}\r\n\r\n\" + #{arr.byteLength - offset} bytes)")
       res = res.split("\r\n")
       res[0] = res[0].split(" ", 3)
-      return callback(null) unless res[0][0] == "HTTP/1.1"
-      callback(parseInt(res[0][1], 10), response.slice(offset))
+      return callback?(null) unless res[0][0] == "HTTP/1.1"
+      callback?(parseInt(res[0][1], 10), response.slice(offset))
     )
 
   ###*
@@ -291,7 +291,7 @@ class PeridotBoard extends Board
     @connectServer((sender) =>
       unless sender
         @_log(1, "sendRequest>nosender!")
-        return callback(null)
+        return callback?(null)
       sender(request, callback)
     )
 
@@ -306,7 +306,7 @@ class PeridotBoard extends Board
       @canarium.avm.read(@rx_next, 8, (result, readdata) =>
         unless result
           @_log(2, "connectServer>recv>readHeader>failed!")
-          return callback(null)
+          return callback?(null)
         arr = new Uint8Array(readdata)
         frame =
           next:   (arr[1] << 8) | arr[0]
@@ -317,11 +317,11 @@ class PeridotBoard extends Board
           return setTimeout((-> recv(num, data, callback)), @RETRY_MS)
         if (num == 0 and (frame.flags & @MEM_HTTP_SOF) == 0)
           @_log(2, "connectServer>recv>sofExpected!")
-          return callback(null)
+          return callback?(null)
         @canarium.avm.read(@rx_next + 8, frame.length, (result, readdata) =>
           unless result
             @_log(2, "connectServer>recv>readData>failed!")
-            return callback(null)
+            return callback?(null)
           data.push_back(readdata.slice(0))
           if ((frame.flags & @MEM_HTTP_SOF) == 0)
             @rx_next = @mem_base + frame.next
@@ -337,8 +337,8 @@ class PeridotBoard extends Board
           @canarium.avm.iowr(@rx_next + 4, 0, (result) =>
             unless result
               @_log(2, "connectServer>recv>writeHeader>failed!")
-              return callback(null)
-            callback(arr.buffer)
+              return callback?(null)
+            callback?(arr.buffer)
           )
         )
       )
@@ -350,7 +350,7 @@ class PeridotBoard extends Board
       @canarium.avm.read(@tx_next, 8, (result, readdata) =>
         unless result
           @_log(2, "connectServer>send>readHeader>failed!")
-          return callback(null)
+          return callback?(null)
         arr = new Uint8Array(readdata)
         frame =
           next:     (arr[1] << 8) | arr[0]
@@ -368,15 +368,15 @@ class PeridotBoard extends Board
         @canarium.avm.write(@tx_next + 8, buf, (result) =>
           unless result
             @_log(2, "connectServer>send>writeData>failed!")
-            return callback(null)
+            return callback?(null)
           @canarium.avm.iowr(@tx_next + 4, (length << 8) | flags, (result) =>
             unless result
               @_log(2, "connectServer>send>writeHeader>failed!")
-              return callback(null)
+              return callback?(null)
             @canarium.avm.iowr(@irq_base, 1, (result) =>
               unless result
                 @_log(2, "connectServer>send>sendTxIrq>failed!")
-                return callback(null)
+                return callback?(null)
               @tx_next = @mem_base + frame.next
               @_log(3, "connectServer>send(##{num+1}, @0x#{@tx_next.toString(16)}")
               send(num + 1, rem, callback)

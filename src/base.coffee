@@ -4,67 +4,6 @@ Function::property = (prop, desc) ->
 Function::pureClass = ->
   throw new Error("#{@constructor.name} cannot be instantiated")
 
-#  AsyncFor = (list, each, done) ->
-#    done or= -> null
-#    next = (index, next) ->
-#      return done() if index >= list.length
-#      obj = list[index]
-#      each.apply(
-#        list[index],
-#        [(-> next(index + 1, next)),
-#         (-> done.apply(this, arguments))]
-#      )
-#    next(0, next)
-#  
-#  Object.defineProperty(Object.prototype, "Sequence", {value: ->
-#    {
-#      jobs: arguments,
-#      self: this,
-#      index: 0,
-#      finished: false,
-#      aborted: false,
-#      onFinished: null,
-#      onAborted: null,
-#      next: ->
-#        @index += 1
-#        if (@index >= @jobs.length)
-#          @finished = true
-#          return (@onFinished or (-> null)).apply(@self, arguments)
-#        @jobs[@index].apply(@self, arguments)
-#      abort: ->
-#        @aborted = true
-#        (@onAborted or (-> null)).apply(@self, arguments)
-#      start: ->
-#        @index = -1
-#        @next.apply(this, arguments)
-#    }
-#  })
-#  
-#  Object.defineProperty(Object.prototype, "Iterator", {value: ->
-#    {
-#      jobs: arguments,
-#      self: this,
-#      index: 0,
-#      finished: false,
-#      aborted: false,
-#      onFinished: null,
-#      onAborted: null,
-#      next: ->
-#        @index += 1
-#        if (@index >= @jobs.length)
-#          @finished = true
-#          return (@onFinished or (-> null)).apply(@self)
-#        @onWalk.apply(@self, @jobs[@index])
-#      abort: ->
-#        @aborted = true
-#        (@onAborted or (-> null)).apply(@self, arguments)
-#      walk: ->
-#        @onWalk = arguments[0]
-#        @index = -1
-#        @next()
-#    }
-#  })
-
 class App
   ###*
   @property {String}
@@ -136,6 +75,62 @@ class Marshal
 
   @saveClass: (instance) ->
     return {classname: instance.name, content: instance.save()}
+
+escapeHtml = (content) ->
+  TABLE =
+    "&": "&amp;"
+    "'": "&#39;"
+    '"': "&quot;"
+    "<": "&lt;"
+    ">": "&gt;"
+  content.replace(/[&"'<>]/g, (match) -> TABLE[match])
+
+class KeyBind
+  ###*
+  Add a new key bind
+  @param {String}   key       Key combination by "Ctrl+A" like format
+  @param {String}   desc      Description of action
+  @param {Function} callback  Function called when key pressed
+  ###
+  @add: (key, desc, callback) ->
+    # Get modifier
+    mod = [(-> not @altKey), (-> not @ctrlKey), (-> not @shiftKey)]
+    key = key.replace('Alt+', -> (mod[0] = (-> @altKey); ''))
+    key = key.replace('Ctrl+', -> (mod[1] = (-> @ctrlKey); ''))
+    key = key.replace('Shift+', -> (mod[2] = (-> @shiftKey); ''))
+
+    # Get key code
+    if key.match(/^[A-Z0-9]$/)
+      code = key.charCodeAt(0)
+    else
+      match = key.match(/^F(\d+)$/)
+      if match
+        code = parseInt(match[1]) + 0x6f
+    if not code
+      throw new Error("Unknown key name")
+
+    # Bind to document
+    $(document).keydown((event) =>
+      return unless event.keyCode == code
+      for m in mod
+        return unless m.call(event)
+      callback(event)
+      event.preventDefault()
+    )
+    @_list.push({key: key, desc: desc})
+
+  ###*
+  @private
+  List of key binds
+  ###
+  @_list: []
+
+  ###*
+  @private
+  Constructor
+  ###
+  constructor: @pureClass
+
 
 $("#menu").click(->
   Editor.focus()

@@ -12,7 +12,7 @@ class SerialPort extends Port
     chrome.serial.getDevices((ports) ->
       list = for port in ports
         {name: port.displayName or port.path, path: port.path}
-      callback(list)
+      callback?(list)
     )
 
   ###*
@@ -23,7 +23,7 @@ class SerialPort extends Port
   ###
   @connect: (path, options, callback) ->
     chrome.serial.connect(path, options, (connectionInfo) =>
-      callback(new this(path, connectionInfo))
+      callback?(new this(path, connectionInfo))
     )
 
   ###*
@@ -106,7 +106,7 @@ class SerialPort extends Port
       @receivedArray = new Uint8Array(@receivedArray.buffer.slice(length))
     else
       @receivedArray = null
-    @callback(str)
+    @callback?(str)
 
   ###*
   @private
@@ -145,7 +145,7 @@ class SerialPort extends Port
 
   disconnect: (callback) ->
     chrome.serial.disconnect(@_cid, (result) ->
-      callback() if result
+      callback?() if result
     )
 
   write: (data, callback) ->
@@ -154,9 +154,9 @@ class SerialPort extends Port
     chrome.serial.send(@_cid, data, (sendInfo) ->
       @_write_pended -= sendInfo.bytesSent
       if (@_write_pended == 0)
-        callback(true)
+        callback?(true)
       else if (sendInfo.error)
-        callback(false)
+        callback?(false)
         @_write_pended = null
     )
     chrome.serial.flush(@_cid, (result) ->
