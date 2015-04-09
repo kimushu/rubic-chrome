@@ -18,7 +18,7 @@ class About
       margin-right: 16px;">
       <div class="row row-vcenter"><div class="col-xs-12" style="font-size: large;">About this application:</div></div>
       <div class="row row-vcenter">
-        <div class="col-xs-4 col-vcenter text-center"><h1>#{manifest.name}</h1></div>
+        <div class="col-xs-4 col-vcenter text-center"><h1><img src="images/rubic_cube2x2_48.png" style="margin-top: -10px;"> #{manifest.name}</h1></div>
         <div class="col-xs-8 col-vcenter" style="font-size: small;">
           #{manifest.name} is an IDE for prototyping on embedded-boards with Ruby language.
           <br><span style="font-weight: bold;">Version: #{manifest.version}</span>
@@ -27,7 +27,7 @@ class About
       </div>
     """
     # Make supporters list
-    for key in ["platform", "application"]
+    for key in ["platform", "GUI"]
       msg += """
       <div class="row"><div class="col-xs-12"><hr class="thin-hr"></div></div>
       <div class="row row-vcenter"><div class="col-xs-12">Rubic #{key} is supported by:</div></div>
@@ -108,7 +108,7 @@ class About
                   "University of Illinois/NCSA Open Source License"]
       }
     ]
-    application: [
+    GUI: [
       {
         name: "jQuery"
         desc: "A fast, small, and feature-rich JavaScript library"
