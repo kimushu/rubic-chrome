@@ -37,7 +37,7 @@ class Sketch
       TEMP_QUOTA
       (fs) =>
         now = new Date
-        base = "sketch_#{now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate()}"
+        base = "unnamed_#{now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate()}"
         Async.each(
           [1..26]
           (num, next, done) =>
@@ -87,13 +87,48 @@ class Sketch
   #----------------------------------------------------------------
   # User interface
 
+  ###
+  [UI event] Application started => Open an empty sketch
+  ###
+  $(=> @uiNewSketch())
+
+  ###*
+  [UI action] New sketch
+  ###
+  @uiNewSketch: (callback) ->
+    if App.sketch
+      return @uiCloseSketch((result) =>
+        return callback?(false) unless result
+        App.sketch = null
+        @uiNewSketch(callback)
+      )
+    @create(
+      (result, sketch) ->
+        return callback?(false) unless result
+        App.sketch = sketch
+        console.log({"New sketch": sketch})
+        sketch.openEditor(
+          sketch.config.bootFile
+          (result, editor) ->
+            editor.load(->
+              editor.activate()
+              callback?(true)
+            )
+        ) # sketch.openEditor
+    ) # @create
+
+  ###
+  [UI event] Clicking "New sketch" button
+  ###
+  $(".action-new-sketch").click(=> @uiNewSketch())
+
   ###*
   [UI action] Open sketch
   ###
   @uiOpenSketch: (callback) ->
     if App.sketch
-      @uiCloseSketch((result) =>
-        return unless result
+      return @uiCloseSketch((result) =>
+        return callback?(false) unless result
         App.sketch = null
         @uiOpenSketch(callback)
       )
@@ -174,10 +209,13 @@ class Sketch
         # cancelled by user
         chrome.runtime.lastError
         return final(true)  # close spin without error message
-      sketch.saveAs(dirEntry, (result) ->
-        Notify.error("Failed to save sketch (#{App.lastError})") unless result
-        ModalSpin.hide()
-      )
+      FileUtil.readText([dirEntry, CONFIG_FILE], (result) ->
+        return Notify.error("Another sketch has been saved in selected directory. Choose an empty one.") if result
+        sketch.saveAs(dirEntry, (result) ->
+          Notify.error("Failed to save sketch (#{App.lastError})") unless result
+          ModalSpin.hide()
+        )
+      ) # FileUtil.readText
     ) # chrome.fileSystem.chooseEntry
 
   ###
@@ -195,6 +233,13 @@ class Sketch
   ###
   @uiCloseSketch: (callback) ->
     return callback?(true) unless App.sketch
+    unless App.sketch.modified
+      return App.sketch.close((result) ->
+        App.sketch = null if result
+        return callback?(result)
+      )
+
+    # Not saved
     bootbox.dialog({
       title: "Current sketch has been modified"
       message: "Are you want to discard modifications?"
@@ -353,6 +398,8 @@ class Sketch
       (done) =>
         return callback?(false) unless done
         @dirEntry = dirEntry if dirEntry
+        @name = @dirEntry.name
+        $("li#sketch").text("[Sketch] #{@name}")
         @saveConfig((result) ->
           @modified = false if result
           callback?(result)
@@ -379,6 +426,7 @@ class Sketch
       (next, abort) ->
         this.close((result) -> if result then next() else abort())
       (done) ->
+        $("li#sketch").remove() if done
         callback?(done)
     ) # Async.apply_each
 
@@ -430,6 +478,9 @@ class Sketch
   ###
   constructor: (@dirEntry, @config) ->
     @name = @dirEntry.name
+    li = $("<li id=\"sketch\">[Sketch] #{@name}</li>")
+    li.click(-> Notify.info("Sketch configuration editor is not implemented yet. Sorry."))
+    $("#file-tabbar").append(li)
 
   ###*
   @property {Object} template
@@ -444,22 +495,3 @@ class Sketch
       """
   }
 
-  $(=>
-    @create(
-      (result, sketch) ->
-        return unless result
-        App.sketch = sketch
-        console.log({"New sketch": sketch})
-        sketch.openEditor(
-          sketch.config.bootFile
-          (result, editor) ->
-            editor.load(-> editor.activate())
-        ) # sketch.openEditor
-    ) # @create
-  )
-
-#  $("button#save-sketch").click(->
-#    App.sketch.build(->
-#      console.log({"build succeeded": arguments})
-#    )
-#  )
