@@ -146,13 +146,16 @@ class Editor
     $("li##{@_domId}").remove()
     if Editor._aceEditor.getSession() == @_session
       Editor._aceEditor.setSession(Editor._aceEmptySession)
+      $("#editor").css("visibility", "hidden")
     callback?(true)
 
   ###*
   Activate editor
   ###
   activate: ->
+    Editor._aceEditor.setReadOnly(not @constructor.editable)
     Editor._aceEditor.setSession(@_session)
+    $("#editor").css("visibility", "visible")
 
   ###*
   @protected

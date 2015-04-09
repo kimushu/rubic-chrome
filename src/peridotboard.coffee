@@ -95,9 +95,8 @@ class PeridotBoard extends Board
         return callback?(false) unless result
         req = @newHttpRequest()
         req.timeout = 3000
-        req.onreadystatechange = =>
-          return callback?(false) unless req.readyState == req.DONE
-          @run(callback)
+        req.onreadystatechange = ->
+          callback?(not req.errorFlag) if req.readyState == req.DONE
         req.open("PUT", "http://#{SERVER_HOST}#{SERVER_FS_PATH}/main.mrb")
         req.send(new Uint8Array(readdata))
     )
@@ -105,15 +104,23 @@ class PeridotBoard extends Board
   run: (callback) ->
     req = @newHttpRequest()
     req.timeout = 3000
-    req.onreadystatechange = =>
-      return callback?(false) unless req.readyState == req.DONE
-      callback?(true)
+    req.onreadystatechange = ->
+      callback?(not req.errorFlag) if req.readyState == req.DONE
     req.open("POST", "http://#{SERVER_HOST}/start")
+    req.send()
+
+  stop: (callback) ->
+    req = @newHttpRequest()
+    req.timeout = 3000
+    req.onreadystatechange = ->
+      callback?(not req.errorFlag) if req.readyState == req.DONE
+    req.open("POST", "http://#{SERVER_HOST}/stop")
     req.send()
 
   SERVER_HOST         = "peridot"
   # SERVER_FS_PATH      = "/mnt/spiffs"
-  SERVER_FS_PATH      = "/ram"
+  SERVER_FS_PATH      = "/mnt/epcs"
+  # SERVER_FS_PATH      = "/ram"
 
   test: (callback) ->
     req = @newHttpRequest()

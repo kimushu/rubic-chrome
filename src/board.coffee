@@ -159,6 +159,31 @@ class Board
     App.sketch?.board?.uiShowInfo()
   )
 
+  ###*
+  [UI action] Download & run
+  ###
+  uiDownloadAndRun: (sketch, callback) ->
+    ModalSpin.show()
+    final = (result) ->
+      ModalSpin.hide()
+      callback?(result)
+    @stop((result) =>
+      unless result
+        App.lastError = "Cannot stop running sketch"
+        return final(false)
+      @download(sketch, (result) =>
+        unless result
+          App.lastError = "Cannot download new sketch"
+          return final(false)
+        @run((result) =>
+          unless result
+            App.lastError = "Cannot start new sketch"
+            return final(false)
+          final(true)
+        ) # @run
+      ) # @download
+    ) # @stop
+
   ###
   [UI event] Clicking "Run" button
   ###
@@ -167,10 +192,13 @@ class Board
     ModalSpin.show()
     Sketch.uiBuildSketch((result) ->
       sketch = App.sketch
-      sketch.board.download(sketch, (result) ->
+      sketch.board.uiDownloadAndRun(sketch, (result) ->
         ModalSpin.hide()
-        Notify.success("Download succeeded") if result
+        if result
+          Notify.success("Download succeeded.")
+        else
+          Notify.success("Download failed. (#{App.lastError})")
       )
-    )
+    ) # Sketch.uiBuildSketch
   )
 
