@@ -45,7 +45,7 @@ class ModalSpin
   @hide: ->
     console.log("ModalSpin.hide(#{@count} -> #{@count-1})")
     @count -= 1
-    @spin.hide() if @count == 0
+    @spin.modal('hide') if @count == 0
 
 ###*
 @class
