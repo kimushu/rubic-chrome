@@ -85,6 +85,9 @@ class PeridotBoard extends Board
       callback?(result)
     )
 
+  # PERIDOT_HTTP_TIMEOUT = 600000 # for debugging
+  PERIDOT_HTTP_TIMEOUT = 3000
+
   ###*
   Download sketch
   ###
@@ -94,7 +97,7 @@ class PeridotBoard extends Board
       (result, readdata) =>
         return callback?(false) unless result
         req = @newHttpRequest()
-        req.timeout = 3000
+        req.timeout = PERIDOT_HTTP_TIMEOUT
         req.onreadystatechange = ->
           callback?(not req.errorFlag) if req.readyState == req.DONE
         req.open("PUT", "http://#{SERVER_HOST}#{SERVER_FS_PATH}/main.mrb")
@@ -103,7 +106,7 @@ class PeridotBoard extends Board
 
   run: (callback) ->
     req = @newHttpRequest()
-    req.timeout = 3000
+    req.timeout = PERIDOT_HTTP_TIMEOUT
     req.onreadystatechange = ->
       callback?(not req.errorFlag) if req.readyState == req.DONE
     req.open("POST", "http://#{SERVER_HOST}/start")
@@ -111,7 +114,7 @@ class PeridotBoard extends Board
 
   stop: (callback) ->
     req = @newHttpRequest()
-    req.timeout = 3000
+    req.timeout = PERIDOT_HTTP_TIMEOUT
     req.onreadystatechange = ->
       callback?(not req.errorFlag) if req.readyState == req.DONE
     req.open("POST", "http://#{SERVER_HOST}/stop")
@@ -124,7 +127,7 @@ class PeridotBoard extends Board
 
   test: (callback) ->
     req = @newHttpRequest()
-    req.timeout = 3000
+    req.timeout = PERIDOT_HTTP_TIMEOUT
     req.onreadystatechange = ->
       switch req.readyState
         when req.DONE
