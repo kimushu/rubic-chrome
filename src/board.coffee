@@ -197,7 +197,7 @@ class Board
         if result
           Notify.success("Download succeeded.")
         else
-          Notify.success("Download failed. (#{App.lastError})")
+          Notify.error("Download failed. (#{App.lastError})")
       )
     ) # Sketch.uiBuildSketch
   )
