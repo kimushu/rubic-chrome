@@ -2,7 +2,6 @@
   "manifest_version": 2,
   "name": "Rubic",
   "version": "0.1.15.416",
-  "default_locale": "ja",
   "description": "Prototyping tool for embedded-boards with ruby",
   "icons": {
      "16": "images/rubic_cube2x2_16.png",
@@ -17,7 +16,6 @@
   },
   "permissions": [
     "serial",
-    "syncFileSystem",
     {"fileSystem": ["directory", "write"]}
   ]
 }
