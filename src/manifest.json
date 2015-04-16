@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Rubic",
   "version": "0.1.15.416",
-  "description": "Prototyping tool for embedded-boards with ruby",
+  "description": "Prototyping tool for embedded-boards with Ruby language",
   "icons": {
      "16": "images/rubic_cube2x2_16.png",
      "32": "images/rubic_cube2x2_32.png",
