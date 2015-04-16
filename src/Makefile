@@ -116,6 +116,10 @@ dist: $(TARGET) background.js manifest.json \
 	jquery-2.1.1.min.js \
 	jquery.spin.js \
 	spin.min.js \
+	$(wildcard images/rubic*.png) \
+	images/mruby_logo_red_cropped.png \
+	images/peridotcraft_logo_1.png \
+	images/Emscripten_logo_full_cropped.png \
 	window.css window.html
 	@echo "[Packing distribution files]"
 	$(Q)mkdir -p ../dist
