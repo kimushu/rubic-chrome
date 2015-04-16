@@ -129,6 +129,9 @@ class Board
         b.find(".btn").prop("disabled", false)
   )
 
+  @selectBoard: (name) ->
+    $("#board-item-#{name}").click()
+
   ###
   [UI action] Enable board access
   ###
@@ -185,10 +188,10 @@ class Board
     ) # @stop
 
   ###
-  [UI event] Clicking "Run" button
+  [UI action] "Run" button
   ###
-  $(".action-run-sketch").click(->
-    Editor.focus()
+  @runSketch: ->
+    return unless App.sketch?.board?.isConnected?
     ModalSpin.show()
     Sketch.uiBuildSketch((result) ->
       sketch = App.sketch
@@ -200,5 +203,13 @@ class Board
           Notify.error("Download failed. (#{App.lastError})")
       )
     ) # Sketch.uiBuildSketch
+
+  ###
+  [UI event] Clicking "Run" button
+  ###
+  $(".action-run-sketch").click(->
+    Editor.focus()
+    @runSketch()
   )
+  KeyBind.add("Ctrl+R", "Run", => @runSketch())
 

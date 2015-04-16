@@ -1,11 +1,12 @@
 {
   "manifest_version": 2,
   "name": "Rubic",
-  "version": "0.1.15.405",
+  "version": "0.1.15.416",
   "default_locale": "ja",
   "description": "Prototyping tool for embedded-boards with ruby",
   "icons": {
      "16": "images/rubic_cube2x2_16.png",
+     "32": "images/rubic_cube2x2_32.png",
      "48": "images/rubic_cube2x2_48.png",
     "128": "images/rubic_cube2x2_128.png"
   },

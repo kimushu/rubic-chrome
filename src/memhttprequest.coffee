@@ -1,5 +1,5 @@
 class MemHttpRequest
-  DEBUG = 1
+  DEBUG = 0
 
   # XMLHttpRequest compatible constants
   @UNSENT:            XMLHttpRequest.UNSENT

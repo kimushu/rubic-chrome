@@ -69,7 +69,10 @@ class Sketch
     bootFile = "main#{suffix}"
     config = {
       bootFile: bootFile
-      sketch: {files: {}, downloadAll: false}
+      sketch: {
+        files: {}
+        downloadAll: false
+      }
     }
     config.sketch.files[bootFile] = {}
     FileUtil.writeText(
@@ -106,7 +109,7 @@ class Sketch
       (result, sketch) ->
         return callback?(false) unless result
         App.sketch = sketch
-        console.log({"New sketch": sketch})
+        # console.log({"New sketch": sketch})
         sketch.openEditor(
           sketch.config.bootFile
           (result, editor) ->
@@ -121,6 +124,7 @@ class Sketch
   [UI event] Clicking "New sketch" button
   ###
   $(".action-new-sketch").click(=> @uiNewSketch())
+  KeyBind.add("Ctrl+N", "New sketch", => @uiNewSketch())
 
   ###*
   [UI action] Open sketch
@@ -145,6 +149,8 @@ class Sketch
         (result, editor) ->
           return callback?(false) unless result
           editor.load(->
+            boardName = sketch.config.sketch?.board?.class
+            Board.selectBoard(boardName) if boardName
             editor.activate()
             callback?(true)
           )
@@ -209,6 +215,7 @@ class Sketch
         # cancelled by user
         chrome.runtime.lastError
         return final(true)  # close spin without error message
+      # console.log({saveAs: dirEntry})
       FileUtil.readText([dirEntry, CONFIG_FILE], (result) ->
         return Notify.error("Another sketch has been saved in selected directory. Choose an empty one.") if result
         sketch.saveAs(dirEntry, (result) ->
@@ -290,7 +297,7 @@ class Sketch
     Editor.focus()
     @uiBuildSketch()
   )
-  KeyBind.add("Ctrl+R", "Build", => @uiBuildSketch())
+  KeyBind.add("Ctrl+B", "Build", => @uiBuildSketch())
 
   #----------------------------------------------------------------
   # Instance attributes/methods
@@ -355,6 +362,7 @@ class Sketch
   @param {Function} callback    Callback ({Boolean} result, {Board} board instance)
   ###
   setBoard: (boardClass, callback) ->
+    ((@config.sketch or= {}).board or= {}).class = boardClass.name
     @board or= {disconnect: (callback) -> callback?(true)}
     @board.disconnect((result) =>
       return callback?(false) unless result
@@ -411,6 +419,8 @@ class Sketch
   @param {Function} callback  Callback ({Boolean} result)
   ###
   saveConfig: (callback) ->
+    manifest = chrome.runtime.getManifest()
+    (@config.sketch or= {}).rubicVersion or= manifest.version
     FileUtil.writeText(
       [@dirEntry, CONFIG_FILE]
       jsyaml.safeDump(@config)
@@ -458,7 +468,7 @@ class Sketch
             builder.build(
               (result, length) ->
                 return abort() unless result
-                console.log({len: length})
+                # console.log({len: length})
                 total_length += length
                 next()
             ) # builder.build

@@ -1,5 +1,6 @@
 class MRubyBuilder extends Builder
   Builder.addBuilder(this)
+  DEBUG_LIB = false
 
   #----------------------------------------------------------------
   # Class attributes/methods
@@ -29,18 +30,25 @@ class MRubyBuilder extends Builder
         return callback?(false) unless result
         rb_name = "/#{@fileEntry.name}"
         mrb_name = "/out.mrb"
+        log = [""]
         module = {
           print: (data) ->
-            console.log("mruby(stdout):#{data}")
+            console.log("mruby(stdout):#{data}") if DEBUG_LIB
           printErr: (data) ->
-            console.log("mruby(stderr):#{data}")
+            console.log("mruby(stderr):#{data}") if DEBUG_LIB
+            log.push(data.substring(1)) if data.lastIndexOf("/", 0) == 0
           preRun: [->
             module.exports.FS.writeFile(rb_name, readdata, {encoding: "utf8"})
           ]
           "arguments": ["-o#{mrb_name}", rb_name].concat(@options.flags or [])
         }
         Lib.mrbc(module)
-        output = module.exports.FS.readFile(mrb_name)
+        try
+          output = module.exports.FS.readFile(mrb_name)
+        catch
+          log.push("")
+          App.lastError = log.join("<br/>")
+          return callback?(false)
         FileUtil.writeArrayBuf(
           [@dirEntry, @fileEntry.name.replace(/\.[^.]+$/, "") + ".mrb"]
           output

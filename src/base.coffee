@@ -35,7 +35,7 @@ class ModalSpin
     @count = 0
   )
   @show: ->
-    console.log("ModalSpin.show(#{@count} -> #{@count+1})")
+    # console.log("ModalSpin.show(#{@count} -> #{@count+1})")
     @spin.modal({
       show: true
       backdrop: "static"
@@ -43,7 +43,7 @@ class ModalSpin
     }) if @count == 0
     @count += 1
   @hide: ->
-    console.log("ModalSpin.hide(#{@count} -> #{@count-1})")
+    # console.log("ModalSpin.hide(#{@count} -> #{@count-1})")
     @count -= 1
     @spin.modal('hide') if @count == 0
 

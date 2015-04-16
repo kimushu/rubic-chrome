@@ -143,7 +143,7 @@ class PeridotBoard extends Board
   ###
   newHttpRequest: () -> new MemHttpRequest(this)
 
-  DEBUG               = 1
+  DEBUG               = 0
   MEM_BASE            = 0xfffc000
   MEM_HTTP_SIGNATURE  = "MHttp1.0"
   MEM_HTTP_VALID      = 1
