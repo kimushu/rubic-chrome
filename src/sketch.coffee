@@ -441,7 +441,7 @@ class Sketch
           $("li#sketch").remove() if done
           callback?(done)
       ) # Async.apply_each
-    ) @board.disconnect
+    ) # @board.disconnect
 
   ###*
   Build sketch
