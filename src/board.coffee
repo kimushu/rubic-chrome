@@ -207,7 +207,7 @@ class Board
   ###
   [UI event] Clicking "Run" button
   ###
-  $(".action-run-sketch").click(->
+  $(".action-run-sketch").click(=>
     Editor.focus()
     @runSketch()
   )
