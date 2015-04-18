@@ -147,4 +147,6 @@ dist: $(DIST_FILES)
 	$(Q)cp --parent $^ $(DIST_DIR)
 	$(Q)rm -f $(DIST_DIR)/../rubic.zip
 	$(Q)cd $(DIST_DIR)/.. && zip -r rubic.zip $(notdir $(DIST_DIR))
+	@echo "[Commits]"
+	$(Q)cat $(DIST_INFO)
 
