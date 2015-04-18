@@ -431,14 +431,17 @@ class Sketch
   Close sketch
   ###
   close: (callback) ->
-    Async.apply_each(
-      @editors,
-      (next, abort) ->
-        this.close((result) -> if result then next() else abort())
-      (done) ->
-        $("li#sketch").remove() if done
-        callback?(done)
-    ) # Async.apply_each
+    @board or= {disconnect: (callback) -> callback?(true)}
+    @board.disconnect((result) =>
+      Async.apply_each(
+        @editors,
+        (next, abort) ->
+          this.close((result) -> if result then next() else abort())
+        (done) ->
+          $("li#sketch").remove() if done
+          callback?(done)
+      ) # Async.apply_each
+    ) @board.disconnect
 
   ###*
   Build sketch
