@@ -323,8 +323,9 @@ class MemHttpRequest
         unless http == "HTTP/1.0" or http == "HTTP/1.1"
           return failed("Invalid response start line")
         @status = parseInt(@statusText)
-        console.log({"response-status": @status})
-        console.log({"response-header": "#{resp}\r\n\r\n"})
+        if DEBUG > 0
+          console.log({"response-status": @status})
+          console.log({"response-header": "#{resp}\r\n\r\n"})
         @responseHeaders = {}
         for line in lines
           [name, value] = line.split(":", 2)
@@ -353,7 +354,7 @@ class MemHttpRequest
           @response = @responseBuffer
         else
           throw new TypeError("Unsupported responseType")
-      console.log({"response-body": @response})
+      console.log({"response-body": @response}) if DEBUG > 0
       packet.discard(=> @changeState(@DONE))
     )
 
