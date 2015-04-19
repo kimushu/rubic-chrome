@@ -29,6 +29,9 @@ Rubicアプリ本体はCoffeeScriptから変換されたJavaScriptで構成さ�
 - ハードウェアカタログ機能の追加
 - 日本語化 (i18n対応)
 
+## 不具合報告や要望について
+- 不具合のご報告や機能追加等のご要望は、GithubのIssuesページ( https://github.com/kimushu/rubic/issues )へ登録いただけますと幸いです。Issuesは日本語で記述して頂いて問題ありません。
+
 ## ライセンス
 Rubic本体のソースコードは、MIT Licenseで公開されています。
 - https://github.com/kimushu/rubic/
