@@ -74,9 +74,9 @@ class Board
           )
           p.find("#port-item-#{index}").unbind("click").click(=>
             p.find(".ph-body").text(port.name)
-            ModalSpin.show()
+            App.showModalSpin()
             @connect(port, (result) =>
-              ModalSpin.hide()
+              App.hideModalSpin()
               if result
                 @port = port
                 App.success("Connected #{@constructor.boardname} on #{port.name}")
@@ -143,9 +143,9 @@ class Board
   [UI action] Show board information
   ###
   uiShowInfo: ->
-    ModalSpin.show()
+    App.showModalSpin()
     @getInfo((result, info) =>
-      ModalSpin.hide()
+      App.hideModalSpin()
       return App.error("Failed to get board information") unless result
       message = ("#{key}: #{val}" for key, val of info).join("<br/>")
       bootbox.alert({
@@ -166,9 +166,9 @@ class Board
   [UI action] Download & run
   ###
   uiDownloadAndRun: (sketch, callback) ->
-    ModalSpin.show()
+    App.showModalSpin()
     final = (result) ->
-      ModalSpin.hide()
+      App.hideModalSpin()
       callback?(result)
     @stop((result) =>
       unless result
@@ -192,11 +192,11 @@ class Board
   ###
   @runSketch: ->
     return unless App.sketch?.board?.isConnected?
-    ModalSpin.show()
+    App.showModalSpin()
     Sketch.uiBuildSketch((result) ->
       sketch = App.sketch
       sketch.board.uiDownloadAndRun(sketch, (result) ->
-        ModalSpin.hide()
+        App.hideModalSpin()
         if result
           App.success("Download succeeded.")
         else

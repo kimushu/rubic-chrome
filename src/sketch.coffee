@@ -137,9 +137,9 @@ class Sketch
         @uiOpenSketch(callback)
       )
     # TODO: select location (GoogleDrive/LocalStorage/Browser/etc.)
-    ModalSpin.show()
+    App.showModalSpin()
     final = (result, sketch) ->
-      ModalSpin.hide()
+      App.hideModalSpin()
       unless result
         App.error(App.lastError)
         return callback?(false)
@@ -179,13 +179,13 @@ class Sketch
   @uiSaveSketch: (callback) ->
     sketch = App.sketch
     return App.warning("No sketch to save") unless sketch
-    ModalSpin.show()
+    App.showModalSpin()
     sketch.save((result) ->
       if result
         App.success("Sketch has been saved.")
       else
         App.error(App.lastError)
-      ModalSpin.hide()
+      App.hideModalSpin()
       callback?(result)
     )
 
@@ -205,10 +205,10 @@ class Sketch
   @uiSaveSketchAs: (callback) ->
     sketch = App.sketch
     return App.warning("No sketch to save") unless sketch
-    ModalSpin.show()
+    App.showModalSpin()
     final = (result) ->
       App.error(App.lastError) unless result
-      ModalSpin.hide()
+      App.hideModalSpin()
       callback?(result)
     chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
       unless dirEntry
@@ -220,7 +220,7 @@ class Sketch
         return App.error("Another sketch has been saved in selected directory. Choose an empty one.") if result
         sketch.saveAs(dirEntry, (result) ->
           App.error("Failed to save sketch (#{App.lastError})") unless result
-          ModalSpin.hide()
+          App.hideModalSpin()
         )
       ) # FileUtil.readText
     ) # chrome.fileSystem.chooseEntry
@@ -276,11 +276,11 @@ class Sketch
     unless sketch
       App.error("No sketch to build")
       return callback?(false)
-    ModalSpin.show() unless callback
+    App.showModalSpin() unless callback
     progress = App.info("Building...")
     sketch.build((result, message) ->
       progress.close()
-      ModalSpin.hide() unless callback
+      App.hideModalSpin() unless callback
       if result
         App.success("Build succeeded (#{message})") unless callback
         # # for debugging
