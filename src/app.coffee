@@ -1,9 +1,6 @@
-Function::property = (prop, desc) ->
-  Object.defineProperty @prototype, prop, desc
-
-Function::pureClass = ->
-  throw new Error("#{@constructor.name} cannot be instantiated")
-
+###*
+Application main class
+###
 class App
   ###*
   @property {String}
@@ -25,37 +22,73 @@ class App
   ###
   @defaultSuffix: ".rb"
 
-###*
-@class
-Helper class for spin.js with modal backdrop
-###
-class ModalSpin
-  $(=>
-    @spin = $("#modal-spin").spin({color: "#fff"})
-    @count = 0
-  )
-  @show: ->
+  ###*
+  @method
+  Show modal spin
+  ###
+  @showModalSpin: ->
     # console.log("ModalSpin.show(#{@count} -> #{@count+1})")
-    @spin.modal({
+    @_spin.modal({
       show: true
       backdrop: "static"
       keyboard: false
-    }) if @count == 0
-    @count += 1
-  @hide: ->
-    # console.log("ModalSpin.hide(#{@count} -> #{@count-1})")
-    @count -= 1
-    @spin.modal('hide') if @count == 0
+    }) if @_spinCount == 0
+    @_spinCount += 1
 
-###*
-@class
-Helper class for bootstrap-notify ($.notify)
-###
-class Notify
-  @error:   -> @notify(arguments, "danger")
+  ###*
+  @method
+  Hide modal spin
+  ###
+  @hideModalSpin: ->
+    # console.log("ModalSpin.hide(#{@count} -> #{@count-1})")
+    @_spinCount -= 1
+    @_spin.modal('hide') if @_spinCount == 0
+
+  ###*
+  @private
+  Spin object
+  ###
+  @_spin: $(=> $("#modal-spin").spin({color: "#fff"}))
+
+  ###*
+  @private
+  Spin nest level
+  ###
+  @_spinCount: 0
+
+  ###*
+  @method
+  Generate notify message for error
+  ###
+  @error: -> @notify(arguments, "danger")
+
+  ###*
+  @method
+  Generate notify message for warning
+  ###
   @warning: -> @notify(arguments, "warning")
-  @info:    -> @notify(arguments, "info")
+
+  ###*
+  @method
+  Generate notify message for general information
+  ###
+  @info: -> @notify(arguments, "info")
+
+  ###*
+  Generate notify message for success
+  ###
   @success: -> @notify(arguments, "success")
+
+  ###*
+  @method
+  Generate notify message for debugging
+  ###
+  @debug: -> console.log(arguments)
+
+  ###*
+  @method
+  Generate popup notify message
+  ###
   @notify: ([message, options], type) ->
     $.notify(message, $.extend({
       type: type
@@ -66,33 +99,14 @@ class Notify
       offset: 52
     }, options))
 
-class Marshal
-  @loadClass: (data, classes) ->
-    for c in classes
-      continue unless data.classname == c.name
-      return c.load(data.content)
-    null  # TODO: crash
-
-  @saveClass: (instance) ->
-    return {classname: instance.name, content: instance.save()}
-
-escapeHtml = (content) ->
-  TABLE =
-    "&": "&amp;"
-    "'": "&#39;"
-    '"': "&quot;"
-    "<": "&lt;"
-    ">": "&gt;"
-  content.replace(/[&"'<>]/g, (match) -> TABLE[match])
-
-class KeyBind
   ###*
+  @method
   Add a new key bind
   @param {String}   key       Key combination by "Ctrl+A" like format
   @param {String}   desc      Description of action
   @param {Function} callback  Function called when key pressed
   ###
-  @add: (key, desc, callback) ->
+  @bindKey: (key, desc, callback) ->
     # Get modifier
     mod = [(-> not @altKey), (-> not @ctrlKey), (-> not @shiftKey)]
     key = key.replace('Alt+', -> (mod[0] = (-> @altKey); ''))
@@ -117,20 +131,7 @@ class KeyBind
       callback(event)
       event.preventDefault()
     )
-    @_list.push({key: key, desc: desc})
-
-  ###*
-  @private
-  List of key binds
-  ###
-  @_list: []
-
-  ###*
-  @private
-  Constructor
-  ###
-  constructor: @pureClass
-
+    #  @_list.push({key: key, desc: desc})
 
 $("#menu").click(->
   Editor.focus()

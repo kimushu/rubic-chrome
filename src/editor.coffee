@@ -96,7 +96,7 @@ class Editor
   load: (callback) ->
     readCallback = (result, readdata) =>
       unless result
-        Notify.error("Failed to read #{@fileEntry.name}")
+        App.error("Failed to read #{@fileEntry.name}")
         return callback?(false)
       if @convertOnLoad
         readdata = @convertOnLoad(readdata)
@@ -128,7 +128,7 @@ class Editor
     doc = @_session.getDocument()
     FileUtil.writeText(dest, doc.getValue(), (result) =>
       unless result
-        Notify.error("Failed to write #{name}")
+        App.error("Failed to write #{name}")
         return callback?(false)
       @markModified(false)
       return callback?(true) unless dirEntry
@@ -137,7 +137,7 @@ class Editor
         {}
         (@fileEntry) => callback?(true)
         ->
-          Notify.error("Failed to reopen #{name}")
+          App.error("Failed to reopen #{name}")
           callback?(false)
       ) # dirEntry.getFile
     )

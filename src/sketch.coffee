@@ -124,7 +124,7 @@ class Sketch
   [UI event] Clicking "New sketch" button
   ###
   $(".action-new-sketch").click(=> @uiNewSketch())
-  KeyBind.add("Ctrl+N", "New sketch", => @uiNewSketch())
+  App.bindKey("Ctrl+N", "New sketch", => @uiNewSketch())
 
   ###*
   [UI action] Open sketch
@@ -141,7 +141,7 @@ class Sketch
     final = (result, sketch) ->
       ModalSpin.hide()
       unless result
-        Notify.error(App.lastError)
+        App.error(App.lastError)
         return callback?(false)
       App.sketch = sketch
       sketch.openEditor(
@@ -171,20 +171,20 @@ class Sketch
     Editor.focus()
     @uiOpenSketch()
   )
-  KeyBind.add("Ctrl+O", "Open sketch", => @uiOpenSketch())
+  App.bindKey("Ctrl+O", "Open sketch", => @uiOpenSketch())
 
   ###*
   [UI action] Save sketch (overwrite)
   ###
   @uiSaveSketch: (callback) ->
     sketch = App.sketch
-    return Notify.warning("No sketch to save") unless sketch
+    return App.warning("No sketch to save") unless sketch
     ModalSpin.show()
     sketch.save((result) ->
       if result
-        Notify.success("Sketch has been saved.")
+        App.success("Sketch has been saved.")
       else
-        Notify.error(App.lastError)
+        App.error(App.lastError)
       ModalSpin.hide()
       callback?(result)
     )
@@ -197,17 +197,17 @@ class Sketch
     # return @uiSaveSketchAs() if App.sketch?.isTemporary
     @uiSaveSketch()
   )
-  KeyBind.add("Ctrl+S", "Save sketch", => @uiSaveSketch())
+  App.bindKey("Ctrl+S", "Save sketch", => @uiSaveSketch())
 
   ###*
   [UI action] Save sketch (to new location)
   ###
   @uiSaveSketchAs: (callback) ->
     sketch = App.sketch
-    return Notify.warning("No sketch to save") unless sketch
+    return App.warning("No sketch to save") unless sketch
     ModalSpin.show()
     final = (result) ->
-      Notify.error(App.lastError) unless result
+      App.error(App.lastError) unless result
       ModalSpin.hide()
       callback?(result)
     chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
@@ -217,9 +217,9 @@ class Sketch
         return final(true)  # close spin without error message
       # console.log({saveAs: dirEntry})
       FileUtil.readText([dirEntry, CONFIG_FILE], (result) ->
-        return Notify.error("Another sketch has been saved in selected directory. Choose an empty one.") if result
+        return App.error("Another sketch has been saved in selected directory. Choose an empty one.") if result
         sketch.saveAs(dirEntry, (result) ->
-          Notify.error("Failed to save sketch (#{App.lastError})") unless result
+          App.error("Failed to save sketch (#{App.lastError})") unless result
           ModalSpin.hide()
         )
       ) # FileUtil.readText
@@ -232,7 +232,7 @@ class Sketch
     Editor.focus()
     @uiSaveSketchAs()
   )
-  KeyBind.add("Ctrl+Shift+S", "Save sketch as", => @uiSaveSketchAs())
+  App.bindKey("Ctrl+Shift+S", "Save sketch as", => @uiSaveSketchAs())
 
   ###*
   [UI action] Close sketch
@@ -274,19 +274,19 @@ class Sketch
   @uiBuildSketch: (callback) ->
     sketch = App.sketch
     unless sketch
-      Notify.error("No sketch to build")
+      App.error("No sketch to build")
       return callback?(false)
     ModalSpin.show() unless callback
-    progress = Notify.info("Building...")
+    progress = App.info("Building...")
     sketch.build((result, message) ->
       progress.close()
       ModalSpin.hide() unless callback
       if result
-        Notify.success("Build succeeded (#{message})") unless callback
+        App.success("Build succeeded (#{message})") unless callback
         # # for debugging
         # sketch.openEditor("main.mrb", (result, sketch) -> sketch.load())
       else
-        Notify.error("Build failed (#{App.lastError})")
+        App.error("Build failed (#{App.lastError})")
       callback?(result)
     )
 
@@ -297,7 +297,7 @@ class Sketch
     Editor.focus()
     @uiBuildSketch()
   )
-  KeyBind.add("Ctrl+B", "Build", => @uiBuildSketch())
+  App.bindKey("Ctrl+B", "Build", => @uiBuildSketch())
 
   #----------------------------------------------------------------
   # Instance attributes/methods
@@ -492,7 +492,7 @@ class Sketch
   constructor: (@dirEntry, @config) ->
     @name = @dirEntry.name
     li = $("<li id=\"sketch\">[Sketch] #{@name}</li>")
-    li.click(-> Notify.info("Sketch configuration editor is not implemented yet. Sorry."))
+    li.click(-> App.info("Sketch configuration editor is not implemented yet. Sorry."))
     $("#file-tabbar").append(li)
 
   ###*

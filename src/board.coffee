@@ -35,7 +35,7 @@ class Board
   ###
   disconnect: (callback) ->
     return callback?(true) unless @isConnected
-    Notify.info("Disconnected")
+    App.info("Disconnected")
     @isConnected = false
     callback?(true)
 
@@ -79,10 +79,10 @@ class Board
               ModalSpin.hide()
               if result
                 @port = port
-                Notify.success("Connected #{@constructor.boardname} on #{port.name}")
+                App.success("Connected #{@constructor.boardname} on #{port.name}")
               else
                 @port = null
-                Notify.error("Cannot connect #{@constructor.boardname} on #{port.name}")
+                App.error("Cannot connect #{@constructor.boardname} on #{port.name}")
               @constructor.uiChangeButtonState(result)
             )
           )
@@ -146,7 +146,7 @@ class Board
     ModalSpin.show()
     @getInfo((result, info) =>
       ModalSpin.hide()
-      return Notify.error("Failed to get board information") unless result
+      return App.error("Failed to get board information") unless result
       message = ("#{key}: #{val}" for key, val of info).join("<br/>")
       bootbox.alert({
         title: "Board information (#{@constructor.boardname} on #{@port.name})"
@@ -198,9 +198,9 @@ class Board
       sketch.board.uiDownloadAndRun(sketch, (result) ->
         ModalSpin.hide()
         if result
-          Notify.success("Download succeeded.")
+          App.success("Download succeeded.")
         else
-          Notify.error("Download failed. (#{App.lastError})")
+          App.error("Download failed. (#{App.lastError})")
       )
     ) # Sketch.uiBuildSketch
 
@@ -211,5 +211,5 @@ class Board
     Editor.focus()
     @runSketch()
   )
-  KeyBind.add("Ctrl+R", "Run", => @runSketch())
+  App.bindKey("Ctrl+R", "Run", => @runSketch())
 

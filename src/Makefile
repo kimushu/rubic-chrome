@@ -4,13 +4,14 @@ JSDUCKIFY := $(shell which jsduckify 2>/dev/null)
 UGLIFYJS  := $(shell which uglifyjs 2>/dev/null)
 
 Q ?= @
-TARGET = app.js lib.js
+TARGET = rubic.js lib.js
 RELEASE = $(TARGET:.js=.min.js)
 RUNNER = node
 DOCDIR = docs
 SOURCES = \
+	utils.coffee \
 	async.coffee \
-	base.coffee \
+	app.coffee \
 	port.coffee \
 		serialport.coffee \
 	memhttprequest.coffee \
@@ -61,7 +62,7 @@ clean:
 	@echo "[Compiling CoffeeScript files]"
 	$(Q)coffee -c $< > $@ || (rm -f $@; false)
 
-app.coffee: $(SOURCES) $(MAKEFILE_LIST)
+rubic.coffee: $(SOURCES) $(MAKEFILE_LIST)
 	$(Q)cat /dev/null $(filter %.coffee,$^) > $@ || (rm -f $@; false)
 
 lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
@@ -84,7 +85,7 @@ lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
 .PHONY: doc
 doc: $(TARGET) $(firstword $(JSDUCKIFY) jsduckify-is-missing)
 	@echo "[Generating document]"
-	$(Q)$(JSDUCKIFY)
+	$(Q)$(JSDUCKIFY) -o doc
 
 .PHONY: uglifyjs-is-missing
 uglifyjs-is-missing:
