@@ -48,7 +48,10 @@ class App
   @private
   Spin object
   ###
-  @_spin: $(=> $("#modal-spin").spin({color: "#fff"}))
+  @_spin: null
+  $(=>
+    @_spin = $("#modal-spin").spin({color: "#fff"})
+  )
 
   ###*
   @private
