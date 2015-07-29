@@ -27,7 +27,7 @@ class Board
   @param {Function} callback  Callback ({Boolean} result, {Object} info)
   ###
   getInfo: (callback) ->
-    callback?(true, {message: "No information for this board"})
+    callback?(true, {message: I18n("NoInformationForThisBoard")})
 
   ###*
   Disconnect from board
@@ -35,7 +35,7 @@ class Board
   ###
   disconnect: (callback) ->
     return callback?(true) unless @isConnected
-    App.info("Disconnected")
+    App.info(I18n("Disconnected"))
     @isConnected = false
     callback?(true)
 
@@ -79,10 +79,10 @@ class Board
               App.hideModalSpin()
               if result
                 @port = port
-                App.success("Connected #{@constructor.boardname} on #{port.name}")
+                App.success(I18n("Board_Connected", @constructor.boardname, port.name))
               else
                 @port = null
-                App.error("Cannot connect #{@constructor.boardname} on #{port.name}")
+                App.error(I18n("Board_CannotConnect", @constructor.boardname, port.name))
               @constructor.uiChangeButtonState(result)
             )
           )
@@ -116,8 +116,8 @@ class Board
         b.find(".dropdown-menu").append("""
           <li class="btn-xs">
             <a href="#" id="board-item-#{boardClass.name\
-            }" title="Author: #{boardClass.author\
-            }&#10;Website: #{boardClass.website\
+            }" title="#{I18n("Author")}: #{boardClass.author\
+            }&#10;#{I18n("Website")}: #{boardClass.website\
             }">#{boardClass.boardname}</a>
           </li>
           """
@@ -146,10 +146,10 @@ class Board
     App.showModalSpin()
     @getInfo((result, info) =>
       App.hideModalSpin()
-      return App.error("Failed to get board information") unless result
+      return App.error(I18n("FailedToGetBoardInformation")) unless result
       message = ("#{key}: #{val}" for key, val of info).join("<br/>")
       bootbox.alert({
-        title: "Board information (#{@constructor.boardname} on #{@port.name})"
+        title: "#{I18n("BoardInformation")} (#{@constructor.boardname} on #{@port.name})"
         message:message
       })
     )
@@ -172,15 +172,15 @@ class Board
       callback?(result)
     @stop((result) =>
       unless result
-        App.lastError = "Cannot stop running sketch"
+        App.lastError = I18n("CannotStopRunningSketch")
         return final(false)
       @download(sketch, (result) =>
         unless result
-          App.lastError = "Cannot download new sketch"
+          App.lastError = I18n("CannotDownloadNewSketch")
           return final(false)
         @run((result) =>
           unless result
-            App.lastError = "Cannot start new sketch"
+            App.lastError = I18n("CannotStartNewSketch")
             return final(false)
           final(true)
         ) # @run
@@ -198,9 +198,9 @@ class Board
       sketch.board.uiDownloadAndRun(sketch, (result) ->
         App.hideModalSpin()
         if result
-          App.success("Download succeeded.")
+          App.success(I18n("DownloadSucceeded"))
         else
-          App.error("Download failed. (#{App.lastError})")
+          App.error("#{I18n("DownloadFailed")} (#{App.lastError})")
       )
     ) # Sketch.uiBuildSketch
 

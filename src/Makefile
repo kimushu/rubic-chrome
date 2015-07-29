@@ -10,6 +10,7 @@ RUNNER = node
 DOCDIR = docs
 SOURCES = \
 	utils.coffee \
+	i18n.coffee \
 	async.coffee \
 	app.coffee \
 	port.coffee \

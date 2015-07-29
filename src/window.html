@@ -18,31 +18,31 @@
               <p class="navbar-text"><img src="images/rubic_cube2x2_20.png">Rubic</p>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn" title="Menu" id="menu"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
+              <button class="btn" title="__MSG_Menu__" id="menu"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn action-new-sketch" title="New sketch (Ctrl+N)"><span class="glyphicon glyphicon-asterisk"></span> New</button>
+              <button class="btn action-new-sketch" title="__MSG_NewSketch__ (Ctrl+N)"><span class="glyphicon glyphicon-asterisk"></span> __MSG_New__</button>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn action-open-sketch" title="Open sketch (Ctrl+O)"><span class="glyphicon glyphicon-open"></span> Open</button>
+              <button class="btn action-open-sketch" title="__MSG_OpenSketch__ (Ctrl+O)"><span class="glyphicon glyphicon-open"></span> __MSG_Open__</button>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn action-save-sketch" title="Save sketch (Ctrl+S)"><span class="glyphicon glyphicon-save"></span> Save</button>
+              <button class="btn action-save-sketch" title="__MSG_SaveSketch__ (Ctrl+S)"><span class="glyphicon glyphicon-save"></span> __MSG_Save__</button>
               <button class="btn dropdown-toggle btn-thin" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
               <ul class="dropdown-menu" role="menu">
-                <li class="btn-xs"><a class="action-save-sketch-as" title="Save sketch as... (Ctrl+Shift+S)" href="#">Save as...</a></li>
+                <li class="btn-xs"><a class="action-save-sketch-as" title="__MSG_SaveSketchAs__... (Ctrl+Shift+S)" href="#">__MSG_SaveAs__...</a></li>
               </ul>
             </div>
             <div class="btn-toolbar pull-right">
               <div class="btn-group btn-group-xs">
-                <button class="btn action-build-sketch" title="Build sketch (Ctrl+B)"><span class="glyphicon glyphicon-random"></span> Build</button>
+                <button class="btn action-build-sketch" title="__MSG_BuildSketch__ (Ctrl+B)"><span class="glyphicon glyphicon-random"></span> __MSG_Build__</button>
               </div>
               <div class="btn-group btn-group-xs">
-                <button class="btn btn-primary action-run-group action-run-sketch" title="Program & Run (Ctrl+R)" disabled><span class="glyphicon glyphicon-play-circle"></span> Run</button>
+                <button class="btn btn-primary action-run-group action-run-sketch" title="__MSG_ProgramAndRun__ (Ctrl+R)" disabled><span class="glyphicon glyphicon-play-circle"></span> __MSG_Run__</button>
                 <button class="btn btn-primary action-run-group dropdown-toggle btn-thin" data-toggle="dropdown" aria-expanded="false" disabled><span class="caret"></span></button>
                 <ul class="dropdown-menu" role="menu">
-                <li class="btn-xs"><a class="action-run-sketch" title="Program & Run (Ctrl+R)" href="#">Run</a></li>
-                <li class="btn-xs disabled"><a class="action-debug-sketch" title="Start debugging" href="#">Debug</a></li>
+                <li class="btn-xs"><a class="action-run-sketch" title="__MSG_ProgramAndRun__ (Ctrl+R)" href="#">__MSG_Run__</a></li>
+                <li class="btn-xs disabled"><a class="action-debug-sketch" title="__MSG_StartDebugging__" href="#">__MSG_Debug__</a></li>
                 </ul>
               </div>
             </div>
@@ -54,24 +54,24 @@
       <div id="sidebar-wrapper">
         <ul class="sidebar-nav">
           <li>
-            <a class="action-new-sketch" href="#">New sketch</a>
+            <a class="action-new-sketch" href="#">__MSG_NewSketch__</a>
           </li>
           <li>
-            <a class="action-open-sketch" href="#">Open sketch...</a>
+            <a class="action-open-sketch" href="#">__MSG_OpenSketch__...</a>
           </li>
           <li>
-            <a class="action-save-sketch" href="#">Save sketch</a>
+            <a class="action-save-sketch" href="#">__MSG_SaveSketch__</a>
           </li>
           <li>
-            <a class="action-save-sketch-as" href="#">Save sketch as...</a>
-          </li>
-          <li class="divider"></li>
-          <li>
-            <a class="action-preferences disabled" title="Not supported yet">Preferences</a>
+            <a class="action-save-sketch-as" href="#">__MSG_SaveSketchAs__...</a>
           </li>
           <li class="divider"></li>
           <li>
-            <a class="action-about" href="#">About this application</a>
+            <a class="action-preferences disabled" title="__MSG_NotSupportedYet__">__MSG_Preferences__</a>
+          </li>
+          <li class="divider"></li>
+          <li>
+            <a class="action-about" href="#">__MSG_AboutThisApplication__</a>
           </li>
         </ul><!-- /.sidebar-nav -->
       </div><!-- /#sidebar-wrapper -->
@@ -89,25 +89,25 @@
           <li>
             <div class="btn-group btn-group-xs dropup" id="group-board">
               <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" disabled>
-                <span class="ph-body"></span><span class="ph-alt">Select Board</span> <span class="caret"></span>
+                <span class="ph-body"></span><span class="ph-alt">__MSG_SelectBoard__</span> <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" role="menu">
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
             <div class="btn-group btn-group-xs dropup" id="group-port">
               <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" disabled>
-                <span class="ph-body"></span><span class="ph-alt">Select Port</span> <span class="caret"></span>
+                <span class="ph-body"></span><span class="ph-alt">__MSG_SelectPort__</span> <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" role="menu">
                 <li class="btn-xs">
-                <a href="#" class="list-refresh"><span class="glyphicon glyphicon-refresh menu-icon" aria-hidden="true"></span>Rescan ports</a>
+                <a href="#" class="list-refresh"><span class="glyphicon glyphicon-refresh menu-icon" aria-hidden="true"></span>__MSG_RescanPorts__</a>
                 </li>
                 <li class="divider"></li>
-                <li class="btn-xs list-alt disabled"><a>No available port</a></li>
+                <li class="btn-xs list-alt disabled"><a>__MSG_NoAvailablePort__</a></li>
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
             <div class="btn-group">
-              <button class="btn btn-xs action-board-info" title="Board information" disabled><span class="glyphicon glyphicon-info-sign"></span> Info</button>
+              <button class="btn btn-xs action-board-info" title="Board information" disabled><span class="glyphicon glyphicon-info-sign"></span> __MSG_Info__</button>
             </div><!-- /.btn-group -->
           </li>
         </ul><!-- /.nav -->

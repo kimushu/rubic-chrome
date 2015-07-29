@@ -16,13 +16,13 @@ class About
       max-height: 303px;
       margin-left: 16px;
       margin-right: 16px;">
-      <div class="row row-vcenter"><div class="col-xs-12" style="font-size: large;">About this application:</div></div>
+      <div class="row row-vcenter"><div class="col-xs-12" style="font-size: large;">#{I18n("AboutThisApplication")}</div></div>
       <div class="row row-vcenter">
         <div class="col-xs-4 col-vcenter text-center"><h1><img src="images/rubic_cube2x2_48.png" style="margin-top: -10px;"> #{manifest.name}</h1></div>
         <div class="col-xs-8 col-vcenter" style="font-size: small;">
-          #{manifest.name} is an IDE for prototyping on embedded-boards with Ruby language.
-          <br><span style="font-weight: bold;">Version: #{manifest.version}</span>
-          <br>Author: <a href="http://github.com/kimushu/rubic" target="_blank">@kimu_shu</a>
+          #{I18n("selfIntro")}
+          <br><span style="font-weight: bold;">#{I18n("Version")}: #{manifest.version}</span>
+          <br>#{I18n("author")}: <a href="http://github.com/kimushu/rubic" target="_blank">@kimu_shu</a>
         </div>
       </div>
     """
@@ -30,7 +30,7 @@ class About
     for key in ["platform", "GUI"]
       msg += """
       <div class="row"><div class="col-xs-12"><hr class="thin-hr"></div></div>
-      <div class="row row-vcenter"><div class="col-xs-12">Rubic #{key} is supported by:</div></div>
+      <div class="row row-vcenter"><div class="col-xs-12">Rubic #{I18n(key)} #{I18n("isSupportedBy")}:</div></div>
       """
       index = 0
       for item in @_supporters[key]
@@ -59,7 +59,7 @@ class About
     for key, lic of @_licenses
       msg += """
       <div class="row"><div class="col-xs-12"><hr class="thin-hr"></div></div>
-      <div class="row row-vcenter"><div class="col-xs-12">License (#{escapeHtml(key)}):</div></div>
+      <div class="row row-vcenter"><div class="col-xs-12">#{I18n("License")} (#{escapeHtml(key)}):</div></div>
       <div class="row">
         <div class="col-xs-12">
           #{escapeHtml(lic).replace(/\n/g, "<br>")}
