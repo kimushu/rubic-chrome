@@ -1,7 +1,7 @@
-I18n = (args...) ->
-  m = chrome.i18n.getMessage(args...)
+I18n = (id, args...) ->
+  m = chrome.i18n.getMessage(id, [args...])
   return escapeHtml(m) if m != ""
-  m = args[0].replace(/(.)([A-Z][a-z])/g, (m, p1, p2) -> "#{p1} #{p2.toLowerCase()}")
+  m = id.replace(/(.)([A-Z][a-z])/g, (m, p1, p2) -> "#{p1} #{p2.toLowerCase()}")
   m = m.replace(/_/g, ' ')
   escapeHtml(m)
 
