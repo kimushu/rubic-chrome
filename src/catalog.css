@@ -1,0 +1,55 @@
+
+#catalog {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  bottom: 50px;
+  right: 0px;
+  overflow-y: scroll;
+}
+
+.card {
+  border: 1px solid #aaa;
+  padding: 2px;
+  margin: 3px;
+  float: left;
+  height: 100px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+@media (min-width: 250px) {
+  .card { width: calc(100.000% - 6px); }
+}
+
+@media (min-width: 500px) {
+  .card { width: calc(50.0000% - 6px); }
+}
+
+@media (min-width: 750px) {
+  .card { width: calc(33.3333% - 6px); }
+}
+
+@media (min-width: 1000px) {
+  .card { width: calc(25.0000% - 6px); }
+}
+
+@media (min-width: 1250px) {
+  .card { width: calc(20.0000% - 6px); }
+}
+
+@media (min-width: 1500px) {
+  .card { width: calc(16.6666% - 6px); }
+}
+
+@media (min-width: 1750px) {
+  .card { width: calc(14.2857% - 6px); }
+}
+
+@media (min-width: 2000px) {
+  .card { width: calc(12.5000% - 6px); }
+}
+

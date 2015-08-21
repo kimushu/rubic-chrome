@@ -30,6 +30,7 @@ SOURCES = \
 		localfilesystem.coffee \
 		googledrivefilesystem.coffee \
 	about.coffee \
+	hardwarecatalog.coffee \
 #	marshal.coffee \
 #	sandbox.coffee
 #		de0board.coffee \
