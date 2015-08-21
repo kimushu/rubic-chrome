@@ -8,10 +8,10 @@ class WakayamaRbBoard extends Board
   #----------------------------------------------------------------
   # Class attributes/methods
 
-  @boardname: "Wakayama.rb"
-  @author: "Minao Yamamoto (@momoonga)"
-  @website: ""
-  @portClasses: [SerialPort]
+  @NAME: "Wakayama.rb"
+  @AUTHOR: "Minao Yamamoto (@momoonga)"
+  @WEBSITE: "https://github.com/tarosay/Wakayama-mruby-board"
+  @PORTCLASSES: [SerialPort]
 
   #----------------------------------------------------------------
   # Instance attributes/methods

@@ -1,8 +1,8 @@
 ###*
-Declaration for pure class (non instantiatable)
+Declaration for pure (abstract) functions
 ###
-Function::pureClass = ->
-  throw new Error("#{@constructor.name} cannot be instantiated")
+Function::pure = ->
+  throw new Error("#{@constructor.name}::#{arguments.callee.name} cannot be called")
 
 ###*
 @method

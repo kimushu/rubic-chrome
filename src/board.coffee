@@ -7,10 +7,20 @@ class Board
   # Class attributes/methods
 
   ###*
+  @static
   @protected
   Register board class
   ###
   @addBoard: (board) -> @_boards.push(board)
+
+  ###*
+  @static
+  Generate a new board instance from its name
+  ###
+  @generate: (boardName, args...) ->
+    for board in @_boards
+      return new board(args...) if board.name == boardName
+    null
 
   ###*
   @private
@@ -23,11 +33,10 @@ class Board
   # Instance attributes/methods
 
   ###*
-  Get board information
-  @param {Function} callback  Callback ({Boolean} result, {Object} info)
+  @abstract
+  Connect to board
   ###
-  getInfo: (callback) ->
-    callback?(true, {message: I18n("NoInformationForThisBoard")})
+  connect: (callback) -> @pure()
 
   ###*
   Disconnect from board
@@ -40,6 +49,43 @@ class Board
     callback?(true)
 
   ###*
+  Get board information
+  @param {Function} callback  Callback ({Boolean} result, {Object} info)
+  ###
+  getInfo: (callback) ->
+    callback?(true, {message: I18n("NoInformationForThisBoard")})
+
+  ###*
+  @abstract
+  Write/update firmware of board
+  ###
+  writeFirmware: (callback) -> @pure()
+
+  ###*
+  @abstract
+  Get virtual filesystem on board
+  ###
+  getFileSystem: (callback) -> @pure()
+
+  ###*
+  @abstract
+  Get serial communication on board
+  ###
+  getSerial: (callback) -> @pure()
+
+  ###*
+  @abstract
+  Start sketch
+  ###
+  startSketch: (callback) -> @pure()
+
+  ###*
+  @abstract
+  Stop sketch
+  ###
+  stopSketch: (callback) -> @pure()
+
+  ###*
   @property
   @readonly
   Connection state
@@ -50,7 +96,7 @@ class Board
   @private
   Constructor
   ###
-  constructor: @pureClass
+  constructor: () -> @pure()
 
   ###*
   [UI action] Refresh port list
@@ -63,6 +109,7 @@ class Board
     p.find(".btn").prop("disabled", false).find(".ph-body").empty()
     index = 0
     portClass.enumerate((ports) =>
+      console.log ports
       return unless ports.length > 0
       for port in ports
         do (port) =>
@@ -79,10 +126,10 @@ class Board
               App.hideModalSpin()
               if result
                 @port = port
-                App.success(I18n("Board_Connected", @constructor.boardname, port.name))
+                App.success(I18n("Board_Connected", @constructor.NAME, port.name))
               else
                 @port = null
-                App.error(I18n("Board_CannotConnect", @constructor.boardname, port.name))
+                App.error(I18n("Board_CannotConnect", @constructor.NAME, port.name))
               @constructor.uiChangeButtonState(result)
             )
           )
@@ -102,7 +149,7 @@ class Board
     sketch.setBoard(boardClass, (result, board) =>
       return unless result
       @uiChangeButtonState(false)
-      b.find(".ph-body").text(boardClass.boardname)
+      b.find(".ph-body").text(boardClass.NAME)
       board.uiRefreshPorts()
     )
 
@@ -115,14 +162,14 @@ class Board
       do (boardClass) =>
         b.find(".dropdown-menu").append("""
           <li class="btn-xs">
-            <a href="#" id="board-item-#{boardClass.name\
-            }" title="#{I18n("Author")}: #{boardClass.author\
-            }&#10;#{I18n("Website")}: #{boardClass.website\
-            }">#{boardClass.boardname}</a>
+            <a href="#" id="board-item-#{boardClass.NAME\
+            }" title="#{I18n("Author")}: #{boardClass.AUTHOR\
+            }&#10;#{I18n("Website")}: #{boardClass.WEBSITE\
+            }">#{boardClass.NAME}</a>
           </li>
           """
         )
-        b.find("#board-item-#{boardClass.name}").unbind("click").click(=>
+        b.find("#board-item-#{boardClass.NAME}").unbind("click").click(=>
           Editor.focus()
           @uiSelectNewBoard(boardClass)
         )
@@ -149,7 +196,7 @@ class Board
       return App.error(I18n("FailedToGetBoardInformation")) unless result
       message = ("#{key}: #{val}" for key, val of info).join("<br/>")
       bootbox.alert({
-        title: "#{I18n("BoardInformation")} (#{@constructor.boardname} on #{@port.name})"
+        title: "#{I18n("BoardInformation")} (#{@constructor.NAME} on #{@port.name})"
         message:message
       })
     )

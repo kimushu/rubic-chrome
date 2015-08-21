@@ -8,10 +8,10 @@ class PeridotBoard extends Board
   #----------------------------------------------------------------
   # Class attributes/methods
 
-  @boardname: "PERIDOT"
-  @author: "Shun Osafune (@s_osafune)"
-  @website: "https://peridotcraft.com/"
-  @portClasses: [SerialPort]
+  @NAME: "PERIDOT"
+  @AUTHOR: "Shun Osafune (@s_osafune)"
+  @WEBSITE: "http://osafune.github.io/peridot.html"
+  @PORTCLASSES: [SerialPort]
 
   #----------------------------------------------------------------
   # Instance attributes/methods
