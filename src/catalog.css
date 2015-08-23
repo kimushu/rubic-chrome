@@ -1,26 +1,60 @@
 
 #catalog {
   position: absolute;
-  top: 0px;
+  top: 32px;
   left: 0px;
-  bottom: 50px;
+  bottom: 0px;
   right: 0px;
   overflow-y: scroll;
+  background-color: #eee;
 }
 
 .card {
-  border: 1px solid #aaa;
-  padding: 2px;
-  margin: 3px;
+  border-width: 1px 2px 2px 1px;
+  border-style: solid;
+  border-color: #aaa;
+  padding: 4px;
+  margin: 4px;
   float: left;
-  height: 100px;
+  height: 160px;
+  width: 360px;
+  background-color: #fff;
 }
 
-.title {
+.card : hover {
+  background-color: #ddf;
+}
+
+.card-header {
+  padding-left: 56px;
+  padding-bottom: 2px;
+}
+
+.card-icon {
+  margin-left: -56px;
+  float: left;
+}
+
+.card-title {
+  height: 25px;
   font-size: 16px;
   font-weight: bold;
 }
 
+.card-versions {
+  height: 23px;
+}
+
+.card-features {
+  font-size: 14px;
+}
+
+.card-desc {
+  padding-top: 2px;
+  font-size: 14px;
+}
+
+/*
 @media (min-width: 250px) {
   .card { width: calc(100.000% - 6px); }
 }
@@ -52,4 +86,5 @@
 @media (min-width: 2000px) {
   .card { width: calc(12.5000% - 6px); }
 }
+*/
 

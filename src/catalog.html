@@ -3,37 +3,179 @@
   <head>
     <meta charset="utf-8">
     <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="window.css" rel="stylesheet">
     <link href="catalog.css" rel="stylesheet">
     <title>Hardware catalog - Rubic</title>
   </head>
   <body>
-    <div class="navbar navbar-inverse navbar-fixed-bottom navbar-sketch" role="navigation">
+    <div class="navbar navbar-inverse navbar-fixed-top navbar-sketch" role="navigation">
       <div class="navbar-header">
+        <ul class="nav">
+          <div class="btn-toolbar">
+            <!--<div class="btn-group">
+              <button class="btn btn-xs" title="Menu" id="menu"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
+            </div>-->
+            <div class="btn-group btn-group-xs">
+              <p class="navbar-text" style="width: 160px; padding-left: 0px">ハードウェアカタログ</p>
+            </div>
+          <div><!-- /.btn-toolbar -->
+          <form class="navbar-form navbar-right" role="search" style="margin: 0px;">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Search" style="height: 24px">
+            </div>
+            <button type="submit" class="btn btn-default" style="height: 24px">検索</button>
+          </form>
+        </ul><!-- /.nav -->
       </div><!-- /.navbar-header -->
     </div><!-- /.navbar -->
     <div id="catalog">
       <div class="card">
-        <div>
-          <span style="float: left; width: 50px">
-            <img src="./images/rubic_cube2x2_48.png">
-          </span>
-          <span style="float: left; width: calc(100% - 50px); overflow-x: hidden;">
-            <span class="title"><nobr>PERIDOT olive with mruby</nobr></span>
-          </span>
+        <div class="card-header">
+          <div class="card-icon">
+            <img src="./images/peridot.png" width="48px" height="48px">
+          </div>
+          <div class="card-title">
+            PERIDOT olive with mruby
+          </div>
+          <div class="card-versions">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="drop_card1" aria-haspopup="true" aria-expanded="true">
+              Ver 1.0
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="drop_card1">
+              <li><a href="#">Ver 1.1</a></li>
+              <li><a href="#">Ver 1.0</a></li>
+            </ul>
+          </div><!-- /.card-versions -->
+        </div><!-- /.card-header -->
+        <div class="card-features">
+          <span class="label label-danger">mruby</span>
+          <!--<span class="label label-info">Javascript</span>-->
+          <span class="label label-default">UART</span>
+          <span class="label label-default">SPI</span>
+          <span class="label label-default">I2C</span>
+          <span class="label label-default">PWM/Servo</span>
+          <span class="label label-default">DSM</span>
+        </div>
+        <div class="card-desc">
+          PERIDOTボードにArduino相当の各種機能を実装したコンフィグレーションです。mruby実行エンジンが搭載されており、Ruby言語によるプログラミングが可能です。
         </div>
       </div>
       <div class="card">
-        card2
+        <div class="card-header">
+          <div class="card-icon">
+            <img src="./images/peridot.png" width="48px" height="48px">
+          </div>
+          <div class="card-title">
+            PERIDOT olive with Lua
+          </div>
+          <div class="card-versions">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="drop_card1" aria-haspopup="true" aria-expanded="true">
+              Ver 1.0
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="drop_card1">
+              <li><a href="#">Ver 1.1</a></li>
+              <li><a href="#">Ver 1.0</a></li>
+            </ul>
+          </div><!-- /.card-versions -->
+        </div><!-- /.card-header -->
+        <div class="card-features">
+          <span class="label label-primary">Lua</span>
+          <span class="label label-default">UART</span>
+          <span class="label label-default">SPI</span>
+          <span class="label label-default">I2C</span>
+          <span class="label label-default">PWM/Servo</span>
+          <span class="label label-default">DSM</span>
+        </div>
+        <div class="card-desc">
+          PERIDOTボードにArduino相当の各種機能を実装したコンフィグレーションです。Luaインタプリタが搭載されており、Lua言語によるプログラミングが可能です。
+        </div>
       </div>
       <div class="card">
-        card3
+        <div class="card-header">
+          <div class="card-icon">
+            <img src="./images/peridot.png" width="48px" height="48px">
+          </div>
+          <div class="card-title">
+            PERIDOT olive with MicroPython
+          </div>
+          <div class="card-versions">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="drop_card1" aria-haspopup="true" aria-expanded="true">
+              Ver 1.0
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="drop_card1">
+              <li><a href="#">Ver 1.1</a></li>
+              <li><a href="#">Ver 1.0</a></li>
+            </ul>
+          </div><!-- /.card-versions -->
+        </div><!-- /.card-header -->
+        <div class="card-features">
+          <span class="label label-success">MicroPython</span>
+          <span class="label label-default">UART</span>
+          <span class="label label-default">SPI</span>
+          <span class="label label-default">I2C</span>
+          <span class="label label-default">PWM/Servo</span>
+          <span class="label label-default">DSM</span>
+        </div>
+        <div class="card-desc">
+          PERIDOTボードにArduino相当の各種機能を実装したコンフィグレーションです。MicroPython実行エンジンが搭載されており、Python言語によるプログラミングが可能です。
+        </div>
       </div>
       <div class="card">
-        card4
+        <div class="card-header">
+          <div class="card-icon">
+            <img src="./images/no-icon.png" width="48px" height="48px">
+          </div>
+          <div class="card-title">
+            Wakayama.rb ボード
+          </div>
+          <div class="card-versions">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="drop_card1" aria-haspopup="true" aria-expanded="true">
+              ARIDA2 - 1.13 (2015/7/19) f3
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="drop_card1">
+            </ul>
+          </div><!-- /.card-versions -->
+        </div><!-- /.card-header -->
+        <div class="card-features">
+          <span class="label label-danger">mruby</span>
+          <span class="label label-default">UART</span>
+          <span class="label label-default">SPI</span>
+          <span class="label label-default">A/D</span>
+          <span class="label label-default">I2C</span>
+          <span class="label label-default">PWM/Servo</span>
+        </div>
+        <div class="card-desc">
+          mrubyを実装したRubyボードです。オブジェクト指向言語Rubyを用いてプログラミングできます。
+        </div>
       </div>
       <div class="card">
-        card5
-      </div>
+        <div class="card-header">
+          <div class="card-icon">
+            <img src="./images/no-icon.png" width="48px" height="48px">
+          </div>
+          <div class="card-title">
+            enzi pro mini <span class="badge" style="font-size: 12px">BETA</span>
+          </div>
+          <div class="card-versions">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="drop_card1" aria-haspopup="true" aria-expanded="true">
+              Ver.xx.xx
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="drop_card1">
+            </ul>
+          </div><!-- /.card-versions -->
+        </div><!-- /.card-header -->
+        <div class="card-features">
+          <span class="label label-danger">mruby</span>
+        </div>
+        <div class="card-desc">
+          将来対応予定？
+        </div>
+      </div><!--
       <div class="card">
         card6
       </div>
@@ -48,7 +190,7 @@
       </div>
       <div class="card">
         card10
-      </div>
+      </div>-->
     </div><!-- /#wrapper -->
   </body>
 </html>
