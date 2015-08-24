@@ -17,6 +17,7 @@
   },
   "permissions": [
     "serial",
+    "unlimitedStorage",
     {"fileSystem": ["directory", "write"]}
   ]
 }

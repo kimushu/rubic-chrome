@@ -1,5 +1,27 @@
 class FileSystem
   ###*
+  @static
+  Request filesystem for persistent local storage
+  @param {Function} callback    Callback ({FileSystem} fs)
+  ###
+  @requestPersistent: (callback) ->
+    navigator.webkitPersistentStorage.queryUsageAndQuota(
+      (used, granted) ->
+        webkitRequestFileSystem(PERSISTENT, granted, callback, -> callback(null))
+    )
+
+  ###*
+  @static
+  Request filesystem for temporary local storage
+  @param {Function} callback    Callback ({FileSystem} fs)
+  ###
+  @requestTemporary: (callback) ->
+    navigator.webkitTemporaryStorage.queryUsageAndQuota(
+      (used, granted) ->
+        webkitRequestFileSystem(TEMPORARY, granted, callback, -> callback(null))
+    )
+
+  ###*
   Request filesystem access
   @param {String}   name      Name(classname) of filesystem to request
   @param {Function} callback  Callback (Object filesystem)

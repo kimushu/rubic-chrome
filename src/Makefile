@@ -27,6 +27,7 @@ SOURCES = \
 		mrbviewer.coffee \
 	sketch.coffee \
 	filesystem.coffee \
+		githubrepofilesystem.coffee \
 		localfilesystem.coffee \
 		googledrivefilesystem.coffee \
 	about.coffee \

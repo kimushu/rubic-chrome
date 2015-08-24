@@ -136,7 +136,44 @@ class App
     )
     #  @_list.push({key: key, desc: desc})
 
+  ###*
+  @private
+  @static
+  @property {Integer[]} Version number
+  ###
+  @_version: null
+
+  ###*
+  @static
+  @method
+  Check if current Rubic version is compatible or not
+  @param {String} expr    Version compatibility expression @nullable
+  ###
+  @checkVersion: (expr) ->
+    return true unless expr
+    toNumeric = (str) ->
+      v = (parseInt(p) for p in "#{str}.0.0.0".split("."))
+      (((v[0] * 0x10000 + v[1]) * 0x10000 + v[2]) * 0x10000) + v[3]
+    @_version = toNumeric(chrome.runtime.getManifest()["version"]) unless @_version
+    [ver, opr] = expr.split(" ", 2).reverse()
+    ver = toNumeric(ver)
+    switch "#{opr}"
+      when "==", "=", "undefined"
+        return @_version == ver
+      when ">"
+        return @_version > ver
+      when ">="
+        return @_version >= ver
+      when "<"
+        return @_version < ver
+      when "<="
+        return @_version <= ver
+      else
+        console.log("warning: unknown version compare operator: #{opr}")
+    false
+
 $("#menu").click(->
   Editor.focus()
   $("#wrapper").toggleClass("toggled")
 )
+
