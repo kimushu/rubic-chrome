@@ -9,13 +9,25 @@
   background-color: #eee;
 }
 
+.card-group {
+  margin-bottom: 4px;
+}
+
+.card-group-header {
+  margin: 4px 4px 0px 4px;
+  width: calc(100% - 10px);
+  height: 24px;
+  border: 1px solid #aaa;
+  background-color: #ffe;
+}
+
 .card {
   border-width: 1px 2px 2px 1px;
   border-style: solid;
   border-color: #aaa;
   padding: 4px;
   margin: 4px;
-  float: left;
+  display: inline-table;
   height: 160px;
   width: 360px;
   background-color: #fff;

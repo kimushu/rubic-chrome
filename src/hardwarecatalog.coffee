@@ -66,17 +66,112 @@ class HardwareCatalog
   @param {jQuery} $   jQuery object of catalog window
   ###
   _onLoad: ($) ->
+    # return
+    console.log({_onLoad: {$: $}})
+    GitHubRepoFileSystem.requestFileSystem(
+      "kimushu",
+      "rubic-catalog",
+      {branch: "master"},
+      ((fs) =>
+        console.log({githubfs: fs})
+        fs.root.getFile(
+          "sites.json",
+          {},
+          ((entry) =>
+            console.log({getFile: entry})
+            FileUtil.readText(entry, (result, readdata) =>
+              return console.log("readText failed") unless result
+              sites = JSON.parse(readdata)
+              console.log({sites: sites})
+              return unless App.checkVersion(sites.rubic_version)
+              @_addSite($, site) for site in sites.sites
+              null
+            ) # readText
+          ),
+          (-> console.log("getFile failed"))
+        ) # getFile
+      ),
+      (-> console.log("GitHubRepoFileSystem request failed"))
+    )
     null
 
   _addSite: ($, site) ->
-    return unless App.checkVersion(site["rubic_version"])
-    switch site["service"]
+    console.log({_addSite: {$: $, site: site}})
+    return unless App.checkVersion(site.rubic_version)
+    elem = $("#catalog").append("""
+    <div class="card-group" id="#{site.uuid}">
+      <div class="card-group-header">#{I18n(site.name)}</div>
+    </div>
+    """)
+    switch site.service
       when "github"
-        null
+        requester = (sc, ec) ->
+          GitHubRepoFileSystem.requestFileSystem(
+            site.owner,
+            site.repo,
+            site.ref,
+            (fs) -> sc(fs.root),
+            ec
+          ) # requestFileSystem
       when "local"
-        null
-      else
-        console.log("warning: unsupported service")
+        requester = (sc, ec) ->
+          navigator.webkitPersistentStorage.queryUsageAndQuota(
+            ((used, granted) ->
+              window.webkitRequestFileSystem(
+                window.PERSISTENT,
+                granted,
+                (fs) -> sc(fs.root),
+                ec
+              ) # webkitRequestFileSystem
+            ),
+            ec
+          ) # queryUsageAndQuota
+    return console.log("warning: unsupported service") unless requester
+    requester((root) =>
+      root.getFile(
+        "catalog.json",
+        {},
+        ((entry) =>
+          FileUtil.readText(entry, (result, readdata) =>
+            return console.log("readText failed") unless result
+            items = JSON.parse(readdata)
+            console.log({items: items})
+            @_addItem(elem, item) for item in items
+            null
+          ) # readText
+        ),
+        (-> console.log("getFile() failed"))
+      ) # getFile
+    ) # requester
+
+  _addItem: (elem, item) ->
+    console.log({_addItem: {elem: elem, item: item}})
+    elem.append("""
+      <div class="card" id="#{item.uuid}">
+        <div class="card-header">
+          <img class="card-icon" src="#{item.icon}" width="48px" height="48px">
+          <div class="card-title">#{I18n(item.name)}</div>
+          <div class="card-versions">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              #{item.versions[0].display_name} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu"></ul>
+          </div>
+        </div>
+        <div class="card-features"></div>
+        <div class="card-desc"></div>
+      </div>
+    """)
+    el_card = elem.find("##{item.uuid}")
+    el_vers = el_card.find(".card-versions")
+    el_feas = el_card.find(".card-features")
+    for name, detail of item.versions[0].features
+      el_feas.append("""
+        <span class="label label-default">#{name}</span>\n
+      """)
+    el_desc = el_card.find(".card-desc")
+    el_desc.append(I18n(item.versions[0].description))
+    null
 
 console.log({"HardwareCatalog": HardwareCatalog})
 
