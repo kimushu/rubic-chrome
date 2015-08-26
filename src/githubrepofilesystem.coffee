@@ -4,6 +4,7 @@ unless Function::property
 
 class GitHubRepoFileSystem
   API_URL = "https://api.github.com"
+  RAW_URL = "https://raw.githubusercontent.com"
 
   ###*
   @class
@@ -50,7 +51,10 @@ class GitHubRepoFileSystem
     Get last modification date of the entry
     ###
     getMetadata: (successCallback, errorCallback) ->
-      successCallback(@_mdate)
+      @_fs._getCommitInfo((result) =>
+        return errorCallback?({code: FileError.NOT_READABLE_ERR}) unless result
+        successCallback(new Date(@_fs._commit.committer.date))
+      )
       undefined
 
     ###*
@@ -58,7 +62,7 @@ class GitHubRepoFileSystem
     Move an entry to a different location on the file system (not supported)
     ###
     moveTo: (parent, newName, successCallback, errorCallback) ->
-      errorCallback?()
+      errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
       undefined
 
     ###*
@@ -66,7 +70,7 @@ class GitHubRepoFileSystem
     Copy an entry to a different location on the file system (not supported)
     ###
     copyTo: (parent, newName, successCallback, errorCallback) ->
-      errorCallback?()
+      errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
       undefined
 
     ###*
@@ -80,7 +84,7 @@ class GitHubRepoFileSystem
     Deletes a file or directory
     ###
     remove: (successCallback, errorCallback) ->
-      errorCallback?()
+      errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
       undefined
 
     ###*
@@ -94,11 +98,13 @@ class GitHubRepoFileSystem
     ###*
     @protected
     Constructor of GitHubRepoEntry
+    @param {GitHubRepoFileSystem}     _fs     File system object
+    @param {GitHubRepoDirectoryEntry} parent  Parent directory @nullable
+    @param {String}                   path    Relative path from parent
     ###
-    constructor: (@_fs, @_parent, @_url, @_name, @_mdate) ->
-      @_mdate or= (@_parent or this)._mdate
-      @_isFile = true
-      @_fullPath = "#{(@_parent?.fullPath or "").replace(/\/$/, '')}/#{@_name}"
+    constructor: (@_fs, parent, path) ->
+      @_fullPath = "#{(parent?.fullPath or "").replace(/\/$/, '')}/#{path}"
+      @_name = @_fullPath.split("/").pop()
 
   ###*
   @class
@@ -117,7 +123,11 @@ class GitHubRepoFileSystem
     Opens an existing file
     ###
     getFile: (path, options, successCallback, errorCallback) ->
-      @_getEntry("blob", GitHubRepoFileEntry, path, options, successCallback, errorCallback)
+      options or= {}
+      if options.create
+        errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
+        return undefined
+      successCallback(new GitHubRepoFileEntry(@_fs, this, path.replace(/\/$/, '')))
       undefined
 
     ###*
@@ -125,7 +135,11 @@ class GitHubRepoFileSystem
     Opens an existing directory
     ###
     getDirectory: (path, options, successCallback, errorCallback) ->
-      @_getEntry("tree", GitHubDirectoryEntry, path, options, successCallback, errorCallback)
+      options or= {}
+      if options.create
+        errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
+        return undefined
+      successCallback(new GitHubRepoDirectoryEntry(@_fs, this, path.replace(/\/$/, '')))
       undefined
 
     ###*
@@ -133,48 +147,20 @@ class GitHubRepoFileSystem
     Deletes a directory and all of its contents (not supported)
     ###
     removeRecursively: (successCallback, errorCallback) ->
-      errorCallback?()  # Because read-only
+      errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
       undefined
 
     ###*
     @private
     Constructor of GitHubRepoDirectoryEntry
+    @param {GitHubRepoFileSystem}     fs      File system object
+    @param {GitHubRepoDirectoryEntry} parent  Parent directory @nullable
+    @param {String}                   path    Relative path from parent
     ###
-    constructor: (fs, parent, url, name, mdate) ->
+    constructor: (fs, parent, path) ->
       super
       @_isFile = false
-
-    ###*
-    @private
-    Get a tree information from GitHub
-    ###
-    _getTree: (successCallback, errorCallback) ->
-      req = new XMLHttpRequest
-      req.open("GET", @_url)
-      req.responseType = "json"
-      req.onreadystatechange = ->
-        return unless req.readyState == @DONE
-        return errorCallback?() unless req.status == 200
-        successCallback(req.response.tree or [])
-      req.send()
-
-    ###*
-    @private
-    Get a new entry (file or directory)
-    ###
-    _getEntry: (type, eclass, path, options, successCallback, errorCallback) ->
-      options or= {}
-      return errorCallback?() if options.create # Because read-only
-      @_getTree(
-        ((tree) =>
-          for f in tree
-            continue unless f.path == path
-            return errorCallback?() unless f.type == type and f.url
-            return successCallback(new eclass(@_fs, this, f.url, f.path))
-          return errorCallback?() # Entry not found
-        ),
-        errorCallback
-      ) # @_getTree
+      @_url = undefined
 
   ###*
   @class
@@ -183,35 +169,21 @@ class GitHubRepoFileSystem
   class GitHubRepoDirectoryReader
     ###*
     @method
-    Returns a list of entries from a specific directory
+    (NOT SUPPORTED) Returns a list of entries from a specific directory
+    @param {Function} successCallback   Callback ({Entry[]} entries)
+    @param {Function} errorCallback     Callback ({FileError} err) @nullable
     ###
     readEntries: (successCallback, errorCallback) ->
-      if @_done
-        successCallback([])
-        return undefined
-      @_dirEntry._getTree(
-        ((tree) =>
-          entries = []
-          for f in tree
-            if f.type == "tree"
-              eclass = GitHubRepoDirectoryEntry
-            else
-              eclass = GitHubRepoFileEntry
-            entries.push(new eclass(@_dirEntry._fs, @_dirEntry, f.url, f.path))
-          @_done = true
-          successCallback(entries)
-        ),
-        errorCallback
-      ) # @_entry._getTree
+      errorCallback?({code: FileError.NOT_READABLE_ERR})
       undefined
 
     ###*
     @private
     Constructor of GitHubRepoDirectoryReader
+    @param {GitHubRepoDirectoryEntry} _dir  Entry of target directory
     ###
-    constructor: (@_dirEntry) ->
-      @_tree = null
-      @_done = false
+    constructor: (@_dir) ->
+      null
 
   ###*
   @class
@@ -222,7 +194,7 @@ class GitHubRepoFileSystem
     Creates a new FileWriter compatible object associated with this file
     ###
     createWriter: (successCallback, errorCallback) ->
-      errorCallback?() # Because read-only
+      errorCallback?({code: FileError.NO_MODIFICATION_ALLOWED_ERR})
       undefined
 
     ###*
@@ -231,27 +203,29 @@ class GitHubRepoFileSystem
     file: (successCallback, errorCallback) ->
       req = new XMLHttpRequest
       req.open("GET", @_url)
-      req.responseType = "json"
+      req.responseType = "arraybuffer"
       req.onreadystatechange = =>
         return unless req.readyState == XMLHttpRequest.DONE
-        return errorCallback?() unless req.status == 200
+        unless req.status == 200
+          return errorCallback?({code: FileError.NOT_FOUND_ERR})
         array = new Uint8Array(req.response.size)
-        switch req.response.encoding
-          when "base64"
-            bin = atob(req.response.content)
-            (array[i] = bin.charCodeAt(i)) for i in [0...array.length]
-          else
-            return errorCallback?()
-        successCallback(new File([array], @_name, {lastModified: @_mdate}))
+        successCallback(new File([req.response], @_name))
       req.send()
       undefined
 
     ###*
     @private
     Constructor of GitHubRepoFileEntry
+    @param {GitHubRepoFileSystem}     fs      File system object
+    @param {GitHubRepoDirectoryEntry} parent  Parent directory @nullable
+    @param {String}                   path    Relative path from parent
     ###
-    constructor: (fs, parent, url, name, mdate) ->
+    constructor: (fs, parent, path) ->
       super
+      @_isFile = true
+      ref = @_fs._ref
+      @_url = "#{RAW_URL}/#{@_fs._owner}/#{@_fs._repo}/" +
+        "#{ref.commit or ref.tag or ref.branch}#{@_fullPath}"
 
   ###*
   @property {String} name
@@ -270,54 +244,64 @@ class GitHubRepoFileSystem
   ###*
   @static
   Request filesystem for GitHub repository storage
-  @param {String}   owner             Owner of repository
-  @param {String}   repo              Name of repository
-  @param {String}   ref.branch        Name of branch (default: master) @nullable
-  @param {String}   ref.tag           Name of tag @nullable
+  @param {String}   owner             Owner name
+  @param {String}   repo              Repository name
+  @param {String}   ref.branch        Branch name (default: "master") @nullable
+  @param {String}   ref.tag           Tag name @nullable
+  @param {String}   ref.commit        Commit hash @nullable
   @param {Function} successCallback   Callback ({FileSystem} fs)
-  @param {Function} errorCallback     Callback () @nullable
+  @param {Function} errorCallback     Callback ({FileError} err) @nullable
   ###
   @requestFileSystem: (owner, repo, ref, successCallback, errorCallback) ->
-    if ref?.tag
-      path = "tags/#{ref.tag}"
-    else
-      path = "heads/#{ref?.branch or "master"}"
-    fs = new GitHubRepoFileSystem(owner, repo, path)
-    fs._request(successCallback, errorCallback)
+    successCallback(new GitHubRepoFileSystem(owner, repo, ref))
+    undefined
 
   ###*
   @private
-  Request filesystem (body)
-  @param {Function} successCallback   Callback ({FileSystem} fs)
-  @param {Function} errorCallback     Callback () @nullable
+  Get commit information from GitHub API
+  @param {String}   commit      Commit hash @nullable
+  @param {Function} callback    Callback ({Boolean} result)
   ###
-  _request: (successCallback, errorCallback) ->
-    url = "#{API_URL}/repos/#{@_owner}/#{@_repo}/git"
+  _getCommitInfo: (commit, callback) ->
     req = new XMLHttpRequest
-    req.open("GET", "#{url}/refs/#{@_ref}")
-    req.responseType = "json"
-    req.onreadystatechange = =>
-      return unless req.readyState == XMLHttpRequest.DONE
-      return errorCallback?() unless req.status == 200
-      sha = req.response.object?.sha
-      return errorCallback?() unless sha
-      req = new XMLHttpRequest
-      req.open("GET", "#{url}/commits/#{sha}")
+    base = "#{API_URL}/repos/#{@_owner}/#{@_repo}/git"
+    commit or= @_ref.commit
+    if commit
+      req.open("GET", "#{base}/commits/#{commit}")
       req.responseType = "json"
       req.onreadystatechange = =>
         return unless req.readyState == XMLHttpRequest.DONE
-        return errorCallback?() unless req.status == 200
-        date = new Date(req.response.author.date)
-        @_root = new GitHubRepoDirectoryEntry(this, null, "#{url}/trees/#{sha}", "", date)
-        successCallback(this)
+        return callback(false) unless req.status == 200
+        @_commit = req.response
+        callback(true)
       req.send()
-    req.send()
+    else
+      base += "/refs/"
+      if @_ref.tag
+        base += "tags/#{@_ref.tag}"
+      else
+        base += "heads/#{@_ref.branch}"
+      req.open("GET", base)
+      req.responseType = "json"
+      req.onreadystatechange = =>
+        return unless req.readyState == XMLHttpRequest.DONE
+        return callback(false) unless req.status == 200
+        @_getCommitInfo(req.response.object.sha, callback)
+      req.send()
     undefined
 
   ###*
   @private
   Constructor of GitHubRepoFileSystem
+  @param {String} _owner        Owner name
+  @param {String} _repo         Repository name
+  @param {String} _ref.branch   Branch name (default: "master") @nullable
+  @param {String} _ref.tag      Tag name @nullable
+  @param {String} _ref.commit   Commit hash @nullable
   ###
   constructor: (@_owner, @_repo, @_ref) ->
-    null
+    @_root = new GitHubRepoDirectoryEntry(this, null, "/")
+    @_ref or= {}
+    @_ref.branch or= "master" unless @_ref.tag or @_ref.commit
+    @_commit = null
 
