@@ -24,10 +24,24 @@ class HardwareCatalog
 
   ###*
   @static
+  Register feature realization class
+  ###
+  @addFeature: (feature_class) ->
+    @_feature_classes[feature_class.name] = feature_class
+
+  ###*
+  @static
   @private
   Only instance of this class (singleton)
   ###
   @_instance: null
+
+  ###*
+  @static
+  @private
+  Dictionary of feature classes
+  ###
+  @_feature_classes: {}
 
   #----------------------------------------------------------------
   # Instance variables/methods
@@ -98,11 +112,14 @@ class HardwareCatalog
   _addSite: ($, site) ->
     console.log({_addSite: {$: $, site: site}})
     return unless App.checkVersion(site.rubic_version)
-    elem = $("#catalog").append("""
+    $("#catalog").append("""
     <div class="card-group" id="#{site.uuid}">
-      <div class="card-group-header">#{I18n(site.name)}</div>
+      <div class="card-group-header">
+        <span id="glyphicon glyphicon-menu-down"></span> #{I18nS(site.name)}
+      </div>
     </div>
     """)
+    elem = $("#catalog").find("##{site.uuid}")
     switch site.service
       when "github"
         requester = (sc, ec) ->
@@ -150,9 +167,10 @@ class HardwareCatalog
       <div class="card" id="#{item.uuid}">
         <div class="card-header">
           <img class="card-icon" src="#{item.icon}" width="48px" height="48px">
-          <div class="card-title">#{I18n(item.name)}</div>
+          <div class="card-title">#{I18nS(item.name)}</div>
           <div class="card-versions">
-            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown"
+             aria-haspopup="true" aria-expanded="true">
               #{item.versions[0].display_name} <span class="caret"></span>
             </button>
             <ul class="dropdown-menu"></ul>
@@ -166,11 +184,20 @@ class HardwareCatalog
     el_vers = el_card.find(".card-versions")
     el_feas = el_card.find(".card-features")
     for name, detail of item.versions[0].features
-      el_feas.append("""
-        <span class="label label-default">#{name}</span>\n
-      """)
+      console.log(@constructor._feature_classes)
+      console.log(detail)
+      console.log(detail["class"])
+      color = @constructor._feature_classes[detail.class]?.FEATURE_COLOR
+      if color
+        el_feas.append("""
+          <span class="label" style="background-color: #{color};">#{name}</span>\n
+        """)
+      else
+        el_feas.append("""
+          <span class="label label-default">#{name}</span>\n
+        """)
     el_desc = el_card.find(".card-desc")
-    el_desc.append(I18n(item.versions[0].description))
+    el_desc.append(I18nS(item.versions[0].description))
     null
 
 console.log({"HardwareCatalog": HardwareCatalog})

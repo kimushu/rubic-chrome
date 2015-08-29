@@ -1,9 +1,12 @@
 class MRubyBuilder extends Builder
   Builder.addBuilder(this)
+  HardwareCatalog.addFeature(this)
   DEBUG_LIB = false
 
   #----------------------------------------------------------------
   # Class attributes/methods
+
+  @FEATURE_COLOR: "#c7311d"
 
   @suffix = ["rb"]
 

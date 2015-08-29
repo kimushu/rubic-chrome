@@ -33,8 +33,8 @@
   background-color: #fff;
 }
 
-.card : hover {
-  background-color: #ddf;
+.card:hover {
+  background-color: #e0f0ff;
 }
 
 .card-header {

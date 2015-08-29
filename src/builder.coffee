@@ -36,3 +36,11 @@ class Builder
   ###
   @_builders: []
 
+  ###*
+  @method
+  Get builder class from its name
+  ###
+  @getBuilder: (name) ->
+    return b for b in @_builders when b.name == name
+    null
+
