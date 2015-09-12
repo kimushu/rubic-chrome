@@ -5,6 +5,13 @@ body {
 .btn {
   border: 1px solid rgba(0, 0, 0, .2);
 }
+.navbar-form {
+  margin: 0px;
+  padding: 0px;
+}
+.form-control-xs {
+  height: 22px;
+}
 .navbar-sketch {
   min-height: 32px;
   max-height: 32px;
@@ -29,9 +36,9 @@ body {
   height: 22px;
   padding: 0;
   margin: 0;
+  font-weight: bold;
   text-align: center;
   padding-left: 24px;
-  width: 76px;
 }
 .navbar-text > img {
   position: absolute;

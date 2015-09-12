@@ -52,8 +52,8 @@ class HardwareCatalog
   open: () ->
     return @_appWindow.focus() if @_appWindow
     chrome.app.window.create(
-      "catalog.html",
-      {id: WINDOW_ID},
+      "win_catalog.html",
+      {id: WINDOW_ID, innerBounds: {minWidth: 480, width: 640, height: 480}},
       (createdWindow) =>
         @_appWindow = createdWindow
         @_appWindow.onClosed.addListener(=> @_appWindow = null)
@@ -81,6 +81,7 @@ class HardwareCatalog
   ###
   _onLoad: ($) ->
     # return
+    I18nW($)
     console.log({_onLoad: {$: $}})
     GitHubRepoFileSystem.requestFileSystem(
       "kimushu",
@@ -164,16 +165,16 @@ class HardwareCatalog
   _addItem: (elem, item) ->
     console.log({_addItem: {elem: elem, item: item}})
     elem.append("""
-      <div class="card" id="#{item.uuid}">
+      <div class="thumbnail" id="#{item.uuid}">
         <div class="card-header">
           <img class="card-icon" src="#{item.icon}" width="48px" height="48px">
           <div class="card-title">#{I18nS(item.name)}</div>
-          <div class="card-versions">
+          <div class="card-versions dropdown">
             <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="true">
-              #{item.versions[0].display_name} <span class="caret"></span>
+             id="#{item.uuid}-versions" aria-haspopup="true"
+             aria-expanded="false">#{item.versions[0].display_name} <span class="caret"></span>
             </button>
-            <ul class="dropdown-menu"></ul>
+            <ul class="dropdown-menu" alia-labelledby="#{item.uuid}-versions"></ul>
           </div>
         </div>
         <div class="card-features"></div>
@@ -181,7 +182,11 @@ class HardwareCatalog
       </div>
     """)
     el_card = elem.find("##{item.uuid}")
-    el_vers = el_card.find(".card-versions")
+    el_vers = el_card.find(".card-versions").find("ul")
+    el_vers.append("""
+      <li>hoge</li>
+      <li>bar</li>
+    """)
     el_feas = el_card.find(".card-features")
     for name, detail of item.versions[0].features
       console.log(@constructor._feature_classes)

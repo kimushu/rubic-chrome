@@ -113,7 +113,7 @@ jsduckify-is-missing:
 DIST_DIR = ../dist
 
 # Main files and mruby
-DIST_FILES = manifest.json window.html window.css $(TARGET)
+DIST_FILES = manifest.json win_main.html win_main.css win_catalog.html win_catalog.css $(TARGET)
 # Embedded images
 DIST_FILES += $(wildcard images/rubic_cube2x2_*.png) \
 	images/mruby_logo_red_cropped.png \

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="win_main.css" rel="stylesheet">
+    <link href="win_catalog.css" rel="stylesheet">
+    <title>Hardware catalog - Rubic</title>
+  </head>
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top navbar-sketch" role="navigation">
+      <div class="navbar-header">
+        <ul class="nav">
+          <div class="btn-toolbar">
+            <div class="btn-group btn-group-xs">
+              <p class="navbar-text"><img src="images/rubic_cube2x2_20.png">ハードウェアカタログ</p>
+            </div>
+            <div class="btn-group btn-group-xs">
+              <button class="btn" title="__MSG_RefreshCatalog__" id="menu"><span class="glyphicon glyphicon-refresh"></span> __MSG_Refresh__</button>
+            </div>
+            <div class="btn-toolbar pull-right">
+              <form class="navbar-form" role="search">
+                <input type="text" class="form-control form-control-xs btn-xs" placeholder="__MSG_Search__">
+                <button type="submit" class="btn btn-xs pull-right" style="margin-left: 5px"><span class="glyphicon glyphicon-search"></span></button>
+              </form>
+            </div><!-- /.btn-toolbar -->
+          </div><!-- /.btn-toolbar -->
+        </ul><!-- /.nav -->
+      </div><!-- /.navbar-header -->
+    </div><!-- /.navbar -->
+    <div id="catalog">
+<div class="card" id="46315705-2758-4a4f-9781-a2e1bf993069">
+  <div class="card-body">
+  <div class="card-header">
+    <img class="card-icon" src="" width="48px" height="48px">
+    <div class="card-title">PERIDOT olive with mruby</div>
+    <div class="card-versions dropdown">
+      <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="46315705-2758-4a4f-9781-a2e1bf993069-versions" aria-haspopup="true" aria-expanded="false">v1.0 <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" alia-labelledby="46315705-2758-4a4f-9781-a2e1bf993069-versions"><li>hoge</li>
+<li>bar</li></ul>
+    </div>
+  </div>
+  <div class="card-features"><span class="label" style="background-color: #c7311d;">mruby</span>
+<span class="label label-default">UART</span>
+<span class="label label-default">SPI</span>
+<span class="label label-default">I2C</span>
+<span class="label label-default">DSM</span>
+<span class="label label-default">PWM/Servo</span>
+</div>
+</div>
+  <div class="card-desc">PERIDOTボードにArduino相当の各種機能を実装したコンフィグレーションです。組込み向けRuby実行エンジンのmrubyが搭載されており、Ruby言語によるプログラミングが可能です。</div>
+</div><div class="card" id="1380fca8-97b0-467a-aa25-a1dc7f27ce5c">
+  <div class="card-header">
+    <img class="card-icon" src="" width="48px" height="48px">
+    <div class="card-title">PERIDOT olive with Python</div>
+    <div class="card-versions dropdown">
+      <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="1380fca8-97b0-467a-aa25-a1dc7f27ce5c-versions" aria-haspopup="true" aria-expanded="false">v0.1 <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" alia-labelledby="1380fca8-97b0-467a-aa25-a1dc7f27ce5c-versions"><li>hoge</li>
+<li>bar</li></ul>
+    </div>
+  </div>
+  <div class="card-features"><span class="label label-default">MicroPython</span>
+<span class="label label-default">UART</span>
+<span class="label label-default">SPI</span>
+<span class="label label-default">I2C</span>
+<span class="label label-default">DSM</span>
+<span class="label label-default">PWM/Servo</span>
+</div>
+  <div class="card-desc">PERIDOTボードにArduino相当の各種機能を実装したコンフィグレーションです。組込み向けPython実行エンジンのMicroPythonが搭載されており、Python言語によるプログラミングが可能です。</div>
+</div><div class="card" id="5ec718c4-d01d-4942-bfa6-c6f8eb78d2e1">
+  <div class="card-header">
+    <img class="card-icon" src="" width="48px" height="48px">
+    <div class="card-title">PERIDOT olive with JavaScript</div>
+    <div class="card-versions dropdown">
+      <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="5ec718c4-d01d-4942-bfa6-c6f8eb78d2e1-versions" aria-haspopup="true" aria-expanded="false">v0.1 <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" alia-labelledby="5ec718c4-d01d-4942-bfa6-c6f8eb78d2e1-versions"><li>hoge</li>
+<li>bar</li></ul>
+    </div>
+  </div>
+  <div class="card-features"><span class="label label-default">Duktape (JavaScript)</span>
+<span class="label label-default">UART</span>
+<span class="label label-default">SPI</span>
+<span class="label label-default">I2C</span>
+<span class="label label-default">DSM</span>
+<span class="label label-default">PWM/Servo</span>
+</div>
+  <div class="card-desc">PERIDOTボードにArduino相当の各種機能を実装したコンフィグレーションです。組込み向けJavaScript実行エンジンのDuktapeが搭載されており、JavaScript言語によるプログラミングが可能です。</div>
+</div><div class="card" id="93bc4fac-1b76-4764-8ee6-b1de4d97b833">
+  <div class="card-header">
+    <img class="card-icon" src="" width="48px" height="48px">
+    <div class="card-title">Wakayama.rbボード</div>
+    <div class="card-versions dropdown">
+      <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown" id="93bc4fac-1b76-4764-8ee6-b1de4d97b833-versions" aria-haspopup="true" aria-expanded="false">ARIDA2 - 1.13 (2015/7/19) f3 <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" alia-labelledby="93bc4fac-1b76-4764-8ee6-b1de4d97b833-versions"><li>hoge</li>
+<li>bar</li></ul>
+      <div class="btn-group btn-group-xs">
+        <button class="btn btn-primary" title="__MSG_Download__" id="menu"><span class="glyphicon glyphicon-play"></span> 決定</button>
+      </div>
+    </div>
+  </div>
+  <div class="card-features"><span class="label" style="background-color: #c7311d;">mruby</span>
+<span class="label label-default">UART</span>
+<span class="label label-default">SPI</span>
+<span class="label label-default">ADC</span>
+<span class="label label-default">RTC</span>
+<span class="label label-default">I2C</span>
+<span class="label label-default">PWM/Servo</span>
+</div>
+  <div class="card-desc">mrubyを実装したRubyボードです。オブジェクト指向言語Rubyを用いてプログラミングできます。</div>
+</div>
+    </div><!-- /#catalog -->
+    <script src="jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+  </body>
+</html>
