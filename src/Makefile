@@ -4,7 +4,7 @@ JSDUCKIFY := $(shell which jsduckify 2>/dev/null)
 UGLIFYJS  := $(shell which uglifyjs 2>/dev/null)
 
 Q ?= @
-TARGET = rubic.js lib.js
+TARGET = rubic.js lib.js background.js
 RELEASE = $(TARGET:.js=.min.js)
 RUNNER = node
 DOCDIR = docs
@@ -113,7 +113,7 @@ jsduckify-is-missing:
 DIST_DIR = ../dist
 
 # Main files and mruby
-DIST_FILES = manifest.json background.js window.html window.css $(TARGET)
+DIST_FILES = manifest.json window.html window.css $(TARGET)
 # Embedded images
 DIST_FILES += $(wildcard images/rubic_cube2x2_*.png) \
 	images/mruby_logo_red_cropped.png \
