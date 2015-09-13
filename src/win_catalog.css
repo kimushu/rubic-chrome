@@ -46,6 +46,11 @@
   border-color: #204d74;
 }
 
+mark {
+  background-color: #ff0;
+  padding: 0;
+}
+
 .card-header {
   padding-left: 56px;
   padding-bottom: 2px;
