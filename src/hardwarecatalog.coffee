@@ -58,7 +58,8 @@ class HardwareCatalog
         @_appWindow = createdWindow
         @_appWindow.onClosed.addListener(=> @_appWindow = null)
         $(@_appWindow.contentWindow).load(=>
-          @_onLoad(@_appWindow.contentWindow.jQuery)
+          @$ = @_appWindow.contentWindow.jQuery
+          @_uiOnLoad()
         )
     )
 
@@ -77,12 +78,18 @@ class HardwareCatalog
   ###*
   @private
   Construct window events and actions
-  @param {jQuery} $   jQuery object of catalog window
   ###
-  _onLoad: ($) ->
-    # return
-    I18nW($)
-    console.log({_onLoad: {$: $}})
+  _uiOnLoad: () ->
+    I18nW(@$)
+    @$("#refresh").click(=> @_uiRefresh(true))
+    @_uiRefresh(false)
+
+  ###*
+  @private
+  Refresh catalog
+  ###
+  _uiRefresh: (force) ->
+    @$("#catalog").empty()
     GitHubRepoFileSystem.requestFileSystem(
       "kimushu",
       "rubic-catalog",
@@ -99,7 +106,7 @@ class HardwareCatalog
               sites = JSON.parse(readdata)
               console.log({sites: sites})
               return unless App.checkVersion(sites.rubic_version)
-              @_addSite($, site) for site in sites.sites
+              @_uiAddSite(site) for site in sites.sites
               null
             ) # readText
           ),
@@ -110,17 +117,8 @@ class HardwareCatalog
     )
     null
 
-  _addSite: ($, site) ->
-    console.log({_addSite: {$: $, site: site}})
+  _uiAddSite: (site) ->
     return unless App.checkVersion(site.rubic_version)
-    $("#catalog").append("""
-    <div class="card-group" id="#{site.uuid}">
-      <div class="card-group-header">
-        <span id="glyphicon glyphicon-menu-down"></span> #{I18nS(site.name)}
-      </div>
-    </div>
-    """)
-    elem = $("#catalog").find("##{site.uuid}")
     switch site.service
       when "github"
         requester = (sc, ec) ->
@@ -154,7 +152,7 @@ class HardwareCatalog
             return console.log("readText failed") unless result
             items = JSON.parse(readdata)
             console.log({items: items})
-            @_addItem(elem, item) for item in items
+            @_uiAddItem(item) for item in items
             null
           ) # readText
         ),
@@ -162,17 +160,23 @@ class HardwareCatalog
       ) # getFile
     ) # requester
 
-  _addItem: (elem, item) ->
-    console.log({_addItem: {elem: elem, item: item}})
+  _uiAddItem: (item) ->
+    elem = @$("#catalog")
     elem.append("""
-      <div class="thumbnail" id="#{item.uuid}">
+      <div class="card" id="#{item.uuid}">
         <div class="card-header">
           <img class="card-icon" src="#{item.icon}" width="48px" height="48px">
-          <div class="card-title">#{I18nS(item.name)}</div>
+          <div class="card-title">
+            #{I18nS(item.name)}
+            <div class="btn-group btn-group-xs pull-right">
+              <button class="btn btn-selected" id="#{item.uuid}-select"><span
+               class="glyphicon glyphicon-play"></span> <span class="ph-name"></span></button>
+            </div>
+          </div>
           <div class="card-versions dropdown">
             <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown"
              id="#{item.uuid}-versions" aria-haspopup="true"
-             aria-expanded="false">#{item.versions[0].display_name} <span class="caret"></span>
+             aria-expanded="false"><span class="ph-name"></span> <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" alia-labelledby="#{item.uuid}-versions"></ul>
           </div>
@@ -182,27 +186,37 @@ class HardwareCatalog
       </div>
     """)
     el_card = elem.find("##{item.uuid}")
-    el_vers = el_card.find(".card-versions").find("ul")
-    el_vers.append("""
-      <li>hoge</li>
-      <li>bar</li>
-    """)
+    el_vern = el_card.find(".card-versions")
+    el_vers = el_vern.find("ul")
     el_feas = el_card.find(".card-features")
-    for name, detail of item.versions[0].features
-      console.log(@constructor._feature_classes)
-      console.log(detail)
-      console.log(detail["class"])
-      color = @constructor._feature_classes[detail.class]?.FEATURE_COLOR
-      if color
-        el_feas.append("""
-          <span class="label" style="background-color: #{color};">#{name}</span>\n
-        """)
-      else
-        el_feas.append("""
-          <span class="label label-default">#{name}</span>\n
-        """)
-    el_desc = el_card.find(".card-desc")
-    el_desc.append(I18nS(item.versions[0].description))
+    for ver in item.versions
+      el_vers.append("""
+        <li class="btn-xs"><a href="#" id="#{ver.uuid}">#{ver.display_name}</a></li>
+      """).find("##{ver.uuid}").unbind("click").click(=>
+        el_vern.find(".ph-name").text(ver.display_name)
+        el_feas.empty()
+        for name, detail of ver.features
+          color = @constructor._feature_classes[detail.class]?.FEATURE_COLOR
+          if color
+            el_feas.append("""
+              <span class="label" style="background-color: #{color};">#{name}</span>\n
+            """)
+          else
+            el_feas.append("""
+              <span class="label label-default">#{name}</span>\n
+            """)
+        el_desc = el_card.find(".card-desc").text(I18nS(ver.description))
+        el_sel = el_card.find("##{item.uuid}-select")
+        if App.checkVersion(ver.rubic_version)
+          el_sel.prop("disabled", false)
+          el_sel.find(".ph-name").text(I18n("Select"))
+          el_sel.attr("title", I18n("UseThisConfiguration"))
+        else
+          el_sel.prop("disabled", true)
+          el_sel.find(".ph-name").text(I18n("NotSupported"))
+          el_sel.attr("title", I18n("NotSupportedInThisRubicVersion"))
+      )
+    el_vers.find("##{item.versions[0].uuid}").click()
     null
 
 console.log({"HardwareCatalog": HardwareCatalog})

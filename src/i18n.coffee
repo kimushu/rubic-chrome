@@ -9,7 +9,7 @@ I18nS = (dict) ->
   return dict if typeof dict == "string"
   dict[chrome.i18n.getUILanguage()] or dict["en"]
 
-$(->
+I18nW = ($) ->
   pat = /__MSG_([A-Za-z0-9]+)__/
   $("a,button").each((i, v) ->
     e = $(v)
@@ -22,4 +22,12 @@ $(->
     newHtml = html.replace(pat, (m, p1) -> I18n(p1))
     e.html(newHtml) if html != newHtml
   )
-)
+  $("input").each((i, v) ->
+    e = $(v)
+    ph = e.attr?("placeholder")
+    if ph
+      newPh = ph.replace(pat, (m, p1) -> I18n(p1))
+      e.attr("placeholder", newPh) if ph != newPh
+  )
+
+$(-> I18nW($))

@@ -41,5 +41,12 @@
   "CannotStartNewSketch": {"message": "新しいスケッチを開始できませんでした"},
   "DownloadSucceeded": {"message": "ダウンロードが成功しました"},
   "DownloadFailed": {"message": "ダウンロードに失敗しました"},
+  "Search": {"message": "検索"},
+  "Refresh": {"message": "更新"},
+  "RefreshCatalog": {"message": "カタログ情報を更新する"},
+  "Select": {"message": "選択"},
+  "UseThisConfiguration": {"message": "この構成を使う"},
+  "NotSupported": {"message": "非対応"},
+  "NotSupportedInThisRubicVersion": {"message": "このバージョンのRubicでは対応していません"},
   "xxx": {"message": "xxx"}
 }
