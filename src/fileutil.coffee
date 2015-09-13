@@ -18,6 +18,9 @@ class FileUtil
   ###*
   @private
   Read data from FileEntry or pair of DirectoryEntry and path
+  @param {Object}   entry       FileEntry of [DirectoryEntry, path] to read
+  @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
+  @param {Function} invoke      Reader function ({FileReader} reader, {File} file)
   ###
   @_read: (entry, callback, invoke) ->
     if entry instanceof Array
