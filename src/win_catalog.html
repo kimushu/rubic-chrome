@@ -5,7 +5,7 @@
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="win_main.css" rel="stylesheet">
     <link href="win_catalog.css" rel="stylesheet">
-    <title>Hardware catalog - Rubic</title>
+    <title class="i18n">__MSG_HardwareCatalog__ - Rubic</title>
   </head>
   <body>
     <div class="navbar navbar-inverse navbar-fixed-top navbar-sketch" role="navigation">
@@ -13,14 +13,14 @@
         <ul class="nav">
           <div class="btn-toolbar">
             <div class="btn-group btn-group-xs">
-              <p class="navbar-text"><img src="images/rubic_cube2x2_20.png">ハードウェアカタログ</p>
+              <p class="navbar-text"><img src="images/rubic_cube2x2_20.png"><span class="i18n">__MSG_HardwareCatalog__</span></p>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn" title="__MSG_RefreshCatalog__" id="refresh"><span class="glyphicon glyphicon-refresh"></span> __MSG_Refresh__</button>
+              <button class="btn i18n" title="__MSG_RefreshCatalog__" id="refresh"><span class="glyphicon glyphicon-refresh"></span> __MSG_Refresh__</button>
             </div>
             <div class="btn-toolbar pull-right">
               <form class="navbar-form" role="search">
-                <input type="text" class="form-control form-control-xs btn-xs" placeholder="__MSG_Search__">
+                <input type="text" class="form-control form-control-xs btn-xs i18n" placeholder="__MSG_Search__">
                 <button type="submit" class="btn btn-xs pull-right" style="margin-left: 5px"><span class="glyphicon glyphicon-search"></span></button>
               </form>
             </div><!-- /.btn-toolbar -->

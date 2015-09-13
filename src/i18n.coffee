@@ -11,23 +11,15 @@ I18nS = (dict) ->
 
 I18nW = ($) ->
   pat = /__MSG_([A-Za-z0-9]+)__/
-  $("a,button").each((i, v) ->
+  rep = (text, setter) ->
+    return unless text
+    newText = text.replace(pat, (m, p1) -> I18n(p1))
+    setter(newText) if newText != text
+  $(".i18n").each((i, v) ->
     e = $(v)
-    title = e.attr?("title")
-    if title
-      newTitle = title.replace(pat, (m, p1) -> I18n(p1))
-      e.attr("title", newTitle) if title != newTitle
-    html = e.html()
-    return true unless html
-    newHtml = html.replace(pat, (m, p1) -> I18n(p1))
-    e.html(newHtml) if html != newHtml
-  )
-  $("input").each((i, v) ->
-    e = $(v)
-    ph = e.attr?("placeholder")
-    if ph
-      newPh = ph.replace(pat, (m, p1) -> I18n(p1))
-      e.attr("placeholder", newPh) if ph != newPh
+    rep(e.attr?("title"), (t) -> e.attr("title", t))
+    rep(e.attr?("placeholder"), (t) -> e.attr("placeholder", t))
+    rep(e.html(), (t) -> e.html(t))
   )
 
 $(-> I18nW($))

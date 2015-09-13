@@ -41,6 +41,7 @@
   "CannotStartNewSketch": {"message": "新しいスケッチを開始できませんでした"},
   "DownloadSucceeded": {"message": "ダウンロードが成功しました"},
   "DownloadFailed": {"message": "ダウンロードに失敗しました"},
+  "HardwareCatalog": {"message": "ハードウェアカタログ"},
   "Search": {"message": "検索"},
   "Refresh": {"message": "更新"},
   "RefreshCatalog": {"message": "カタログ情報を更新する"},
