@@ -29,11 +29,10 @@ SOURCES = \
 		pythonbuilder.coffee \
 		javascriptbuilder.coffee \
 	sketch.coffee \
-	filesystem.coffee \
-		githubrepofilesystem.coffee \
-		localfilesystem.coffee \
-		googledrivefilesystem.coffee \
+	githubrepofilesystem.coffee \
 	about.coffee \
+#	localfilesystem.coffee \
+#	googledrivefilesystem.coffee \
 #	marshal.coffee \
 #	sandbox.coffee
 #		de0board.coffee \

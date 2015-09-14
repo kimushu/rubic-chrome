@@ -82,8 +82,13 @@ class FileUtil
         -> callback?(false)
       ) # entry.createWriter
 
+  ###*
+  Wrapper function for fs.readEntries to get all entries at once
+  @param {DirectoryEntry} dirEntry          Directory to read entries
+  @param {Function}       successCallback   Callback ({FileEntry[]} entries)
+  @param {Function}       [errorCallback]   Error callback ({void})
+  ###
   @readEntries: (dirEntry, successCallback, errorCallback) ->
-    errorCallback or= -> null
     result = []
     reader = dirEntry.createReader()
     readEntries = null
@@ -95,7 +100,46 @@ class FileUtil
           else
             result = result.concat(entries)
             readEntries()
-        errorCallback
+        errorCallback or (-> undefined)
       )
     readEntries()
+    undefined
+
+  ###*
+  Wrapper function for PERSISTENT filesystem
+  @param {Function} successCallback   Callback ({FileSystem} fs)
+  @param {Function} [errorCallback]   Error callback ({void})
+  ###
+  @requestPersistentFileSystem: (successCallback, errorCallback) ->
+    errorCallback or= (-> undefined)
+    navigator.webkitPersistentStorage.queryUsageAndQuota(
+      (used, granted) ->
+        window.webkitRequestFileSystem(
+          PERSISTENT,
+          granted,
+          successCallback,
+          errorCallback
+        ) # webkitRequestFileSystem
+      errorCallback
+    )
+    undefined
+
+  ###*
+  Wrapper function for TEMPORARY filesystem
+  @param {Function} successCallback   Callback ({FileSystem} fs)
+  @param {Function} [errorCallback]   Error callback ({void})
+  ###
+  @requestTemporaryFileSystem: (successCallback, errorCallback) ->
+    errorCallback or= (-> undefined)
+    navigator.webkitTemporaryStorage.queryUsageAndQuota(
+      (used, granted) ->
+        window.webkitRequestFileSystem(
+          TEMPORARY,
+          granted,
+          successCallback,
+          errorCallback
+        ) # webkitRequestFileSystem
+      errorCallback
+    )
+    undefined
 
