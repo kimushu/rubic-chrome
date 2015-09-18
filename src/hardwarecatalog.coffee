@@ -78,23 +78,79 @@ class HardwareCatalog
 
   ###*
   @private
+  Array of all configurations
+  ###
+  _items: []
+
+  ###*
+  @private
+  Download a configuration to local persistent storage
+  @param {String}   c_uuid    UUID of configuration
+  @param {String}   v_uuid    UUID of version
+  @param {Function} callback  Callback ({Boolean} result)
+  ###
+  _download: (c_uuid, v_uuid) ->
+    src = (i for i in @_items when i.uuid == c_uuid)[0]
+    return unless src
+    merge = (json) ->
+      dest = (i for i in json when i.uuid == c_uuid)[0]
+      unless dest
+        dest = {}
+        json.push(dest)
+      # Merge only non-object (scalar data) fields
+      dest[k] = v for k, v of src when typeof v != "object"
+      dest.offline = true
+      # Merge versions
+      dest.versions or= []
+      for srcv in src.versions
+        do (srcv) ->
+          i = (i for v, i in dest.versions when v.uuid == srcv.uuid)[0]
+          if i
+            dest.versions[i] = srcv
+          else
+            dest.versions.push(srcv)
+      json
+    FileUtil.requestPersistentFileSystem((fs) ->
+      catalog = [fs.root, "catalog.json"]
+      FileUtil.readJSON(catalog, (result, readdata) ->
+        json = merge(if result then readdata else [])
+        FileUtil.writeJSON(catalog, json, (result) ->
+          console.log("error: cannot write catalog on local") unless result
+          @close()
+          @_spin.hide()
+        )
+      )
+    )
+
+  ###*
+  @private
+  Select a configuratio
+  ###
+  _uiSelect: (c_uuid, v_uuid) ->
+    @$("##{c_uuid}-select").find(".ph-name").text(I18n("Loading"))
+    @_spin.modal({show: true, backdrop: "static", keyboard: false})
+    @_download(c_uuid, v_uuid)
+
+  ###*
+  @private
   Construct window events and actions
   ###
   _uiOnLoad: () ->
     I18nW(@$)
-    @$("#refresh").click(=> @_uiRefresh(true))
-    @$("#search").bind("input", (=> @_uiSearch(false)))
-      .keydown((e) => @_uiSearch(true) if e.keyCode == 13)
-    @_uiRefresh(false)
+    @_spin = @$("#modal-spin").spin({color: "#fff"})
+    @$("#refresh").click(=> @_refresh(true))
+    @$("#search").bind("input", (=> @_search(false)))
+      .keydown((e) => @_search(true) if e.keyCode == 13)
+    @_refresh(false)
 
   ###*
   @private
   Search (filter) catalog
   ###
-  _uiSearch: (now) ->
+  _search: (now) ->
     window.clearTimeout(@_searchDelayTimer) if @_searchDelayTimer
     unless now
-      @_searchDelayTimer = window.setTimeout((=> @_uiSearch(true)), SEARCH_DELAY_MS)
+      @_searchDelayTimer = window.setTimeout((=> @_search(true)), SEARCH_DELAY_MS)
       return
     $ = @$
     word = $("#search").val().trim()
@@ -122,36 +178,34 @@ class HardwareCatalog
   @private
   Refresh catalog
   ###
-  _uiRefresh: (force) ->
+  _refresh: (force) ->
     @$("#catalog").empty()
+    @_items = []
+    @_addSite({service: "local"})
     GitHubRepoFileSystem.requestFileSystem(
       "kimushu",
       "rubic-catalog",
       {branch: "master"},
       ((fs) =>
-        # console.log({githubfs: fs})
-        fs.root.getFile(
-          "sites.json",
-          {},
-          ((entry) =>
-            # console.log({getFile: entry})
-            FileUtil.readText(entry, (result, readdata) =>
-              return console.log("readText failed") unless result
-              sites = JSON.parse(readdata)
-              # console.log({sites: sites})
-              return unless App.checkVersion(sites.rubic_version)
-              @_uiAddSite(site) for site in sites.sites
-              null
-            ) # readText
-          ),
-          (-> console.log("getFile failed"))
-        ) # getFile
+        FileUtil.readText([fs.root, "sites.json"], (result, readdata) =>
+          return console.log("readText failed") unless result
+          sites = JSON.parse(readdata)
+          # console.log({sites: sites})
+          return unless App.checkVersion(sites.rubic_version)
+          @_addSite(site) for site in sites.sites
+          null
+        ) # readText
       ),
       (-> console.log("GitHubRepoFileSystem request failed"))
     )
     null
 
-  _uiAddSite: (site) ->
+  ###*
+  @private
+  Add items from a site
+  @param {String} site.service  Name of service
+  ###
+  _addSite: (site) ->
     return unless App.checkVersion(site.rubic_version)
     switch site.service
       when "github"
@@ -165,36 +219,23 @@ class HardwareCatalog
           ) # requestFileSystem
       when "local"
         requester = (sc, ec) ->
-          navigator.webkitPersistentStorage.queryUsageAndQuota(
-            ((used, granted) ->
-              window.webkitRequestFileSystem(
-                window.PERSISTENT,
-                granted,
-                (fs) -> sc(fs.root),
-                ec
-              ) # webkitRequestFileSystem
-            ),
+          FileUtil.requestPersistentFileSystem(
+            (fs) -> sc(fs.root)
             ec
-          ) # queryUsageAndQuota
+          )
     return console.log("warning: unsupported service") unless requester
     requester((root) =>
-      root.getFile(
-        "catalog.json",
-        {},
-        ((entry) =>
-          FileUtil.readText(entry, (result, readdata) =>
-            return console.log("readText failed") unless result
-            items = JSON.parse(readdata)
-            # console.log({items: items})
-            @_uiAddItem(item) for item in items
-            null
-          ) # readText
-        ),
-        (-> console.log("getFile() failed"))
-      ) # getFile
+      FileUtil.readText([root, "catalog.json"], (result, readdata) =>
+        return console.log("readText failed") unless result
+        items = JSON.parse(readdata)
+        # console.log({items: items})
+        @_addItem(item) for item in items
+        null
+      ) # readText
     ) # requester
 
-  _uiAddItem: (item) ->
+  _addItem: (item) ->
+    @_items.push(item)
     elem = @$("#catalog")
     elem.append("""
       <div class="card" id="#{item.uuid}">
@@ -241,11 +282,12 @@ class HardwareCatalog
                 <span class="label label-default">#{name}</span>\n
               """)
           el_desc = el_card.find(".card-desc").text(I18nS(ver.description))
-          el_sel = el_card.find("##{item.uuid}-select")
+          el_sel = el_card.find("##{item.uuid}-select").unbind("click")
           if App.checkVersion(ver.rubic_version)
             el_sel.prop("disabled", false)
             el_sel.find(".ph-name").text(I18n("Select"))
             el_sel.attr("title", I18n("UseThisConfiguration"))
+            el_sel.click(=> @_uiSelect(item.uuid, ver.uuid))
           else
             el_sel.prop("disabled", true)
             el_sel.find(".ph-name").text(I18n("NotSupported"))

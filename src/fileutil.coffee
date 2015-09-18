@@ -8,6 +8,14 @@ class FileUtil
     @_read(entry, callback, (reader, file) -> reader.readAsText(file))
 
   ###*
+  Read JSON from FileEntry or pair of DirectoryEntry and path
+  @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
+  @param {Function} callback    Callback ({Boolean} result, {Object} readdata)
+  ###
+  @readJSON: (entry, callback) ->
+    @_read(entry, callback, (reader, file) -> JSON.parse(reader.readAsText(file)))
+
+  ###*
   Read data as ArrayBuffer from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
@@ -46,6 +54,12 @@ class FileUtil
   (Alias of FileUtil.write)
   ###
   @writeText: -> @_write.apply(this, arguments)
+
+  ###*
+  Write object as JSON to FileEntry or pair of DirectoryEntry and path
+  ###
+  @writeJSON: (entry, data, callback) ->
+    @writeText(entry, JSON.stringify(data), callback)
 
   ###*
   Write ArrayBuffer to FileEntry or pair of DirectoryEntry and path

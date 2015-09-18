@@ -49,5 +49,6 @@
   "UseThisConfiguration": {"message": "この構成を使う"},
   "NotSupported": {"message": "非対応"},
   "NotSupportedInThisRubicVersion": {"message": "このバージョンのRubicでは対応していません"},
+  "Loading": {"message": "読み込み中"},
   "xxx": {"message": "xxx"}
 }
