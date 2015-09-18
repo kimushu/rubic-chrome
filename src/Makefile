@@ -123,8 +123,8 @@ DIST_FILES += canarium.js
 # jQuery
 DIST_FILES += jquery-2.1.1.min.js
 # Bootstrap (css, js and fonts)
-DIST_FILES += $(addprefix bootstrap/dist/,css/bootstrap.min.css js/bootstrap.min.js)
-DIST_FILES += $(addprefix bootstrap/dist/fonts/glyphicons-halflings-regular.,woff2)
+DIST_FILES += $(addprefix bootstrap/,css/bootstrap.min.css js/bootstrap.min.js)
+DIST_FILES += $(addprefix bootstrap/fonts/glyphicons-halflings-regular.,woff2)
 # Ace (body and mode files)
 DIST_FILES += $(addprefix ace-builds/src-noconflict/,ace.js mode-ruby.js mode-yaml.js)
 # Bootstrap Notify
