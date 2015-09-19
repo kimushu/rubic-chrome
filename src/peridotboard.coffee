@@ -8,7 +8,7 @@ class PeridotBoard extends Board
   #----------------------------------------------------------------
   # Class attributes/methods
 
-  @NAME: "PERIDOT"
+  @NAME: "PERIDOT olive with mruby"
   @AUTHOR: "Shun Osafune (@s_osafune)"
   @WEBSITE: "http://osafune.github.io/peridot.html"
   @PORTCLASSES: [SerialPort]
