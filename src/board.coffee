@@ -135,7 +135,7 @@ class Board
           )
           p.find(".btn").prop("disabled", false) if index == 0
           index += 1
-    ) for portClass in @constructor.portClasses
+    ) for portClass in @constructor.PORTCLASSES
 
   ###*
   [UI action] Select new board
@@ -162,14 +162,14 @@ class Board
       do (boardClass) =>
         b.find(".dropdown-menu").append("""
           <li class="btn-xs">
-            <a href="#" id="board-item-#{boardClass.NAME\
+            <a href="#" id="board-item-#{boardClass.name\
             }" title="#{I18n("Author")}: #{boardClass.AUTHOR\
             }&#10;#{I18n("Website")}: #{boardClass.WEBSITE\
             }">#{boardClass.NAME}</a>
           </li>
           """
         )
-        b.find("#board-item-#{boardClass.NAME}").unbind("click").click(=>
+        b.find("#board-item-#{boardClass.name}").unbind("click").click(=>
           Editor.focus()
           @uiSelectNewBoard(boardClass)
         )

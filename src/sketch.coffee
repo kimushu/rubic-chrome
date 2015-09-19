@@ -99,7 +99,7 @@ class Sketch
   [UI action] New sketch
   ###
   @uiNewSketch: (callback) ->
-    return HardwareCatalog.show()
+    #return HardwareCatalog.show()
     if App.sketch
       return @uiCloseSketch((result) =>
         return callback?(false) unless result
