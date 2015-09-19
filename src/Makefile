@@ -18,6 +18,7 @@ SOURCES = \
 	memhttprequest.coffee \
 	board.coffee \
 		peridotboard.coffee \
+		wakayamarbboard.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
 		yamleditor.coffee \
@@ -37,7 +38,6 @@ SOURCES = \
 #	sandbox.coffee
 #		de0board.coffee \
 #		de0nanoboard.coffee \
-#		wakayamarbboard.coffee \
 
 LIB_SOURCES = \
 	mruby/build/emscripten/bin/mrbc.js
