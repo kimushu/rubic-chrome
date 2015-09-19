@@ -96,7 +96,7 @@ class HardwareCatalog
       dest = (i for i in json when i.uuid == c_uuid)[0]
       unless dest
         dest = {}
-        json.push(dest)
+        #json.push(dest)
       # Merge only non-object (scalar data) fields
       dest[k] = v for k, v of src when typeof v != "object"
       dest.offline = true
@@ -110,11 +110,11 @@ class HardwareCatalog
           else
             dest.versions.push(srcv)
       json
-    FileUtil.requestPersistentFileSystem((fs) ->
+    FileUtil.requestPersistentFileSystem((fs) =>
       catalog = [fs.root, "catalog.json"]
-      FileUtil.readJSON(catalog, (result, readdata) ->
+      FileUtil.readJSON(catalog, (result, readdata) =>
         json = merge(if result then readdata else [])
-        FileUtil.writeJSON(catalog, json, (result) ->
+        FileUtil.writeJSON(catalog, json, (result) =>
           console.log("error: cannot write catalog on local") unless result
           @close()
           @_spin.hide()
@@ -295,4 +295,8 @@ class HardwareCatalog
         )
     el_vers.find("##{item.versions[0].uuid}").click()
     null
+
+$(".action-open-catalog").click(->
+  return HardwareCatalog.show()
+)
 
