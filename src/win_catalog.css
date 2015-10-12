@@ -51,6 +51,16 @@ mark {
   padding: 0;
 }
 
+.label:hover .label-detail {
+  display: inline;
+  transition-property: width;
+  transition-duration: 0.5s;
+}
+
+.label .label-detail {
+  display: none;
+}
+
 .card-header {
   padding-left: 56px;
   padding-bottom: 2px;

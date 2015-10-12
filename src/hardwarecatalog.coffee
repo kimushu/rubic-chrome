@@ -3,6 +3,7 @@
 Hardware catalog
 ###
 class HardwareCatalog
+  DEBUG = if DEBUG? then DEBUG else 1
   WINDOW_ID = "HardwareCatalog"
   SEARCH_DELAY_MS = 300
 
@@ -90,6 +91,17 @@ class HardwareCatalog
   @param {Function} callback  Callback ({Boolean} result)
   ###
   _download: (c_uuid, v_uuid) ->
+    cfg = @_catalog[c_uuid]
+    ver = cfg.versions[v_uuid]
+    assets = ver.asset.slice(0)
+    new Function.Sequence(
+      (seq) =>
+        return seq.next() if ver.date_downloaded
+        return seq.next() unless assets.length > 0
+        return seq.redo()
+    ).final(
+      (seq) ->
+    ).start()
     src = (i for i in @_items when i.uuid == c_uuid)[0]
     return unless src
     merge = (json) ->
@@ -124,7 +136,7 @@ class HardwareCatalog
 
   ###*
   @private
-  Select a configuratio
+  Select a configuration
   ###
   _uiSelect: (c_uuid, v_uuid) ->
     @$("##{c_uuid}-select").find(".ph-name").text(I18n("Loading"))
@@ -174,127 +186,294 @@ class HardwareCatalog
         $(this).hide()
     )
 
-  ###*
-  @private
-  Refresh catalog
-  ###
-  _refresh: (force) ->
-    @$("#catalog").empty()
-    @_items = []
-    @_addSite({service: "local"})
-    GitHubRepoFileSystem.requestFileSystem(
-      "kimushu",
-      "rubic-catalog",
-      {branch: "master"},
-      ((fs) =>
-        FileUtil.readText([fs.root, "sites.json"], (result, readdata) =>
-          return console.log("readText failed") unless result
-          sites = JSON.parse(readdata)
-          # console.log({sites: sites})
-          return unless App.checkVersion(sites.rubic_version)
-          @_addSite(site) for site in sites.sites
-          null
-        ) # readText
-      ),
-      (-> console.log("GitHubRepoFileSystem request failed"))
-    )
-    null
+  SITES_OWNER   = "kimushu"
+  SITES_REPO    = "rubic-catalog"
+  SITES_BRANCH  = "master"
 
   ###*
   @private
-  Add items from a site
-  @param {String} site.service  Name of service
+  @method
+    Load local(offline) catalog
+  @param {function(boolean)}  callback
+    Callback function with result
+  @return {void}
   ###
-  _addSite: (site) ->
-    return unless App.checkVersion(site.rubic_version)
+  _loadCatalog: (callback) ->
+    localFS = null
+    new Function.Sequence(
+      (seq) ->
+        FileUtil.requestPersistentFileSystem(
+          (fs) ->
+            localFS = fs
+            return seq.next()
+          ->
+            return seq.abort()
+        )
+      (seq) =>
+        FileUtil.readJSON(
+          [localFS.root, "catalog.json"],
+          (result, readdata) =>
+            unless result
+              return seq.abort()
+            @_catalog = readdata
+            return seq.next()
+          {create: true}
+        )
+    ).final(
+      (seq) ->
+        return callback(seq.finished)
+    ).start()
+    return
+
+  _refresh: () ->
+    @constructor._refreshCatalog((result) =>
+      @_loadCatalog((result) =>
+        return unless result
+        @_refreshList()
+      )
+    )
+    return
+
+  ###*
+  @private
+  @static
+  @method
+    Refresh catalog
+  @param {function(boolean)}  callback
+    Callback function with result
+  @return {void}
+  ###
+  @_refreshCatalog: (callback) ->
+    fetch_start = Date.now()
+    localFS = null
+    catalog = null
+    sitesFS = null
+    sites   = null
+    new Function.Sequence(
+      (seq) ->
+        FileUtil.requestPersistentFileSystem(
+          (fs) ->
+            localFS = fs
+            return seq.next()
+          ->
+            return seq.abort()
+        )
+      (seq) ->
+        FileUtil.readJSON(
+          [localFS.root, "catalog.json"],
+          (result, readdata) ->
+            unless result
+              return seq.abort()
+            catalog = readdata
+            # TODO: return unless App.checkVersion(catalog.rubic_version)
+            return seq.next()
+          {create: true}
+        )
+      (seq) ->
+        GitHubRepoFileSystem.requestFileSystem(
+          SITES_OWNER
+          SITES_REPO
+          {branch: SITES_BRANCH}
+          (fs) ->
+            sitesFS = fs
+            return seq.next()
+          ->
+            return seq.abort()
+        )
+      (seq) ->
+        FileUtil.readJSON([sitesFS.root, "sites.json"], (result, readdata) ->
+          unless result
+            return seq.abort()
+          unless App.checkVersion(readdata.rubic_version)
+            return seq.abort()
+          sites = readdata.sites
+          return seq.next()
+        )
+      (seq) =>
+        return seq.next() unless sites.length > 0
+        site = sites.shift()
+        @_fetchCatalog(
+          catalog
+          site
+          (result) ->
+            unless result
+              null  # TODO
+            return seq.redo()
+        )
+      (seq) ->
+        return seq.next() if catalog.date_fetched < fetch_start
+        FileUtil.writeJSON([localFS.root, "catalog.json"], catalog, (result) ->
+          return seq.next(result)
+        )
+    ).final(
+      (seq) ->
+        console.log({_refreshCatalog: seq.finished})
+        console.log({_refreshCatalog: catalog})
+        return callback(seq.finished)
+    ).start()
+    return
+
+  ###*
+  @private
+  @static
+  @method
+    Fetch online catalog and merge into offline catalog
+  @return {void}
+  ###
+  @_fetchCatalog: (catalog, site, callback) ->
+    now = Date.now()
+    seq = new Function.Sequence()
+    fs = null
+    items = null
+    modified = 0
+    merge = (dst, src, n) ->
+      return v if dst[n] == (v = src[n])
+      modified += 1
+      return (dst[n] = v)
+    assets = []
     switch site.service
       when "github"
-        requester = (sc, ec) ->
+        seq.add((seq) ->
           GitHubRepoFileSystem.requestFileSystem(
-            site.owner,
-            site.repo,
-            site.ref,
-            (fs) -> sc(fs.root),
-            ec
-          ) # requestFileSystem
-      when "local"
-        requester = (sc, ec) ->
-          FileUtil.requestPersistentFileSystem(
-            (fs) -> sc(fs.root)
-            ec
+            site.owner
+            site.repo
+            site.ref
+            (githubFS) ->
+              fs = githubFS
+              seq.next()
+            ->
+              seq.abort()
           )
-    return console.log("warning: unsupported service") unless requester
-    requester((root) =>
-      FileUtil.readText([root, "catalog.json"], (result, readdata) =>
-        return console.log("readText failed") unless result
-        items = JSON.parse(readdata)
-        # console.log({items: items})
-        @_addItem(item) for item in items
-        null
-      ) # readText
-    ) # requester
+        )
+      else
+        callback(false)
+        return
+    seq.add(
+      (seq) ->
+        FileUtil.readJSON([fs.root, "catalog.json"], (result, readdata) ->
+          unless result
+            return seq.abort()
+          items = readdata
+          return seq.next()
+        )
+      (seq) ->
+        for iuuid, si of items
+          di = (catalog[iuuid] or= {})
+          di.date_fetched or= now
+          di.site = site
+          merge(di, si, "name")
+          merge(di, si, "board_class")
+          assets.push([iuuid, merge(di, si, "icon")])
+          for vuuid, sv of (si.versions or {})
+            dv = ((di.versions or= {})[vuuid] or= {})
+            dv.date_fetched or= now
+            merge(dv, sv, "date_added")
+            merge(dv, sv, "display_name")
+            merge(dv, sv, "rubic_version")
+            merge(dv, sv, "features")
+            merge(dv, sv, "description")
+            merge(dv, sv, "asset")
+        return seq.next()
+      (seq) ->
+        return seq.next() unless assets.length > 0
+        [iuuid, asset] = assets.shift()
+        return seq.redo() unless asset and asset != ""
+        # TODO
+        return seq.redo()
+    ).final(
+      (seq) ->
+        catalog.date_fetched = now if modified > 0
+        callback(seq.finished)
+    ).start()
+    return
 
-  _addItem: (item) ->
-    @_items.push(item)
+  ###*
+  @private
+  @method
+    Refresh item list
+  @return {void}
+  ###
+  _refreshList: ->
+    return unless @_catalog
+    @$("#catalog").empty()
+    iuuids = (k for k, v of @_catalog)
+    # TODO: sort
+    @_addItem(iuuid) for iuuid in iuuids
+    return
+
+  ###*
+  @private
+  @method
+    Add one item
+  @param {string} iuuid
+    UUID of item
+  @return {void}
+  ###
+  _addItem: (iuuid) ->
+    item = @_catalog[iuuid]
+    return unless item.name?
     elem = @$("#catalog")
     elem.append("""
-      <div class="card" id="#{item.uuid}">
+      <div class="card" id="#{iuuid}">
         <div class="card-header">
           <img class="card-icon" src="#{item.icon}" width="48px" height="48px">
           <div class="card-title">
             <span class="ph-name">#{I18nS(item.name)}</span>
             <div class="btn-group btn-group-xs pull-right">
-              <button class="btn btn-selected" id="#{item.uuid}-select"><span
+              <button class="btn btn-selected" id="#{iuuid}-select"><span
                class="glyphicon glyphicon-play"></span> <span class="ph-name"></span></button>
             </div>
           </div>
           <div class="card-versions dropdown">
             <button class="btn btn-xs dropdown-toggle" type="button" data-toggle="dropdown"
-             id="#{item.uuid}-versions" aria-haspopup="true"
+             id="#{iuuid}-versions" aria-haspopup="true"
              aria-expanded="false"><span class="ph-name"></span> <span class="caret"></span>
             </button>
-            <ul class="dropdown-menu" alia-labelledby="#{item.uuid}-versions"></ul>
+            <ul class="dropdown-menu" alia-labelledby="#{iuuid}-versions"></ul>
           </div>
         </div>
         <div class="card-features"></div>
         <div class="card-desc"></div>
       </div>
     """)
-    el_card = elem.find("##{item.uuid}")
+    el_card = elem.find("##{iuuid}")
     el_vern = el_card.find(".card-versions")
     el_vers = el_vern.find("ul")
     el_feas = el_card.find(".card-features")
-    for ver in item.versions
+    vuuids = (k for k, v of item.versions)
+    vuuids.sort((a, b) -> a.date_added - b.date_added)
+    for vuuid in vuuids
+      ver = item.versions[vuuid]
       do (ver) =>
         el_vers.append("""
-          <li class="btn-xs"><a href="#" id="#{ver.uuid}">#{ver.display_name}</a></li>
-        """).find("##{ver.uuid}").unbind("click").click(=>
+          <li class="btn-xs"><a href="#" id="#{vuuid}">#{ver.display_name}</a></li>
+        """).find("##{vuuid}").unbind("click").click(=>
           el_vern.find(".ph-name").text(ver.display_name)
           el_feas.empty()
           for name, detail of ver.features
             color = @constructor._feature_classes[detail.class]?.FEATURE_COLOR
-            if color
-              el_feas.append("""
-                <span class="label" style="background-color: #{color};">#{name}</span>\n
-              """)
-            else
-              el_feas.append("""
-                <span class="label label-default">#{name}</span>\n
-              """)
+            color = if color then " style=\"background-color: #{color};\"" else ""
+            ttext = detail.description or ""
+            ttext += " (Version: #{detail.version})" if detail.version
+            dtext = if detail.channels then " x #{detail.channels}ch" else ""
+            el_feas.append("""
+              <span class="label label-default"#{color} title="#{ttext.trim()}"
+              >#{name}<!--<span class="label-detail">#{dtext}</span>--></span>\n
+            """)
           el_desc = el_card.find(".card-desc").text(I18nS(ver.description))
-          el_sel = el_card.find("##{item.uuid}-select").unbind("click")
+          el_sel = el_card.find("##{iuuid}-select").unbind("click")
           if App.checkVersion(ver.rubic_version)
             el_sel.prop("disabled", false)
             el_sel.find(".ph-name").text(I18n("Select"))
             el_sel.attr("title", I18n("UseThisConfiguration"))
-            el_sel.click(=> @_uiSelect(item.uuid, ver.uuid))
+            el_sel.click(=> @_uiSelect(iuuid, vuuid))
           else
             el_sel.prop("disabled", true)
             el_sel.find(".ph-name").text(I18n("NotSupported"))
             el_sel.attr("title", I18n("NotSupportedInThisRubicVersion"))
         )
-    el_vers.find("##{item.versions[0].uuid}").click()
-    null
+    el_vers.find("##{vuuids[0]}").click() if vuuids.length > 0
+    return
 
 $(".action-open-catalog").click(->
   return HardwareCatalog.show()

@@ -99,7 +99,7 @@ class Sketch
   [UI action] New sketch
   ###
   @uiNewSketch: (callback) ->
-    #return HardwareCatalog.show()
+    return HardwareCatalog.show()
     if App.sketch
       return @uiCloseSketch((result) =>
         return callback?(false) unless result
@@ -178,6 +178,8 @@ class Sketch
   [UI action] Save sketch (overwrite)
   ###
   @uiSaveSketch: (callback) ->
+    # HardwareCatalog._refreshCatalog()
+    # return
     sketch = App.sketch
     return App.warning("No sketch to save") unless sketch
     App.showModalSpin()

@@ -3,25 +3,55 @@ class FileUtil
   Read text from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {String} readdata)
+  @param {Object}   [options]   Options for DirectoryEntry#getFile
+  @return {void}
   ###
-  @readText: (entry, callback) ->
-    @_read(entry, callback, (reader, file) -> reader.readAsText(file))
+  @readText: (entry, callback, options) ->
+    @_read(
+      entry
+      callback
+      (reader, file) -> reader.readAsText(file)
+      options
+    )
+    return
 
   ###*
   Read JSON from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {Object} readdata)
+  @param {Object}   [options]   Options for DirectoryEntry#getFile
+  @return {void}
   ###
-  @readJSON: (entry, callback) ->
-    @_read(entry, callback, (reader, file) -> JSON.parse(reader.readAsText(file)))
+  @readJSON: (entry, callback, options) ->
+    @readText(
+      entry
+      (result, readdata) ->
+        return callback?(false, null) unless result
+        obj = {}
+        try
+          obj = JSON.parse(readdata) unless readdata == ""
+        catch error
+          obj = null
+        return callback?((obj != null), obj)
+      options
+    )
+    return
 
   ###*
   Read data as ArrayBuffer from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
+  @param {Object}   [options]   Options for DirectoryEntry#getFile
+  @return {void}
   ###
-  @readArrayBuf: (entry, callback) ->
-    @_read(entry, callback, (reader, file) -> reader.readAsArrayBuffer(file))
+  @readArrayBuf: (entry, callback, options) ->
+    @_read(
+      entry
+      callback
+      (reader, file) -> reader.readAsArrayBuffer(file)
+      options
+    )
+    return
 
   ###*
   @private
@@ -29,13 +59,17 @@ class FileUtil
   @param {Object}   entry       FileEntry of [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
   @param {Function} invoke      Reader function ({FileReader} reader, {File} file)
+  @param {Object}   [options]   Options for DirectoryEntry#getFile
+  @return {void}
   ###
-  @_read: (entry, callback, invoke) ->
+  @_read: (entry, callback, invoke, options) ->
+    options or= {}
+    options.create or= false
     if entry instanceof Array
       [dirEntry, path] = entry
       dirEntry.getFile(
         path
-        {create: false}
+        options
         (fileEntry) => @_read(fileEntry, callback, invoke)
         -> callback?(false)
       ) # dirEntry.getFile
@@ -48,18 +82,24 @@ class FileUtil
           invoke(reader, file)
         -> callback?(false)
       ) # entry.file
+    return
 
   ###*
   Write text to FileEntry or pair of DirectoryEntry and path
   (Alias of FileUtil.write)
+  @return {void}
   ###
-  @writeText: -> @_write.apply(this, arguments)
+  @writeText: ->
+    @_write.apply(this, arguments)
+    return
 
   ###*
   Write object as JSON to FileEntry or pair of DirectoryEntry and path
+  @return {void}
   ###
   @writeJSON: (entry, data, callback) ->
     @writeText(entry, JSON.stringify(data), callback)
+    return
 
   ###*
   Write ArrayBuffer to FileEntry or pair of DirectoryEntry and path
