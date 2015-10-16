@@ -51,5 +51,10 @@
   "NotSupportedInThisRubicVersion": {"message": "このバージョンのRubicでは対応していません"},
   "Loading": {"message": "読み込み中"},
   "Catalog": {"message": "カタログ"},
+  "CurrentSketchHasBeenModified": {"message": "現在のスケッチには未保存の変更箇所があります"},
+  "AreYouWantToDiscardModificationsXq": {"message": "未保存の変更をすべて破棄してよろしいですか？"},
+  "YesXpIDiscardThemXp": {"message": "はい。破棄します。"},
+  "NoXpIWantToCancelToSaveXp": {"message": "いいえ。操作を中断します。"},
+  "Cancelled": {"message": "操作を中断しました"},
   "xxx": {"message": "xxx"}
 }

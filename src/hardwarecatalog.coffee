@@ -1,9 +1,164 @@
 ###*
 @class
-Hardware catalog
+  Hardware catalog (Model)
+@uses FileUtil
 ###
 class HardwareCatalog
   DEBUG = if DEBUG? then DEBUG else 1
+
+  ###*
+  @private
+  @cfg {string}
+    File name of catalog
+  @readonly
+  ###
+  CATALOG_FILE = "catalog.json"
+
+  ###*
+  @private
+  @cfg {Object} SITES_INFO
+    Site list information
+  @cfg {string} service
+    Name of service
+  @cfg {string} file
+    File name of site list
+  @readonly
+  ###
+  SITES_INFO = {
+    service: "github"
+    owner: "kimushu"
+    repo: "rubic-catalog"
+    branch: "master"
+    file: "sites.json"
+  }
+
+  ###*
+  @static
+  @method
+    Load local (offline) catalog
+  @param {function(result,HardwareCatalog)} callback
+    Callback function with result and generated instance
+  @return {void}
+  ###
+  @load: (callback) ->
+    @_loadSpecFromSite(
+      {service: "persistent"}
+      (result, spec) ->
+        return callback(false, null) unless result
+        return callback(true, new HardwareCatalog(spec))
+    )
+    return
+
+  ###*
+  @method
+    Load remote (online) catalog
+  @param {function(result,HardwareCatalog)} callback
+    Callback function with result and generated instance
+  @return {void}
+  ###
+  update: (callback) ->
+    sitesFS = null
+    sites = null
+    spec = {}
+    new Function.Sequence(
+      (seq) ->
+        FileUtil.requestFileSystem(
+          SITES_INFO
+          (fs) ->
+            sitesFS = fs
+            return seq.next()
+          ->
+            return seq.abort()
+        )
+      (seq) ->
+        FileUtil.readJSON(
+          [sitesFS.root, SITES_INFO.file]
+          (result, readdata) ->
+            return seq.abort() unless result
+            unless App.checkVersion(readdata.rubic_version)
+              return seq.abort()
+            sites = readdata.sites
+            return seq.next()
+        )
+      (seq) =>
+        return seq.next() unless sites.length > 0
+        site = sites.shift()
+        spec = null
+        new Function.Sequence(
+          (seq2) =>
+            @constructor._loadSpecFromSite(
+              site
+              (result, siteSpec) =>
+                return seq2.next(result)
+                spec = siteSpec
+            )
+          (seq2) =>
+            @_merge(
+              spec
+              (result) ->
+                return seq2.next(result)
+            )
+        ).final(
+          (seq2) ->
+            unless seq2.finished
+              # TODO: warning
+              null
+            return seq.redo()
+        ).start()
+    ).final(
+      (seq) ->
+        return callback(false, null) unless seq.finished
+        return callback(true, new HardwareCatalog(spec))
+    ).start()
+    return
+
+  ###*
+  @private
+  @static
+  @method
+    Load spec data from site
+  @param {function(result,Object)}  callback
+    Callback function with result and catalog data
+  @return {void}
+  ###
+  @_loadSpecFromSite: (site, callback) ->
+    siteFS = null
+    spec = null
+    new Function.Sequence(
+      (seq) ->
+        FileUtil.requestFileSystem(
+          site
+          (fs) ->
+            siteFS = fs
+            return seq.next()
+          ->
+            return seq.abort()
+        )
+      (seq) ->
+        FileUtil.readText(
+          [siteFS.root, CATALOG_FILE]
+          (result, readdata) ->
+            return seq.abort() unless result
+            try
+              if readdata != ""
+                spec = JSON.parse(readdata)
+              else
+                spec = {}
+            catch
+              return seq.abort()
+            return seq.next()
+          {create: (site.service == "persistent")}
+        )
+    ).final(
+      (seq) ->
+        return callback(false, null) unless seq.finished
+        return callback(true, spec)
+    ).start()
+    return
+
+  #----------------------------------------------------------------
+  # >>>> OLD contents >>>>
+
   WINDOW_ID = "HardwareCatalog"
   SEARCH_DELAY_MS = 300
 
@@ -317,6 +472,33 @@ class HardwareCatalog
   @private
   @static
   @method
+    Request file system for catalog site
+  @param {Object} site
+    Site information
+  @param {string} site.service
+    Name of host service
+  @param {function(boolean,Object)} callback
+    Callback function with result and FileSystem object
+  @return {void}
+  ###
+  @_requestSiteFS: (site, callback) ->
+    switch site.service
+      when "github"
+        GitHubRepoFileSystem.requestFileSystem(
+          site.owner
+          site.repo
+          site.ref
+          (fs) -> return callback(true, fs)
+          -> return callback(false, null)
+        )
+      else
+        callback(false, null)
+    return
+
+  ###*
+  @private
+  @static
+  @method
     Fetch online catalog and merge into offline catalog
   @return {void}
   ###
@@ -331,24 +513,15 @@ class HardwareCatalog
       modified += 1
       return (dst[n] = v)
     assets = []
-    switch site.service
-      when "github"
-        seq.add((seq) ->
-          GitHubRepoFileSystem.requestFileSystem(
-            site.owner
-            site.repo
-            site.ref
-            (githubFS) ->
-              fs = githubFS
-              seq.next()
-            ->
-              seq.abort()
-          )
+    new Function.Sequence(
+      (seq) =>
+        @_requestSiteFS(
+          site
+          (result, siteFS) ->
+            return seq.abort() unless result
+            fs = siteFS
+            return seq.next()
         )
-      else
-        callback(false)
-        return
-    seq.add(
       (seq) ->
         FileUtil.readJSON([fs.root, "catalog.json"], (result, readdata) ->
           unless result

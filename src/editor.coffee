@@ -1,217 +1,276 @@
 ###*
-@class
-Base class for editors
+@class Editor
+  Base class for editors/viewers (View)
 ###
 class Editor
-  #----------------------------------------------------------------
-  # Private constants
-
-  #----------------------------------------------------------------
-  # Class attributes/methods
-
-  ###*
-  Open new editor
-  @param {FileEntry}      fileEntry   File to open
-  ###
-  @open: (fileEntry) ->
-    match = fileEntry.name.match(/\.(\w+$)/)
-    ext = match[1].toLowerCase()
-    for editor in @_editors
-      return new editor(fileEntry) if editor.suffix.indexOf(ext) >= 0
-    throw new Error("Editor not found for *.#{ext} file")
-
-  ###*
-  Set focus on editor
-  ###
-  @focus: ->
-    @_aceEditor.textInput.focus()
-
-  ###*
-  @protected
-  Register editor/viewer class
-  @param {Function}       editor      Class constructor
-  ###
-  @addEditor: (editor) -> @_editors.push(editor)
+  DEBUG = if DEBUG? then DEBUG else 0
 
   ###*
   @private
-  List of editor/viewer classes
+  @static
+  @property {Function[]}
+    List of subclasses
   ###
   @_editors: []
 
   ###*
-  @private
-  Next ID number for editors
-  ###
-  @_nextId: 0
-
-  ###*
-  @private
-  Instance of ace.Editor
-  ###
-  @_aceEditor: null
-  $(=>
-    @_aceEditor = ace.edit("editor")
-    @_aceEmptySession = @_aceEditor.getSession()
-    ace.Document = ace.require("./document").Document
-    @_aceEditor.on("changeSession", ({oldSession, session}) ->
-      oldSession._editor?.onDeactivated()
-      session._editor?.onActivated()
-    )
-    @_aceEditor.on("change", =>
-      App.sketch?.markModified()
-      @_aceEditor.getSession()?._editor?.markModified()
-    )
-  )
-
-  ###*
-  @private
-  Empty session
-  ###
-  @_aceEmptySession: null
-
-  #----------------------------------------------------------------
-  # Instance attributes/methods
-
-  ###*
   @protected
-  Constructor
-  @param {FileEntry}      fileEntry   File to be associated with this editor
-  @param {String}         mode        Mode string for ace
+  @static
+  @method
+    Register editor class
+  @param {Function} editorClass
+    Constructor of subclass
+  @return {void}
   ###
-  constructor: (@fileEntry, mode) ->
-    @_domId = "editor-#{Editor._nextId}"
-    Editor._nextId += 1
-    @_session = new ace.createEditSession("", mode)
-    @_session._editor = this
-    li = $("<li id=\"#{@_domId}\">#{@fileEntry.name}"+
-      "<span class=\"modified\" style=\"display:none\"> *</span></li>")
-    li.click(=> @activate())
-    $("#file-tabbar").append(li)
+  @addEditor: (editorClass) ->
+    @_editors.push(editorClass)
+    return
 
   ###*
-  Load text from file (Current contents of editor will be discarded)
-  @param {Function}       callback    Callback ({Boolean} result)
+  @static
+  @inheritable
+  @cfg {string[]}
+    List of suffixes
+  @readonly
   ###
-  load: (callback) ->
-    readCallback = (result, readdata) =>
-      unless result
-        App.error("Failed to read #{@fileEntry.name}")
-        return callback?(false)
-      if @convertOnLoad
-        readdata = @convertOnLoad(readdata)
-        return callback?(false) unless readdata
-      @_session.getDocument().setValue(readdata)
-      @modified = false
-      callback?(true)
-
-    if @convertOnLoad
-      FileUtil.readArrayBuf(@fileEntry, readCallback)
-    else
-      FileUtil.readText(@fileEntry, readCallback)
+  @SUFFIXES: []
 
   ###*
-  Save text to file
-  @param {Function}       callback    Callback ({Boolean} result)
+  @static
+  @inheritable
+  @cfg {boolean}
+    Editable or not
+  @readonly
   ###
-  save: (callback) ->
-    @saveAs(null, callback)
-
-  ###*
-  Save text to new file
-  @param {DirectoryEntry} dirEntry    Directory to save @nullable
-  @param {Function}       callback    Callback ({Boolean} result)
-  ###
-  saveAs: (dirEntry, callback) ->
-    name = @fileEntry.name
-    dest = if dirEntry then [dirEntry, name] else @fileEntry
-    doc = @_session.getDocument()
-    FileUtil.writeText(dest, doc.getValue(), (result) =>
-      unless result
-        App.error("Failed to write #{name}")
-        return callback?(false)
-      @markModified(false)
-      return callback?(true) unless dirEntry
-      dirEntry.getFile(
-        name
-        {}
-        (@fileEntry) => callback?(true)
-        ->
-          App.error("Failed to reopen #{name}")
-          callback?(false)
-      ) # dirEntry.getFile
-    )
-
-  close: (callback) ->
-    $("li##{@_domId}").remove()
-    if Editor._aceEditor.getSession() == @_session
-      Editor._aceEditor.setSession(Editor._aceEmptySession)
-      $("#editor").css("visibility", "hidden")
-    callback?(true)
-
-  ###*
-  Activate editor
-  ###
-  activate: ->
-    Editor._aceEditor.setReadOnly(not @constructor.editable)
-    Editor._aceEditor.setSession(@_session)
-    $("#editor").css("visibility", "visible")
-
-  ###*
-  @protected
-  @nullable
-  Convert contents on load (if null, no conversion needed)
-  @param {ArrayBuffer} arrayBuf   Data to convert
-  @return {String} Converted string
-  ###
-  convertOnLoad: null
+  @EDITABLE: false
 
   ###*
   @private
-  Event on activated
+  @static
+  @property {number}
+    Next unique number for editor IDs
   ###
-  onActivated: ->
-    $("li##{@_domId}").addClass("active")
+  @_nextIdNumber: 0
 
   ###*
   @private
-  Event on deactivated
+  @property {string}
+    Unique ID of this editor
+  @readonly
   ###
-  onDeactivated: ->
-    $("li##{@_domId}").toggleClass("active", false)
-
-  ###*
-  @property {Boolean}
-  Is document modified after latest save?
-  ###
-  modified: false
-
-  ###*
-  Set mark as modified
-  ###
-  markModified: (value = true) ->
-    return if @modified == value
-    $("li##{@_domId}").children(".modified").css({display: if value then "inline" else "none"})
-    @modified = value
+  _editorId: null
 
   ###*
   @protected
   @property {FileEntry}
-  Is document modified after latest save?
+    FileEntry for this document
+  @readonly
   ###
   fileEntry: null
 
   ###*
-  @private
-  @property {ace.EditSession}
-  Ace session
+  @protected
+  @property {DOMElement}
+    DOM Element for this editor
+  @readonly
   ###
-  _session: null
+  element: null
+
+  ###*
+  @property {boolean}
+    Document is modified or not
+  @readonly
+  ###
+  modified: null
+
+  ###*
+  @protected
+  @method constructor
+    Constructor
+  @param {FileEntry} fileEntry
+    FileEntry for this document
+  @param {DOMElement/null} element
+    DOMElement for this editor (if null, new &lt;div&gt; element will be created)
+  ###
+  constructors: (@fileEntry, @element) ->
+    @_editorId = "editor_#{@constructor._nextIdNumber++}"
+    @element or= $("content-wrapper").append("""
+      <div class="editor" id="#{@_editorId}></div>
+    """).find("##{@_editorId}")[0]
+    return
+
+  ###*
+  @static
+  @method
+    Create an editor with automatic filetype selection
+  @param {FileEntry}  fileEntry
+    FileEntry to open
+  @return {Editor}
+    Generated instance of editor (return void if no suitable class)
+  ###
+  createEditor: (fileEntry) ->
+    suffix = (fileEntry.name.match(/\.([^.]+)$/) or [])[1]
+    return unless suffix
+    for editorClass in @_editors
+      if editorClass.SUFFIXES.includes(suffix)
+        return new editorClass(fileEntry)
+    return
 
   ###*
   @private
-  @property {String}
-  DOM element id for this editor
+  @property {string/null}
+    Name of this editor
   ###
-  _domId: null
+  _name: null
+
+  ###*
+  @method
+    Set name of this editor
+  @param {string} name
+    New name
+  @return {void}
+  ###
+  setName: (name) ->
+    @_name = name
+    @_updateTab()
+    return
+
+  ###*
+  @event
+    Register handler for select request
+  @param {function(Editor):void}  handler
+    Event handler
+  @return {void}
+  ###
+  onSelectRequest: (handler) ->
+    @_onSelectRequest = handler
+    return
+
+  ###*
+  @protected
+  @method
+    Fire select request event
+  @return {void}
+  ###
+  fireSelectRequest: ->
+    (handler = @_onSelectRequest)?(this)
+    return
+
+  ###*
+  @event
+    Register handler for close request
+  @param {function(Editor):void}  handler
+    Event handler
+  @return {void}
+  ###
+  onCloseRequest: (handler) ->
+    @_onCloseRequest = handler
+    return
+
+  ###*
+  @protected
+  @method
+    Fire close request event
+  @return {void}
+  ###
+  fireCloseRequest: ->
+    (handler = @_onCloseRequest)?(this)
+    return
+
+  ###*
+  @private
+  @method
+    Update tab
+  @param {boolean} [remove=false]
+    Remove tab
+  @return {void}
+  ###
+  _updateTab: (remove) ->
+    tabId = @_editorId + "-tab"
+    elem = $("##{tabId}")
+    if remove
+      elem?.empty()
+      return
+    unless elem
+      elem = $("""
+        <li id="#{@_tabId}">#{@_name or @fileEntry?.name or ""}
+          <span class="modified" style="display: none;"> *</span>
+        </li>
+      """)
+      elem.click(=>
+        (handler = @_onSelectRequest)?(this)
+      )
+      $("#editor-tabbar").append(elem)
+
+    mod = elem.find(".modified")
+    if @modified
+      mod.removeClass("not-modified")
+    else
+      mod.addClass("not-modified")
+    return
+
+  ###*
+  @method
+    Activate editor
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  activate: (callback) ->
+    callback(false)
+    return
+
+  ###*
+  @event
+    Register handler for change event
+  @param {function(Editor,boolean):void} handler
+    Event handler
+  @return {void}
+  ###
+  onChange: (handler) ->
+    @_onChange = handler
+    return
+
+  ###*
+  @protected
+  @method
+    Fire change event
+  @return {void}
+  ###
+  fireChange: ->
+    (handler = @_onChange)?(this, @modified)
+    return
+
+  ###*
+  @method
+    Load document
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  load: (callback) ->
+    callback(false)
+    return
+
+  ###*
+  @method
+    Save document
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  save: (callback) ->
+    callback(false)
+    return
+
+  ###*
+  @method
+    Close document
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  close: (callback) ->
+    callback(false)
+    return
 

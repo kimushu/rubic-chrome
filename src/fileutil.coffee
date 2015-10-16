@@ -1,6 +1,14 @@
-class FileUtil
+###*
+@class Rubic.FileUtil
+  Class for file access utilities
+###
+class Rubic.FileUtil
+  DEBUG = Rubic.DEBUG or 0
+
   ###*
-  Read text from FileEntry or pair of DirectoryEntry and path
+  @static
+  @method
+    Read text from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {String} readdata)
   @param {Object}   [options]   Options for DirectoryEntry#getFile
@@ -16,7 +24,9 @@ class FileUtil
     return
 
   ###*
-  Read JSON from FileEntry or pair of DirectoryEntry and path
+  @static
+  @method
+    Read JSON from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {Object} readdata)
   @param {Object}   [options]   Options for DirectoryEntry#getFile
@@ -38,7 +48,9 @@ class FileUtil
     return
 
   ###*
-  Read data as ArrayBuffer from FileEntry or pair of DirectoryEntry and path
+  @static
+  @method
+    Read data as ArrayBuffer from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry or [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
   @param {Object}   [options]   Options for DirectoryEntry#getFile
@@ -55,7 +67,9 @@ class FileUtil
 
   ###*
   @private
-  Read data from FileEntry or pair of DirectoryEntry and path
+  @static
+  @method
+    Read data from FileEntry or pair of DirectoryEntry and path
   @param {Object}   entry       FileEntry of [DirectoryEntry, path] to read
   @param {Function} callback    Callback ({Boolean} result, {ArrayBuffer} readdata)
   @param {Function} invoke      Reader function ({FileReader} reader, {File} file)
@@ -85,8 +99,10 @@ class FileUtil
     return
 
   ###*
-  Write text to FileEntry or pair of DirectoryEntry and path
-  (Alias of FileUtil.write)
+  @static
+  @method
+    Write text to FileEntry or pair of DirectoryEntry and path
+    (Alias of FileUtil.write)
   @return {void}
   ###
   @writeText: ->
@@ -94,7 +110,9 @@ class FileUtil
     return
 
   ###*
-  Write object as JSON to FileEntry or pair of DirectoryEntry and path
+  @static
+  @method
+    Write object as JSON to FileEntry or pair of DirectoryEntry and path
   @return {void}
   ###
   @writeJSON: (entry, data, callback) ->
@@ -102,14 +120,18 @@ class FileUtil
     return
 
   ###*
-  Write ArrayBuffer to FileEntry or pair of DirectoryEntry and path
-  (Alias of FileUtil.write)
+  @static
+  @method
+    Write ArrayBuffer to FileEntry or pair of DirectoryEntry and path
+    (Alias of FileUtil.write)
   ###
   @writeArrayBuf: -> @_write.apply(this, arguments)
 
   ###*
   @private
-  Write data to FileEntry or pair of DirectoryEntry and path
+  @static
+  @method
+    Write data to FileEntry or pair of DirectoryEntry and path
   @param {Object}                         entry     FileEntry or [DirectoryEntry, path] to write
   @param {String/ArrayBuffer/TypedArray}  data      Data to write
   @param {Function}                       callback  Callback ({Boolean} result)
@@ -137,7 +159,9 @@ class FileUtil
       ) # entry.createWriter
 
   ###*
-  Wrapper function for fs.readEntries to get all entries at once
+  @static
+  @method
+    Wrapper function for fs.readEntries to get all entries at once
   @param {DirectoryEntry} dirEntry          Directory to read entries
   @param {Function}       successCallback   Callback ({FileEntry[]} entries)
   @param {Function}       [errorCallback]   Error callback ({void})
@@ -160,7 +184,9 @@ class FileUtil
     undefined
 
   ###*
-  Wrapper function for PERSISTENT filesystem
+  @static
+  @method
+    Wrapper function for PERSISTENT filesystem
   @param {Function} successCallback   Callback ({FileSystem} fs)
   @param {Function} [errorCallback]   Error callback ({void})
   ###
@@ -179,7 +205,9 @@ class FileUtil
     undefined
 
   ###*
-  Wrapper function for TEMPORARY filesystem
+  @static
+  @method
+    Wrapper function for TEMPORARY filesystem
   @param {Function} successCallback   Callback ({FileSystem} fs)
   @param {Function} [errorCallback]   Error callback ({void})
   ###

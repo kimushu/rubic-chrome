@@ -19,31 +19,31 @@
               <p class="navbar-text"><img src="images/rubic_cube2x2_20.png">&nbsp;Rubic&nbsp;</p>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn i18n" title="__MSG_Menu__" id="menu"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
+              <button class="btn i18n act-toggle-menu" title="__MSG_Menu__"><span class="glyphicon glyphicon-menu-hamburger"></span></button>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn i18n action-new-sketch" title="__MSG_NewSketch__ (Ctrl+N)"><span class="glyphicon glyphicon-asterisk"></span> __MSG_New__</button>
+              <button class="btn i18n act-new-sketch" title="__MSG_NewSketch__ (Ctrl+N)"><span class="glyphicon glyphicon-asterisk"></span> __MSG_New__</button>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn i18n action-open-sketch" title="__MSG_OpenSketch__ (Ctrl+O)"><span class="glyphicon glyphicon-open"></span> __MSG_Open__</button>
+              <button class="btn i18n act-open-sketch" title="__MSG_OpenSketch__ (Ctrl+O)"><span class="glyphicon glyphicon-open"></span> __MSG_Open__</button>
             </div>
             <div class="btn-group btn-group-xs">
-              <button class="btn i18n action-save-sketch" title="__MSG_SaveSketch__ (Ctrl+S)"><span class="glyphicon glyphicon-save"></span> __MSG_Save__</button>
+              <button class="btn i18n act-save-sketch" title="__MSG_SaveSketch__ (Ctrl+S)"><span class="glyphicon glyphicon-save"></span> __MSG_Save__</button>
               <button class="btn dropdown-toggle btn-thin" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
               <ul class="dropdown-menu" role="menu">
-                <li class="btn-xs"><a class="i18n action-save-sketch-as" title="__MSG_SaveSketchAs__... (Ctrl+Shift+S)" href="#">__MSG_SaveAs__...</a></li>
+                <li class="btn-xs"><a class="i18n act-save-sketch-as" title="__MSG_SaveSketchAs__... (Ctrl+Shift+S)" href="#">__MSG_SaveAs__...</a></li>
               </ul>
             </div>
             <div class="btn-toolbar pull-right">
               <div class="btn-group btn-group-xs">
-                <button class="btn i18n action-build-sketch" title="__MSG_BuildSketch__ (Ctrl+B)"><span class="glyphicon glyphicon-random"></span>&nbsp; __MSG_Build__</button>
+                <button class="btn i18n act-build-sketch" title="__MSG_BuildSketch__ (Ctrl+B)"><span class="glyphicon glyphicon-random"></span>&nbsp; __MSG_Build__</button>
               </div>
               <div class="btn-group btn-group-xs">
-                <button class="btn btn-primary i18n action-run-group action-run-sketch" title="__MSG_ProgramAndRun__ (Ctrl+R)" disabled><span class="glyphicon glyphicon-play-circle"></span> __MSG_Run__</button>
-                <button class="btn btn-primary i18n action-run-group dropdown-toggle btn-thin" data-toggle="dropdown" aria-expanded="false" disabled><span class="caret"></span></button>
+                <button class="btn btn-primary i18n act-run-sketch" title="__MSG_ProgramAndRun__ (Ctrl+R)" disabled><span class="glyphicon glyphicon-play-circle"></span> __MSG_Run__</button>
+                <button class="btn btn-primary i18n dropdown-toggle btn-thin" data-toggle="dropdown" aria-expanded="false" disabled><span class="caret"></span></button>
                 <ul class="dropdown-menu" role="menu">
-                <li class="btn-xs"><a class="i18n action-run-sketch" title="__MSG_ProgramAndRun__ (Ctrl+R)" href="#">__MSG_Run__</a></li>
-                <li class="btn-xs disabled"><a class="i18n action-debug-sketch" title="__MSG_StartDebugging__" href="#">__MSG_Debug__</a></li>
+                <li class="btn-xs"><a class="i18n act-run-sketch" title="__MSG_ProgramAndRun__ (Ctrl+R)" href="#">__MSG_Run__</a></li>
+                <li class="btn-xs disabled"><a class="i18n act-debug-sketch" title="__MSG_StartDebugging__" href="#">__MSG_Debug__</a></li>
                 </ul>
               </div>
             </div>
@@ -51,45 +51,45 @@
         </ul><!-- /.nav -->
       </div><!-- /.navbar-header -->
     </div><!-- /.navbar -->
-    <div id="wrapper">
-      <div id="sidebar-wrapper">
+    <div id="menubar">
+      <div id="sidebar-menubar">
         <ul class="sidebar-nav">
           <li>
-            <a class="i18n action-new-sketch" href="#">__MSG_NewSketch__</a>
+            <a class="i18n act-new-sketch" href="#">__MSG_NewSketch__</a>
           </li>
           <li>
-            <a class="i18n action-open-sketch" href="#">__MSG_OpenSketch__...</a>
+            <a class="i18n act-open-sketch" href="#">__MSG_OpenSketch__...</a>
           </li>
           <li>
-            <a class="i18n action-save-sketch" href="#">__MSG_SaveSketch__</a>
+            <a class="i18n act-save-sketch" href="#">__MSG_SaveSketch__</a>
           </li>
           <li>
-            <a class="i18n action-save-sketch-as" href="#">__MSG_SaveSketchAs__...</a>
-          </li>
-          <li class="divider"></li>
-          <li>
-            <a class="i18n action-preferences disabled" title="__MSG_NotSupportedYet__">__MSG_Preferences__</a>
+            <a class="i18n act-save-sketch-as" href="#">__MSG_SaveSketchAs__...</a>
           </li>
           <li class="divider"></li>
           <li>
-            <a class="i18n action-about" href="#">__MSG_AboutThisApplication__</a>
+            <a class="i18n act-preferences disabled" title="__MSG_NotSupportedYet__">__MSG_Preferences__</a>
+          </li>
+          <li class="divider"></li>
+          <li>
+            <a class="i18n act-about" href="#">__MSG_AboutThisApplication__</a>
           </li>
         </ul><!-- /.sidebar-nav -->
-      </div><!-- /#sidebar-wrapper -->
-      <div id="content-wrapper">
+      </div><!-- /#sidebar-menubar -->
+      <div id="content-menubar">
         <header class="tabbar">
-          <ul class="tabbar" id="file-tabbar">
+          <ul class="tabbar" id="editor-tabbar">
           </ul>
         </header><!-- /header -->
         <div id="editor" style="visibility: hidden;"></div>
-      </div><!-- /#content-wrapper -->
-    </div><!-- /#wrapper -->
+      </div><!-- /#content-menubar -->
+    </div><!-- /#menubar -->
     <div class="navbar navbar-inverse navbar-fixed-bottom navbar-sketch" role="navigation">
       <div class="navbar-header">
         <ul class="nav">
           <li>
             <div class="btn-group">
-              <button class="btn btn-xs i18n action-open-catalog" title="Hardware catalog"><span class="glyphicon glyphicon-th-list"></span> __MSG_Catalog__</button>
+              <button class="btn btn-xs i18n act-open-catalog" title="Hardware catalog"><span class="glyphicon glyphicon-th-list"></span> __MSG_Catalog__</button>
             </div><!-- /.btn-group -->
             <div class="btn-group btn-group-xs dropup" id="group-board">
               <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" disabled>
@@ -111,7 +111,7 @@
               </ul><!-- /.dropdown-menu -->
             </div><!-- /.btn-group -->
             <div class="btn-group">
-              <button class="btn btn-xs i18n action-board-info" title="Board information" disabled><span class="glyphicon glyphicon-info-sign"></span> __MSG_Info__</button>
+              <button class="btn btn-xs i18n act-board-info" title="Board information" disabled><span class="glyphicon glyphicon-info-sign"></span> __MSG_Info__</button>
             </div><!-- /.btn-group -->
           </li>
         </ul><!-- /.nav -->
@@ -122,13 +122,10 @@
     <script src="jquery-2.1.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootstrap/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootstrap-notify/dist/bootstrap-notify.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="bootbox/bootbox.js" type="text/javascript" charset="utf-8"></script>
     <script src="spin.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="jquery.spin.js" type="text/javascript" charset="utf-8"></script>
-    <script src="canarium.js" type="text/javascript" charset="utf-8"></script>
-    <script src="js-yaml/dist/js-yaml.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="rubic.js" type="text/javascript" charset="utf-8"></script>
-    <script src="lib.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/common.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>

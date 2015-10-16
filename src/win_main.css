@@ -165,7 +165,7 @@ span.menu-icon {
   width: 100%;
   height: 3px;
 }
-#wrapper {
+#menubar {
   position: absolute;
   top: 32px;
   left: 0;
@@ -173,7 +173,7 @@ span.menu-icon {
   width: 100%;
   height: calc(100% - 32px - 32px);
 }
-#sidebar-wrapper {
+#sidebar-menubar {
   z-index: 1000;
   position: absolute;
   top: 0;
@@ -187,22 +187,22 @@ span.menu-icon {
   background: #333;
   transition: all 0.5s ease;
 }
-#sidebar-wrapper::-webkit-scrollbar {
+#sidebar-menubar::-webkit-scrollbar {
   background-color: #555;
 }
-#sidebar-wrapper::-webkit-scrollbar-button {
+#sidebar-menubar::-webkit-scrollbar-button {
   width: 0;
   height: 0;
 }
-#sidebar-wrapper::-webkit-scrollbar-thumb {
+#sidebar-menubar::-webkit-scrollbar-thumb {
   border: 2px solid rgba(0, 0, 0, 0);
   background-clip: padding-box;
   background-color: #888;
 }
-#wrapper.toggled #sidebar-wrapper {
+#menubar.toggled #sidebar-menubar {
   left: 0;
 }
-#content-wrapper {
+#content-menubar {
   background-color: #ccc;
   width: 100%;
   position: absolute;
@@ -212,7 +212,7 @@ span.menu-icon {
   height: 100%;
   transition: all 0.5s ease;
 }
-#wrapper.toggled #content-wrapper {
+#menubar.toggled #content-menubar {
   margin-left: 200px;
 }
 .sidebar-nav {

@@ -1,37 +1,55 @@
+#----------------------------------------------------------------
+# Makefile for Rubic
+#----------------------------------------------------------------
 
-COFFEE    := $(shell which coffee 2>/dev/null)
-JSDUCKIFY := $(shell which jsduckify 2>/dev/null)
-UGLIFYJS  := $(shell which uglifyjs 2>/dev/null)
+# Compilers and tools
+COFFEE   := $(shell which coffee 2>/dev/null)
+JSDUCK   := $(shell which jsduck 2>/dev/null)
+UGLIFYJS := $(shell which uglifyjs 2>/dev/null)
 
+# Make options
 Q ?= @
-TARGET = rubic.js lib.js background.js
-RELEASE = $(TARGET:.js=.min.js)
-RUNNER = node
-DOCDIR = docs
+
+# Output directories
+JS_DIR  = js
+DOC_DIR = ../doc
+REL_DIR = ../dist
+
+# Source files
 SOURCES = \
-	utils.coffee \
+	launcher.coffee \
+	common.coffee \
 	i18n.coffee \
-	async.coffee \
 	app.coffee \
-	port.coffee \
-		serialport.coffee \
-	memhttprequest.coffee \
-	board.coffee \
-		peridotboard.coffee \
-		wakayamarbboard.coffee \
-	editor.coffee \
-		rubyeditor.coffee \
-		yamleditor.coffee \
-		mrbviewer.coffee \
-	fileutil.coffee \
-	hardwarecatalog.coffee \
-	builder.coffee \
-		mrubybuilder.coffee \
-		pythonbuilder.coffee \
-		javascriptbuilder.coffee \
+	windowcontroller.coffee \
+		maincontroller.coffee \
+		catalogcontroller.coffee \
 	sketch.coffee \
-	githubrepofilesystem.coffee \
-	about.coffee \
+	fileutil.coffee \
+#	board.coffee \
+#		peridotboard.coffee \
+#	editor.coffee \
+#		texteditor.coffee \
+#			rubyeditor.coffee \
+#			javascripteditor.coffee \
+#			coffeescripteditor.coffee \
+#	utils.coffee \
+#	async.coffee \
+#	app.coffee \
+#	port.coffee \
+#		serialport.coffee \
+#	memhttprequest.coffee \
+#		wakayamarbboard.coffee \
+#			yamleditor.coffee \
+#			mrbviewer.coffee \
+	hardwarecatalog.coffee \
+	hardware.coffee \
+#	builder.coffee \
+#		mrubybuilder.coffee \
+#		pythonbuilder.coffee \
+#		javascriptbuilder.coffee \
+#	githubrepofilesystem.coffee \
+#	about.coffee \
 #	localfilesystem.coffee \
 #	googledrivefilesystem.coffee \
 #	marshal.coffee \
@@ -39,35 +57,68 @@ SOURCES = \
 #		de0board.coffee \
 #		de0nanoboard.coffee \
 
-LIB_SOURCES = \
+# JS libraries
+LIBS = \
 	mruby/build/emscripten/bin/mrbc.js
 
-.PHONY: all
-all: $(TARGET)
+# Combined library file
+TARGET_LIB = lib.js
 
-.PHONY: run
-run: all
-	@echo "[Running]"
-	$(Q)$(RUNNER) $(RELEASE) $(LIB)
+TARGETS = \
+	$(foreach s,$(SOURCES),$(JS_DIR)/$(s:.coffee=.js)) \
+	$(TARGET_LIB) \
+	manifest.json
+
+BKG_SOURCES = \
+	app.coffee \
+	windowcontroller.coffee \
+		maincontroller.coffee \
+
+comma := ,
+empty :=
+space := $(empty) $(empty)
+
+EXTERNAL_CLASSES = \
+	AppWindow \
+	ArrayBuffer \
+	Canarium \
+	DOMElement \
+	DirectoryEntry \
+	FileEntry \
+	ace.EditSession \
+	ace.Editor \
+
+RELEASE_DIR = ../dist
+
+build:
+
+.PHONY: build
+build: $(TARGETS)
 
 .PHONY: release
-release: $(RELEASE)
+release: $(TARGET_RELEASE)
 
 .PHONY: clean
 clean:
 	@echo "[Cleaning]"
-	$(Q)rm -f $(TARGET) $(RELEASE)
+	$(Q)rm -f $(TARGETS)
 
-%.min.js: %.js $(firstword $(UGLIFYJS) uglifyjs-is-missing)
-	@echo "[Minimizing $<]"
-	$(Q)$(UGLIFYJS) -o $@ $< || (rm -f $@; false)
+# %.min.js: %.js $(firstword $(UGLIFYJS) uglifyjs-is-missing)
+# 	@echo "[Minimizing $<]"
+# 	$(Q)$(UGLIFYJS) -o $@ $< || (rm -f $@; false)
 
-%.js: %.coffee $(firstword $(COFFEE) coffee-is-missing) $(MAKEFILE_LIST)
-	@echo "[Compiling CoffeeScript files]"
-	$(Q)coffee -c $< > $@ || (rm -f $@; false)
+$(JS_DIR):
+	$(Q)mkdir -p $@
 
-rubic.coffee: $(SOURCES) $(MAKEFILE_LIST)
-	$(Q)cat /dev/null $(filter %.coffee,$^) > $@ || (rm -f $@; false)
+$(JS_DIR)/%.js: %.coffee $(JS_DIR) $(firstword $(COFFEE) coffee-is-missing) $(MAKEFILE_LIST)
+	@echo "[Compiling $<]"
+	$(Q)$(COFFEE) -c -m -o $(JS_DIR) $< || (rm -f $@; false)
+
+manifest.json: manifest.head $(MAKEFILE_LIST) manifest.tail
+	@echo "[Generating $@]"
+	$(Q)cat $(firstword $^) > $@
+	$(Q)true $(foreach s,$(SOURCES),&& echo "        \"$(JS_DIR)/$(s:.coffee=.js)\"," >> $@)
+	$(Q)cat $(lastword $^) >> $@ || (rm -f $@; false)
 
 lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
 	@echo "[Importing external libraries]"
@@ -86,16 +137,16 @@ lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
 #		&& echo "Module.exports={};" >> $@.tmp \
 #		&& echo "Module.exports.fs=FS;" >> $@.tmp \
 
-.PHONY: doc
-doc: $(TARGET) $(firstword $(JSDUCKIFY) jsduckify-is-missing)
-	@echo "[Generating document]"
-	$(Q)$(JSDUCKIFY) -o doc
+background.coffee: $(BKG_SOURCES) $(MAKEFILE_LIST)
+	$(Q)cat /dev/null $(filter %.coffee,$^) > $@ || (rm -f $@; false)
 
-.PHONY: uglifyjs-is-missing
-uglifyjs-is-missing:
-	@echo "**** UglifyJS is required to build this project."
-	@echo "**** Please visit https://github.com/mishoo/UglifyJS"
-	@false
+.PHONY: doc
+doc: $(TARGETS) $(firstword $(JSDUCK) jsduckify-is-missing)
+	@echo "[Generating document]"
+	$(Q)$(JSDUCK) \
+		-o $(DOC_DIR) \
+		--external=$(subst $(space),$(comma),$(EXTERNAL_CLASSES)) \
+		$(filter $(JS_DIR)/%.js,$^)
 
 .PHONY: coffee-is-missing
 coffee-is-missing:
@@ -103,10 +154,16 @@ coffee-is-missing:
 	@echo "**** Please visit http://coffeescript.org/"
 	@false
 
-.PHONY: jsduckify-is-missing
-jsduckify-is-missing:
-	@echo "**** jsduckify is required to generate document for this project."
-	@echo "**** Please visit https://github.com/lmaccherone/jsduckify"
+.PHONY: jsduck-is-missing
+jsduck-is-missing:
+	@echo "**** JSDuck is required to generate document for this project."
+	@echo "**** Please visit https://github.com/senchalabs/jsduck"
+	@false
+
+.PHONY: uglifyjs-is-missing
+uglifyjs-is-missing:
+	@echo "**** UglifyJS is required to release this project."
+	@echo "**** Please visit https://github.com/mishoo/UglifyJS"
 	@false
 
 DIST_DIR = ../dist

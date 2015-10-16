@@ -1,9 +1,9 @@
 ###*
-@class
-  Editor for ruby/mruby source (View)
+@class CoffeeScriptEditor
+  Editor for CoffeeScript source (View)
 @extends TextEditor
 ###
-class RubyEditor extends TextEditor
+class CoffeeScriptEditor extends TextEditor
   DEBUG = if DEBUG? then DEBUG else 0
   Editor.addEditor(this)
 
@@ -12,7 +12,7 @@ class RubyEditor extends TextEditor
   @cfg {string[]}
     List of suffixes
   ###
-  @SUFFIXES: ["rb"]
+  @SUFFIXES: ["coffee"]
 
   ###*
   @static
@@ -29,7 +29,7 @@ class RubyEditor extends TextEditor
     FileEntry for this document
   ###
   constructor: (fileEntry) ->
-    super(fileEntry, "ace/mode/ruby")
+    super(fileEntry, "ace/mode/coffee")
     return
 
   ###* @property _mode @hide ###
