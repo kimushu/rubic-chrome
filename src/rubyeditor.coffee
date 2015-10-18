@@ -1,11 +1,11 @@
 ###*
-@class
+@class Rubic.RubyEditor
   Editor for ruby/mruby source (View)
-@extends TextEditor
+@extends Rubic.TextEditor
 ###
-class RubyEditor extends TextEditor
-  DEBUG = if DEBUG? then DEBUG else 0
-  Editor.addEditor(this)
+class Rubic.RubyEditor extends Rubic.TextEditor
+  DEBUG = Rubic.DEBUG or 0
+  Rubic.Editor.addEditor(this)
 
   ###*
   @static
@@ -23,13 +23,29 @@ class RubyEditor extends TextEditor
   @EDITABLE: true
 
   ###*
+  @static
+  @method
+    Get new file template
+  @param {Object} header
+    Header information
+  @return {string}
+    Template text
+  ###
+  @getTemplate: (header) ->
+    return """
+    # #{Rubic.I18n("WriteYourSketchHere")}
+    """
+
+  ###*
   @method constructor
     Constructor
+  @param {Rubic.WindowController} controller
+    Controller for this view
   @param {FileEntry} fileEntry
     FileEntry for this document
   ###
-  constructor: (fileEntry) ->
-    super(fileEntry, "ace/mode/ruby")
+  constructor: (controller, fileEntry) ->
+    super(controller, fileEntry, "ace/mode/ruby")
     return
 
   ###* @property _mode @hide ###

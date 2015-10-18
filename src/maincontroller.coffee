@@ -13,6 +13,12 @@ class Rubic.MainController extends Rubic.WindowController
   sketch: null
 
   ###*
+  @property {Rubic.Editor[]}
+    List of editors
+  ###
+  editors: []
+
+  ###*
   @method
     Start controller
   @return {void}
@@ -92,7 +98,7 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _toggleMenu: ->
-    @$("#menubar").toggleClass("toggled")
+    @$("#wrapper").toggleClass("toggled")
     return
 
   ###*
@@ -113,12 +119,15 @@ class Rubic.MainController extends Rubic.WindowController
         yes: {
           label: Rubic.I18n("YesXpIDiscardThemXp")
           className: "btn-danger"
-          callback: -> callback(true)
+          callback: ->
+            callback(true)
         }
         no: {
           label: Rubic.I18n("NoXpIWantToCancelToSaveXp")
           className: "btn-success"
-          callback: -> callback(false)
+          callback: =>
+            @_notify("info", Rubic.I18n("Cancelled"))
+            callback(false)
         }
       }
     })
@@ -131,19 +140,18 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _newSketch: ->
-    @sketch = {modified: true}
     new Function.Sequence(
       (seq) =>
         return seq.next() unless @sketch?.modified
         @_confirmDiscardSketch((discard) =>
-          @_notify("info", Rubic.I18n("Cancelled")) unless discard
           return seq.next(discard)
         )
       (seq) =>
         Rubic.Sketch.create((result, sketch) =>
           return seq.abort() unless result
-          @_setSketch(sketch)
-          return seq.next()
+          @_setSketch(sketch, (result) ->
+            return seq.next(result)
+          )
         )
     ).start()
     return
@@ -155,13 +163,11 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _openSketch: ->
-    @sketch = {modified: true}
     entry = null
     new Function.Sequence(
       (seq) =>
         return seq.next() unless @sketch?.modified
         @_confirmDiscardSketch((discard) =>
-          @_notify("info", Rubic.I18n("Cancelled")) unless discard
           return seq.next(discard)
         )
       (seq) =>
@@ -176,9 +182,70 @@ class Rubic.MainController extends Rubic.WindowController
       (seq) =>
         Rubic.Sketch.open(entry, (result, sketch) =>
           return seq.abort() unless result
-          @_setSketch(sketch)
+          @_setSketch(sketch, (result) ->
+            return seq.next(result)
+          )
+        )
+    ).start()
+    return
+
+  ###*
+  @private
+  @method
+    Set current sketch
+  @param {Rubic.Sketch} sketch
+    Sketch instance to set
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  _setSketch: (sketch, callback) ->
+    editors = null
+    new Function.Sequence(
+      (seq) =>
+        return seq.next() unless @editors.length > 0
+        editor = @editors.shift()
+        editor.close((result) ->
+          return seq.abort() unless result
+          return seq.redo()
+        )
+      (seq) =>
+        return seq.next() unless @sketch
+        @sketch.close((result) ->
+          return seq.next(result)
+        )
+      (seq) =>
+        editors = [new Rubic.SketchEditor(this, sketch)]
+        name = sketch.bootFile or ""
+        return seq.next() unless name != ""
+        unless sketch.files[name]
+          @_notify("warning", "#{Rubic.I18n("BootScriptIsNotRegisteredInThisSketchXc")}#{name}")
+          return seq.next()
+        sketch.dirEntry.getFile(
+          name
+          {}
+          (fileEntry) =>
+            editor = Rubic.Editor.createEditor(this, fileEntry)
+            if editor
+              editors.push(editor)
+            else
+              @_notify("warning", "#{Rubic.I18n("CannotGuessEditorForXc")}#{name}")
+            return seq.next()
+          =>
+            @_notify("warning", "#{Rubic.I18n("CannotOpenFileXc")}#{name}")
+            return seq.next()
+        )
+      (seq) =>
+        @sketch = sketch
+        @editors = editors
+        return seq.next()
+      (seq) =>
+        @editors[@editors.length - 1].activate((result) ->
           return seq.next()
         )
+    ).final(
+      (seq) ->
+        callback(seq.finished)
     ).start()
     return
 

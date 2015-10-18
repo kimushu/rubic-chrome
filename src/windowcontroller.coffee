@@ -22,6 +22,13 @@ class Rubic.WindowController
   window: null
 
   ###*
+  @property {jQuery}
+    jQuery object for this window
+  @readonly
+  ###
+  $: null
+
+  ###*
   @protected
   @method
     Start controller

@@ -56,5 +56,9 @@
   "YesXpIDiscardThemXp": {"message": "はい。破棄します。"},
   "NoXpIWantToCancelToSaveXp": {"message": "いいえ。操作を中断します。"},
   "Cancelled": {"message": "操作を中断しました"},
+  "WriteYourSketchHere": {"message": "ここからスケッチを書きましょう"},
+  "BootScriptIsNotRegisteredToThisSketchXc": {"message": "次の起動用スクリプトがこのスケッチに登録されていません："},
+  "CannotGuessEditorForXc": {"message": "次のファイルを開くためのエディタが不明です："},
+  "CannotOpenFileXc": {"message": "次のファイルを開くことができません："},
   "xxx": {"message": "xxx"}
 }

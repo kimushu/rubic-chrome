@@ -29,6 +29,10 @@
         "js/catalogcontroller.js",
         "js/sketch.js",
         "js/fileutil.js",
+        "js/editor.js",
+        "js/sketcheditor.js",
+        "js/texteditor.js",
+        "js/rubyeditor.js",
         "lib.js"
       ]
     }

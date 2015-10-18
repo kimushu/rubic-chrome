@@ -1,9 +1,22 @@
 ###*
-@class
+@class Rubic.SketchEditor
   Editor for sketch configuration (View)
-@extends Editor
+@extends Rubic.Editor
 ###
-class SketchEditor extends Editor
-  DEBUG = if DEBUG? then DEBUG else 0
-  Editor.addEditor(this)
+class Rubic.SketchEditor extends Rubic.Editor
+  DEBUG = Rubic.DEBUG or 0
+  Rubic.Editor.addEditor(this)
+
+  ###*
+  @method constructor
+    Constructor
+  @param {Rubic.WindowController} controller
+    Controller for this view
+  @param {Rubic.Sketch} sketch
+    Sketch for this view
+  ###
+  constructor: (controller, @sketch) ->
+    super(controller)
+    @setName(@sketch.name)
+    return
 

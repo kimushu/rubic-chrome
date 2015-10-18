@@ -192,6 +192,18 @@ unless String::escapeHtml
       ">": "&gt;"
     return @replace(/[&"'<>]/g, (match) -> TABLE[match])
 
+###*
+@class Array
+  Array object (JavaScript builtin class)
+###
+unless Array::includes
+  ###*
+  @method
+    Check if item is in array or not
+  ###
+  Array::includes = (value) ->
+    return @indexOf(value) != -1
+
 ###
 onload hook for Rubic.WindowController
 ###

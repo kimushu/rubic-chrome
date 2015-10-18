@@ -46,12 +46,16 @@ body {
 }
 #rubic-text {
 }
-#editor {
+.editor {
   position: absolute;
   top: 24px;
   right: 0;
   bottom: 0;
   left: 0;
+  visibility: hidden;
+}
+.editor-active {
+  visibility: visible;
 }
 ul.tabbar {
   background-color: #999;
@@ -165,7 +169,7 @@ span.menu-icon {
   width: 100%;
   height: 3px;
 }
-#menubar {
+#wrapper {
   position: absolute;
   top: 32px;
   left: 0;
@@ -173,7 +177,7 @@ span.menu-icon {
   width: 100%;
   height: calc(100% - 32px - 32px);
 }
-#sidebar-menubar {
+#sidebar-wrapper {
   z-index: 1000;
   position: absolute;
   top: 0;
@@ -187,22 +191,22 @@ span.menu-icon {
   background: #333;
   transition: all 0.5s ease;
 }
-#sidebar-menubar::-webkit-scrollbar {
+#sidebar-wrapper::-webkit-scrollbar {
   background-color: #555;
 }
-#sidebar-menubar::-webkit-scrollbar-button {
+#sidebar-wrapper::-webkit-scrollbar-button {
   width: 0;
   height: 0;
 }
-#sidebar-menubar::-webkit-scrollbar-thumb {
+#sidebar-wrapper::-webkit-scrollbar-thumb {
   border: 2px solid rgba(0, 0, 0, 0);
   background-clip: padding-box;
   background-color: #888;
 }
-#menubar.toggled #sidebar-menubar {
+#wrapper.toggled #sidebar-wrapper {
   left: 0;
 }
-#content-menubar {
+#content-wrapper {
   background-color: #ccc;
   width: 100%;
   position: absolute;
@@ -212,7 +216,7 @@ span.menu-icon {
   height: 100%;
   transition: all 0.5s ease;
 }
-#menubar.toggled #content-menubar {
+#wrapper.toggled #content-wrapper {
   margin-left: 200px;
 }
 .sidebar-nav {

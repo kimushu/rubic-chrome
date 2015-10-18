@@ -18,11 +18,12 @@ class Rubic.Sketch
     Name of sketch (Same as directory name)
   @readonly
   ###
-  @property("name", {get: -> @_dirEntry?.name})
+  @property("name", {get: -> @dirEntry?.name})
 
   ###*
   @property {boolean}
     Is sketch modified
+  @readonly
   ###
   modified: false
 
@@ -52,11 +53,17 @@ class Rubic.Sketch
   rubicVersion: "0.0.0.0"
 
   ###*
-  @private
   @property {DirectoryEntry}
     Saved directory
   ###
-  _dirEntry: null
+  dirEntry: null
+
+  # ###*
+  # @private
+  # @property {FileEntry}
+  #   Sketch settings file
+  # ###
+  # fileEntry: null
 
   ###*
   @property {Hardware}
@@ -68,10 +75,10 @@ class Rubic.Sketch
   @private
   @method constructor
     Constructor
-  @param {DirectoryEntry} _dirEntry
+  @param {DirectoryEntry} dirEntry
     Directory to save sketch
   ###
-  constructor: (@_dirEntry) ->
+  constructor: (@dirEntry) ->
     return
 
   ###*
@@ -80,7 +87,7 @@ class Rubic.Sketch
     Open sketch from DirectoryEntry
   @param {DirectoryEntry} dirEntry
     Directory to open
-  @param {function(boolean,Sketch)} callback
+  @param {function(boolean,Rubic.Sketch)} callback
     Callback function with result and generated instance
   @return {void}
   ###
@@ -102,7 +109,7 @@ class Rubic.Sketch
   @static
   @method
     Create a new sketch to temporary storage
-  @param {function(boolean,Sketch)} callback
+  @param {function(boolean,Rubic.Sketch)} callback
     Callback function with result and generated instance
   @return {void}
   ###
@@ -142,6 +149,18 @@ class Rubic.Sketch
         )
       (seq) ->
         sketch = new Rubic.Sketch(dirEntry)
+        name = "main.rb"
+        text = Rubic.Editor.guessEditorClass(name)?.getTemplate({})
+        Rubic.FileUtil.writeText(
+          [dirEntry, name]
+          text
+          (result) ->
+            return seq.abort() unless result
+            sketch.bootFile = name
+            sketch.files[name] = {}
+            return seq.next()
+        )
+      (seq) ->
         sketch.save(
           (result) ->
             return seq.next(result)
@@ -159,7 +178,7 @@ class Rubic.Sketch
     Load settings from JSON text
   @param {string} jsonText
     JSON text
-  @param {function(boolean,Sketch)} callback
+  @param {function(boolean,Rubic.Sketch)} callback
     Callback function with result and self instance
   @return {void}
   ###
@@ -186,9 +205,20 @@ class Rubic.Sketch
 
   ###*
   @method
+    Close sketch
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  close: (callback) ->
+    callback(true)
+    return
+
+  ###*
+  @method
     Save sketch
-  @param {function(boolean)}  callback
-    Callback function with result and generated instance
+  @param {function(boolean):void} callback
+    Callback function with result
   @return {void}
   ###
   save: (callback) ->
@@ -199,7 +229,7 @@ class Rubic.Sketch
     json.download_all = @downloadAll
     json.rubicVersion = chrome.runtime.getManifest().version
     Rubic.FileUtil.writeText(
-      [@_dirEntry, SKETCH_FILE]
+      [@dirEntry, SKETCH_FILE]
       JSON.stringify(json)
       (res_write) ->
         @rubicVersion = json.rubicVersion if res_write
@@ -217,10 +247,10 @@ class Rubic.Sketch
   @return {void}
   ###
   saveAs: (dirEntry, callback) ->
-    oldDirEntry = @_dirEntry
-    @_dirEntry = dirEntry
+    oldDirEntry = @dirEntry
+    @dirEntry = dirEntry
     @save((result) =>
-      @_dirEntry = oldDirEntry unless result
+      @dirEntry = oldDirEntry unless result
       return callback(result)
     )
     return

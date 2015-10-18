@@ -1,9 +1,9 @@
 ###*
-@class Editor
+@class Rubic.Editor
   Base class for editors/viewers (View)
 ###
-class Editor
-  DEBUG = if DEBUG? then DEBUG else 0
+class Rubic.Editor
+  DEBUG = Rubic.DEBUG or 0
 
   ###*
   @private
@@ -45,12 +45,41 @@ class Editor
   @EDITABLE: false
 
   ###*
+  @static
+  @inheritable
+  @method
+    Get new file template
+  @param {Object} header
+    Header information
+  @return {string}
+    Template text
+  ###
+  @getTemplate: (header) ->
+    return ""
+
+  ###*
   @private
   @static
   @property {number}
     Next unique number for editor IDs
   ###
   @_nextIdNumber: 0
+
+  ###*
+  @protected
+  @property {Rubic.WindowController}
+    Controller for this view
+  @readonly
+  ###
+  controller: null
+
+  ###*
+  @protected
+  @property {jQuery}
+    jQuery object for this view
+  @readonly
+  ###
+  $: null
 
   ###*
   @private
@@ -87,34 +116,55 @@ class Editor
   @protected
   @method constructor
     Constructor
-  @param {FileEntry} fileEntry
+  @param {Rubic.WindowController} controller
+    Controller for this view
+  @param {FileEntry} [fileEntry]
     FileEntry for this document
-  @param {DOMElement/null} element
+  @param {DOMElement/null} [element]
     DOMElement for this editor (if null, new &lt;div&gt; element will be created)
   ###
-  constructors: (@fileEntry, @element) ->
-    @_editorId = "editor_#{@constructor._nextIdNumber++}"
-    @element or= $("content-wrapper").append("""
-      <div class="editor" id="#{@_editorId}></div>
-    """).find("##{@_editorId}")[0]
+  constructor: (@controller, @fileEntry, @element) ->
+    @$ = @controller.$
+    @_editorId = "editor_#{Editor._nextIdNumber++}"
+    @element or= (@$("#content-wrapper").append("""
+      <div class="editor" id="#{@_editorId}"></div>
+    """).find("##{@_editorId}")[0])
+    @_name = @fileEntry?.name
+    @_updateTab() if @_name
+    return
+
+  ###*
+  @static
+  @method
+    Guess editor class from filename
+  @param {string} name
+    File name
+  @return {Function}
+    Constructor of editor (return void if no suitable class)
+  ###
+  @guessEditorClass: (name) ->
+    suffix = (name.match(/\.([^.]+)$/) or [])[1]
+    return unless suffix
+    suffix = suffix.toLowerCase()
+    for editorClass in @_editors
+      return editorClass if editorClass.SUFFIXES.includes(suffix)
     return
 
   ###*
   @static
   @method
     Create an editor with automatic filetype selection
+  @param {Rubic.WindowController} controller
+    Controller for this view
   @param {FileEntry}  fileEntry
     FileEntry to open
   @return {Editor}
     Generated instance of editor (return void if no suitable class)
   ###
-  createEditor: (fileEntry) ->
-    suffix = (fileEntry.name.match(/\.([^.]+)$/) or [])[1]
-    return unless suffix
-    for editorClass in @_editors
-      if editorClass.SUFFIXES.includes(suffix)
-        return new editorClass(fileEntry)
-    return
+  @createEditor: (controller, fileEntry) ->
+    editorClass = @guessEditorClass(fileEntry.name)
+    return unless editorClass
+    return new editorClass(controller, fileEntry)
 
   ###*
   @private
@@ -138,7 +188,7 @@ class Editor
   ###*
   @event
     Register handler for select request
-  @param {function(Editor):void}  handler
+  @param {function(Rubic.Editor):void}  handler
     Event handler
   @return {void}
   ###
@@ -159,7 +209,7 @@ class Editor
   ###*
   @event
     Register handler for close request
-  @param {function(Editor):void}  handler
+  @param {function(Rubic.Editor):void}  handler
     Event handler
   @return {void}
   ###
@@ -187,20 +237,21 @@ class Editor
   ###
   _updateTab: (remove) ->
     tabId = @_editorId + "-tab"
-    elem = $("##{tabId}")
+    elem = @$("##{tabId}")
     if remove
-      elem?.empty()
+      elem?.remove()
       return
-    unless elem
-      elem = $("""
-        <li id="#{@_tabId}">#{@_name or @fileEntry?.name or ""}
+    unless elem[0]
+      name = @_name or @fileEntry?.name
+      elem = @$("""
+        <li id="#{tabId}">#{name}
           <span class="modified" style="display: none;"> *</span>
         </li>
       """)
       elem.click(=>
         (handler = @_onSelectRequest)?(this)
       )
-      $("#editor-tabbar").append(elem)
+      @$("#editor-tabbar").append(elem)
 
     mod = elem.find(".modified")
     if @modified
@@ -217,13 +268,17 @@ class Editor
   @return {void}
   ###
   activate: (callback) ->
-    callback(false)
+    @$(".editor-active").removeClass("editor-active")
+    @$("ul.tabbar > li.active").removeClass("active")
+    @$(@element).addClass("editor-active")
+    @$("##{@_editorId}-tab").addClass("active")
+    callback(true)
     return
 
   ###*
   @event
     Register handler for change event
-  @param {function(Editor,boolean):void} handler
+  @param {function(Rubic.Editor,boolean):void} handler
     Event handler
   @return {void}
   ###
@@ -271,6 +326,8 @@ class Editor
   @return {void}
   ###
   close: (callback) ->
-    callback(false)
+    @$("##{@_editorId}").remove()
+    @_updateTab(true)
+    callback(true)
     return
 

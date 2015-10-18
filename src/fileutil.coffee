@@ -102,11 +102,16 @@ class Rubic.FileUtil
   @static
   @method
     Write text to FileEntry or pair of DirectoryEntry and path
-    (Alias of FileUtil.write)
+  @param {Object} entry
+    FileEntry or [DirectoryEntry, path] to write
+  @param {string} text
+    Data to write
+  @param {function(boolean):void} callback
+    Callback function with result
   @return {void}
   ###
-  @writeText: ->
-    @_write.apply(this, arguments)
+  @writeText: (entry, text, callback) ->
+    @_write(entry, text, callback)
     return
 
   ###*

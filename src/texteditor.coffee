@@ -1,10 +1,10 @@
 ###*
-@class TextEditor
+@class Rubic.TextEditor
   Base class for text editors (View)
-@extends Editor
+@extends Rubic.Editor
 ###
-class TextEditor extends Editor
-  DEBUG = if DEBUG? then DEBUG else 0
+class Rubic.TextEditor extends Rubic.Editor
+  DEBUG = Rubic.DEBUG or 0
 
   ###*
   @protected
@@ -35,15 +35,18 @@ class TextEditor extends Editor
   @protected
   @method constructor
     Constructor
+  @param {Rubic.WindowController} controller
+    Controller for this view
   @param {FileEntry} fileEntry
     FileEntry for this document
   @param {string} _mode
     Mode string for Ace
   ###
-  constructor: (fileEntry, @_mode) ->
-    super(fileEntry, $("#editor")[0])
-    @constructor.ace or= ace.edit(@element)
-    @_aceSession = new ace.createEditSession("", @_mode)
+  constructor: (controller, fileEntry, @_mode) ->
+    super(controller, fileEntry, controller.$("#text-editor")[0])
+    child = @$(@element).append("<div></div>").find("div")
+    @constructor.ace or= controller.window.ace.edit(child[0])
+    @_aceSession = new controller.window.ace.createEditSession("", @_mode)
     @_aceSession.on("change", =>
       @modified = true
       @fireChange()
@@ -51,7 +54,7 @@ class TextEditor extends Editor
     return
 
   ###*
-  @inheritdoc Editor#load
+  @inheritdoc Rubic.Editor#load
   ###
   load: (callback) ->
     FileUtil.readArrayBuf(@fileEntry, (res_read, buffer) =>
@@ -65,7 +68,7 @@ class TextEditor extends Editor
     return
 
   ###*
-  @inheritdoc Editor#save
+  @inheritdoc Rubic.Editor#save
   ###
   save: (callback) ->
     @convertForWriting(@aceSession.getValue(), (res_conv, buffer) =>

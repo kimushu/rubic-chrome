@@ -26,11 +26,12 @@ SOURCES = \
 		catalogcontroller.coffee \
 	sketch.coffee \
 	fileutil.coffee \
+	editor.coffee \
+		sketcheditor.coffee \
+		texteditor.coffee \
+			rubyeditor.coffee \
 #	board.coffee \
 #		peridotboard.coffee \
-#	editor.coffee \
-#		texteditor.coffee \
-#			rubyeditor.coffee \
 #			javascripteditor.coffee \
 #			coffeescripteditor.coffee \
 #	utils.coffee \
@@ -87,6 +88,7 @@ EXTERNAL_CLASSES = \
 	FileEntry \
 	ace.EditSession \
 	ace.Editor \
+	jQuery \
 
 RELEASE_DIR = ../dist
 
