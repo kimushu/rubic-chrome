@@ -19,6 +19,7 @@ REL_DIR = ../dist
 SOURCES = \
 	launcher.coffee \
 	common.coffee \
+	eventtarget.coffee \
 	i18n.coffee \
 	app.coffee \
 	windowcontroller.coffee \

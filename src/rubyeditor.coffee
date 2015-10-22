@@ -34,6 +34,7 @@ class Rubic.RubyEditor extends Rubic.TextEditor
   @getTemplate: (header) ->
     return """
     # #{Rubic.I18n("WriteYourSketchHere")}
+
     """
 
   ###*

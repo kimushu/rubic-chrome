@@ -54,11 +54,15 @@
   "CurrentSketchHasBeenModified": {"message": "現在のスケッチには未保存の変更箇所があります"},
   "AreYouWantToDiscardModificationsXq": {"message": "未保存の変更をすべて破棄してよろしいですか？"},
   "YesXpIDiscardThemXp": {"message": "はい。破棄します。"},
-  "NoXpIWantToCancelToSaveXp": {"message": "いいえ。操作を中断します。"},
+  "NoXpIWantToCancelXp": {"message": "いいえ。操作を中断します。"},
   "Cancelled": {"message": "操作を中断しました"},
   "WriteYourSketchHere": {"message": "ここからスケッチを書きましょう"},
   "BootScriptIsNotRegisteredToThisSketchXc": {"message": "次の起動用スクリプトがこのスケッチに登録されていません："},
   "CannotGuessEditorForXc": {"message": "次のファイルを開くためのエディタが不明です："},
   "CannotOpenFileXc": {"message": "次のファイルを開くことができません："},
+  "CannotReadFolderXc": {"message": "次のフォルダを読み込むことができません："},
+  "SelectedFolderIsNotEmpty": {"message": "選択したフォルダは空ではありません"},
+  "WouldYouLikeToOverwriteExistingFilesXq": {"message": "既存のファイルを上書きしてもよろしいですか？"},
+  "YesXpOverwriteThemXp": {"message": "はい。上書きします。"},
   "xxx": {"message": "xxx"}
 }

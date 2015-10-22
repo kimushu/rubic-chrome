@@ -18,32 +18,149 @@ class Rubic.Sketch
     Name of sketch (Same as directory name)
   @readonly
   ###
-  @property("name", {get: -> @dirEntry?.name})
+  @property("name", {get: -> @_dirEntry?.name})
 
   ###*
   @property {boolean}
     Is sketch modified
   @readonly
   ###
-  modified: false
+  @property("modified", {get: -> @_modified})
 
   ###*
+  @private
+  @property {boolean}
+    Is sketch modified
+  ###
+  _modified: false
+
+  ###*
+  @event
+    Changed event target
+  @param {Rubic.Sketch} sketch
+    The instance of sketch
+  @return {void}
+  ###
+  onChange: null
+
+  ###*
+  @private
   @property {Object}
     Dictionary of file configuration
   ###
-  files: {}
+  _files: {}
+
+  @property("files", {get: -> @_files}) # TODO
 
   ###*
+  @method
+    Get list of files
+  @return {string[]}
+    Array of file paths
+  ###
+  getFiles: ->
+    return (path for path, cfg of @_files)
+
+  ###*
+  @method
+    Add file (if the file already exist, configuration will be overwritten)
+  @param {string} path
+    Relative path of file to add
+  @param {Object} [cfg]
+    Configuration of the file
+  @return {void}
+  ###
+  addFile: (path, cfg) ->
+    @_files[path] = JSON.parse(JSON.stringify(cfg or {}))
+    @_modified = true
+    @onChange.dispatchEvent(this)
+    return
+
+  ###*
+  @method
+    Remove file
+  @param {string} path
+    Relative path of file to remove
+  @return {void}
+  ###
+  removeFile: (path) ->
+    delete @_files[path]
+    @_modified = true
+    @onChange.dispatchEvent(this)
+    return
+
+  ###*
+  @method
+    Get configuration of file
+  @param {string} path
+    Relative path of file to get configuration
+  @return {Object/null}
+    Configuration or null if the file does not exist
+  ###
+  getFileConfig: (path) ->
+    cfg = @files[path]
+    return null unless cfg
+    return JSON.parse(JSON.stringify(cfg))
+
+  ###*
+  @method
+    Set configuration of file
+  @param {string} path
+    Relative path of file to get configuration
+  @param {Object} cfg
+    Configuration
+  @return {void}
+  ###
+  setFileConfig: (path, cfg) ->
+    @addFile(path, cfg)
+    return
+
+  ###*
+  @private
   @property {string}
     Path of boot file
   ###
-  bootFile: ""
+  _bootFile: ""
 
   ###*
+  @method
+    Get path of boot file
+  @return {string}
+    Relative path of boot file
+  ###
+  getBootFile: ->
+    return "#{@_bootFile}"
+
+  ###*
+  @method
+    Set path of boot file
+  @param {string} path
+    Relative path of boot file
+  @return {void}
+  ###
+  setBootFile: (path) ->
+    @_bootFile = "#{path}"
+    @_modified = true
+    @onChange.dispatchEvent(this)
+    return
+
+  ###*
+  @private
   @property {boolean}
     Flag for downloading all files to target
   ###
-  downloadAll: false
+  _downloadAll: false
+
+  ###*
+  @method
+    Get the value of flag for downloading all files to target ({@link #_downloadAll})
+  @return {boolean}
+  ###
+  getDownloadAll: ->
+    return @_downloadAll
+
+  ###*
+  ###
 
   ###*
   @property {string}
@@ -53,10 +170,19 @@ class Rubic.Sketch
   rubicVersion: "0.0.0.0"
 
   ###*
+  @private
   @property {DirectoryEntry}
     Saved directory
   ###
-  dirEntry: null
+  _dirEntry: null
+
+  ###*
+  @method
+    Get saved directory
+  @return {DirectoryEntry}
+  ###
+  getDirEntry: ->
+    return @_dirEntry
 
   # ###*
   # @private
@@ -75,10 +201,11 @@ class Rubic.Sketch
   @private
   @method constructor
     Constructor
-  @param {DirectoryEntry} dirEntry
+  @param {DirectoryEntry} _dirEntry
     Directory to save sketch
   ###
-  constructor: (@dirEntry) ->
+  constructor: (@_dirEntry) ->
+    @onChange = new Rubic.EventTarget()
     return
 
   ###*
@@ -156,8 +283,8 @@ class Rubic.Sketch
           text
           (result) ->
             return seq.abort() unless result
-            sketch.bootFile = name
-            sketch.files[name] = {}
+            sketch._bootFile = name
+            sketch._files[name] = {}
             return seq.next()
         )
       (seq) ->
@@ -189,9 +316,9 @@ class Rubic.Sketch
     catch
       callback(false, null)
       return
-    @modified = false
-    @files = src.files or {}
-    @bootFile = src.boot_file or ""
+    @_modified = false
+    @_files = src.files or {}
+    @_bootFile = src.boot_file or ""
     @downloadAll = src.download_all or false
     @rubicVersion = src.rubic_version or "0.0.0"
     HardwareConfig.load(
@@ -224,12 +351,12 @@ class Rubic.Sketch
   save: (callback) ->
     json = {}
     json.name = @name
-    json.files = @files
-    json.boot_file = @bootFile
-    json.download_all = @downloadAll
+    json.files = @_files
+    json.boot_file = @_bootFile
+    json.download_all = @_downloadAll
     json.rubicVersion = chrome.runtime.getManifest().version
     Rubic.FileUtil.writeText(
-      [@dirEntry, SKETCH_FILE]
+      [@_dirEntry, SKETCH_FILE]
       JSON.stringify(json)
       (res_write) ->
         @rubicVersion = json.rubicVersion if res_write
@@ -243,14 +370,14 @@ class Rubic.Sketch
   @param {DirectoryEntry} newDirEntry
     DirectoryEntry to save
   @param {function(boolean)}  callback
-    Callback function with result and generated instance
+    Callback function with result
   @return {void}
   ###
   saveAs: (dirEntry, callback) ->
-    oldDirEntry = @dirEntry
-    @dirEntry = dirEntry
+    oldDirEntry = @_dirEntry
+    @_dirEntry = dirEntry
     @save((result) =>
-      @dirEntry = oldDirEntry unless result
+      @_dirEntry = oldDirEntry unless result
       return callback(result)
     )
     return

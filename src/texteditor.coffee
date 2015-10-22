@@ -32,6 +32,13 @@ class Rubic.TextEditor extends Rubic.Editor
   _aceSession: null
 
   ###*
+  @private
+  @property {boolean}
+    Ignore change event of ace
+  ###
+  _ignoreChange: false
+
+  ###*
   @protected
   @method constructor
     Constructor
@@ -44,12 +51,13 @@ class Rubic.TextEditor extends Rubic.Editor
   ###
   constructor: (controller, fileEntry, @_mode) ->
     super(controller, fileEntry, controller.$("#text-editor")[0])
-    child = @$(@element).append("<div></div>").find("div")
-    @constructor.ace or= controller.window.ace.edit(child[0])
+    @constructor.ace or= controller.window.ace.edit(@element)
     @_aceSession = new controller.window.ace.createEditSession("", @_mode)
     @_aceSession.on("change", =>
-      @modified = true
-      @fireChange()
+      return if @_ignoreChange
+      unless @modified
+        @modified = true
+        @onChange.dispatchEvent(this)
     )
     return
 
@@ -57,11 +65,13 @@ class Rubic.TextEditor extends Rubic.Editor
   @inheritdoc Rubic.Editor#load
   ###
   load: (callback) ->
-    FileUtil.readArrayBuf(@fileEntry, (res_read, buffer) =>
+    Rubic.FileUtil.readArrayBuf(@fileEntry, (res_read, buffer) =>
       return callback(false) unless res_read
       @convertForReading(buffer, (res_conv, text) =>
         return callback(false) unless res_conv
+        @_ignoreChange = true
         @_aceSession.setValue(text)
+        @_ignoreChange = false
         return callback(true)
       )
     )
@@ -71,12 +81,12 @@ class Rubic.TextEditor extends Rubic.Editor
   @inheritdoc Rubic.Editor#save
   ###
   save: (callback) ->
-    @convertForWriting(@aceSession.getValue(), (res_conv, buffer) =>
+    @convertForWriting(@_aceSession.getValue(), (res_conv, buffer) =>
       return callback(false) unless res_conv
-      FileUtil.writeArrayBuf(@fileEntry, buffer, (res_write) =>
+      Rubic.FileUtil.writeArrayBuf(@fileEntry, buffer, (res_write) =>
         return callback(false) unless res_write
         @modified = false
-        @fireChange()
+        @onChange.dispatchEvent(this)
         return callback(true)
       )
     )
@@ -114,6 +124,15 @@ class Rubic.TextEditor extends Rubic.Editor
     reader.onloadend = -> return callback(true, reader.result)
     reader.onerror = -> return callback(false, null)
     reader.readAsArrayBuffer(new Blob([text]))
+    return
+
+  ###*
+  @inheritdoc Rubic.Editor#activate
+  ###
+  activate: (callback) ->
+    @constructor.ace.setSession(@_aceSession)
+    super(callback)
+    @constructor.ace.focus()
     return
 
   ###* @property _editorId @hide ###

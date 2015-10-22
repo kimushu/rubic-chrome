@@ -17,6 +17,20 @@ class Rubic.SketchEditor extends Rubic.Editor
   ###
   constructor: (controller, @sketch) ->
     super(controller)
-    @setName(@sketch.name)
+    @setName("[Sketch] #{@sketch.name}")
+    return
+
+  ###*
+  @inheritdoc Rubic.Editor#load
+  ###
+  load: (callback) ->
+    callback(true)  # TODO
+    return
+
+  ###*
+  @inheritdoc Rubic.Editor#save
+  ###
+  save: (callback) ->
+    callback(true)  # TODO
     return
 

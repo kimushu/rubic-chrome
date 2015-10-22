@@ -39,6 +39,35 @@ class Rubic.MainController extends Rubic.WindowController
     return
 
   ###*
+  @private
+  @property {boolean}
+    Locked flag for UI operation
+  ###
+  _locked: false
+
+  ###*
+  @private
+  @method
+    Acquire lock
+  @return {boolean}
+    - true: success
+    - false: already locked
+  ###
+  _lock: ->
+    return false if @_locked
+    return (@_locked = true)
+
+  ###*
+  @private
+  @method
+    Release lock
+  @return {void}
+  ###
+  _unlock: ->
+    @_locked = false
+    return
+
+  ###*
   @protected
   @method
     Event handler on document.onload
@@ -123,7 +152,39 @@ class Rubic.MainController extends Rubic.WindowController
             callback(true)
         }
         no: {
-          label: Rubic.I18n("NoXpIWantToCancelToSaveXp")
+          label: Rubic.I18n("NoXpIWantToCancelXp")
+          className: "btn-success"
+          callback: =>
+            @_notify("info", Rubic.I18n("Cancelled"))
+            callback(false)
+        }
+      }
+    })
+    return
+
+  ###*
+  @private
+  @method
+    Confirm overwriting non-empty directory
+  @param {function(boolean):void} callback
+    Callback function
+  @param {boolean} callback.overwrite
+    Yes to discard
+  @return {void}
+  ###
+  _confirmOverwriteDirectory: (callback) ->
+    @_dialog({
+      title: Rubic.I18n("SelectedFolderIsNotEmpty")
+      message: Rubic.I18n("WouldYouLikeToOverwriteExistingFilesXq")
+      buttons: {
+        yes: {
+          label: Rubic.I18n("YesXpOverwriteThemXp")
+          className: "btn-danger"
+          callback: ->
+            callback(true)
+        }
+        no: {
+          label: Rubic.I18n("NoXpIWantToCancelXp")
           className: "btn-success"
           callback: =>
             @_notify("info", Rubic.I18n("Cancelled"))
@@ -140,6 +201,8 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _newSketch: ->
+    return unless @_lock()
+    # @sketch = {modified: true}
     new Function.Sequence(
       (seq) =>
         return seq.next() unless @sketch?.modified
@@ -153,6 +216,9 @@ class Rubic.MainController extends Rubic.WindowController
             return seq.next(result)
           )
         )
+    ).final(
+      (seq) =>
+        @_unlock()
     ).start()
     return
 
@@ -163,6 +229,7 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _openSketch: ->
+    return unless @_lock()
     entry = null
     new Function.Sequence(
       (seq) =>
@@ -171,10 +238,11 @@ class Rubic.MainController extends Rubic.WindowController
           return seq.next(discard)
         )
       (seq) =>
-        @window.chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) ->
+        @window.chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
           unless dirEntry
             # cancelled by user
             @window.chrome.runtime.lastError
+            @_notify("info", Rubic.I18n("Cancelled"))
             return seq.abort()
           entry = dirEntry
           return seq.next()
@@ -186,6 +254,9 @@ class Rubic.MainController extends Rubic.WindowController
             return seq.next(result)
           )
         )
+    ).final(
+      (seq) =>
+        @_unlock()
     ).start()
     return
 
@@ -200,11 +271,11 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _setSketch: (sketch, callback) ->
-    editors = null
     new Function.Sequence(
       (seq) =>
         return seq.next() unless @editors.length > 0
-        editor = @editors.shift()
+        editor = @editors[0]
+        @_removeEditor(editor)
         editor.close((result) ->
           return seq.abort() unless result
           return seq.redo()
@@ -215,29 +286,39 @@ class Rubic.MainController extends Rubic.WindowController
           return seq.next(result)
         )
       (seq) =>
-        editors = [new Rubic.SketchEditor(this, sketch)]
-        name = sketch.bootFile or ""
+        editor = new Rubic.SketchEditor(this, sketch)
+        @_addEditor(editor)
+        editor.load((result) =>
+          unless result
+            @_notify("warning", Rubic.I18n("CannotLoadSketchEditor"))
+          return seq.next()
+        )
+      (seq) =>
+        name = sketch.getBootFile() or ""
         return seq.next() unless name != ""
-        unless sketch.files[name]
+        unless sketch.getFiles().includes(name)
           @_notify("warning", "#{Rubic.I18n("BootScriptIsNotRegisteredInThisSketchXc")}#{name}")
           return seq.next()
-        sketch.dirEntry.getFile(
+        sketch.getDirEntry().getFile(
           name
           {}
           (fileEntry) =>
             editor = Rubic.Editor.createEditor(this, fileEntry)
-            if editor
-              editors.push(editor)
-            else
+            unless editor
               @_notify("warning", "#{Rubic.I18n("CannotGuessEditorForXc")}#{name}")
-            return seq.next()
+              return seq.next()
+            @_addEditor(editor)
+            editor.load((result) =>
+              unless result
+                @_notify("warning", "#{Rubic.I18n("CannotLoadEditorForXc")}#{name}")
+              return seq.next()
+            )
           =>
             @_notify("warning", "#{Rubic.I18n("CannotOpenFileXc")}#{name}")
             return seq.next()
         )
       (seq) =>
         @sketch = sketch
-        @editors = editors
         return seq.next()
       (seq) =>
         @editors[@editors.length - 1].activate((result) ->
@@ -246,6 +327,140 @@ class Rubic.MainController extends Rubic.WindowController
     ).final(
       (seq) ->
         callback(seq.finished)
+    ).start()
+    return
+
+  ###*
+  @private
+  @method
+    Select an editor
+  @param {Rubic.Editor} editor
+    The instance of editor to select
+  @return {void}
+  ###
+  _selectEditor: (editor) ->
+    editor.activate((result) ->
+      unless result
+        @_notify("danger", Rubic.I18n("CannotActivateEditorForFileXc") + editor.getName())
+    )
+    return
+
+  ###*
+  @private
+  @method
+    Add an editor
+  @param {Rubic.Editor} editor
+    The instance of editor to add
+  @return {void}
+  ###
+  _addEditor: (editor) ->
+    editor.onSelectRequest.addEventListener(@_selectEditor, this)
+    @editors.push(editor)
+    return
+
+  ###*
+  @private
+  @method
+    Remove an editor
+  @param {Rubic.Editor} editor
+    The instance of editor to remove
+  @return {void}
+  ###
+  _removeEditor: (editor) ->
+    index = @editors.indexOf(editor)
+    @editors.splice(index, 1) if index >= 0
+    editor.onSelectRequest.removeEventListener(@_selectEditor, this)
+    return
+
+  ###*
+  @private
+  @method
+    Save sketch (overwrite)
+  @return {void}
+  ###
+  _saveSketch: ->
+    return unless @_lock()
+    editors = null
+    new Function.Sequence(
+      (seq) =>
+        editors or= @editors
+        return seq.next() unless editors.length > 0
+        editor = editors.shift()
+        return seq.redo() unless editor.modified
+        editor.save((result) =>
+          return seq.redo() if result
+          @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.getName()}")
+          return seq.abort()
+        )
+      (seq) =>
+        @sketch.save((result) =>
+          return seq.next() if result
+          @_notify("danger", "#{Rubic.I18n("FailedToSaveSketch")}")
+          return seq.abort()
+        )
+    ).final(
+      (seq) =>
+        if seq.finished
+          @_notify("success", Rubic.I18n("TheSketchHasBeenSavedXp"))
+        @_unlock()
+    ).start()
+    return
+
+  ###*
+  @private
+  @method
+    Save sketch as (another place)
+  @return {void}
+  ###
+  _saveSketchAs: ->
+    return unless @_lock()
+    newDirEntry = null
+    editors = null
+    new Function.Sequence(
+      (seq) =>
+        @window.chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
+          unless dirEntry
+            # cancelled by user
+            @window.chrome.runtime.lastError
+            @_notify("info", Rubic.I18n("Cancelled"))
+            return seq.abort()
+          newDirEntry = dirEntry
+          return seq.next()
+        ) # @window.chrome.fileSystem.chooseEntry
+      (seq) =>
+        Rubic.FileUtil.readEntries(
+          newDirEntry
+          (entries) =>
+            return seq.next() if entries.length == 0
+            @_confirmOverwriteDirectory((overwrite) ->
+              return seq.next(overwrite)
+            )
+          =>
+            @_notify("danger", "#{Rubic.I18n("CannotReadDirectoryXc")}#{dirEntry.name}")
+            return seq.abort()
+        ) # Rubic.FileUtil.readEntries
+      (seq) =>
+        @sketch.saveAs(newDirEntry, (result) =>
+          unless result
+            @_notify("danger", "#{Rubic.I18n("FailedToSaveSketch")}")
+            return seq.abort()
+          return seq.next()
+        )
+      (seq) =>
+        editors or= @editors
+        return seq.next() unless editors.length > 0
+        editor = editors.shift()
+        editor.save((result) =>
+          unless result
+            @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.getName()}")
+            return seq.abort()
+          return seq.redo()
+        )
+    ).final(
+      (seq) =>
+        if seq.finished
+          @_notify("success", Rubic.I18n("TheSketchHasBeenSavedXp"))
+        @_unlock()
     ).start()
     return
 

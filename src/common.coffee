@@ -193,16 +193,22 @@ unless String::escapeHtml
     return @replace(/[&"'<>]/g, (match) -> TABLE[match])
 
 ###*
+@private
 @class Array
   Array object (JavaScript builtin class)
 ###
 unless Array::includes
   ###*
   @method
-    Check if item is in array or not
+    Determine whether an array includes a certain element.
+    (ECMAScript 2016 proposal)
+  @param {Object} searchElement
+    The element to search for
+  @param {number} [fromIndex=0]
+    The position in this array at which to begin searching for searchElement.
   ###
-  Array::includes = (value) ->
-    return @indexOf(value) != -1
+  Array::includes = (searchElement, fromIndex) ->
+    return @indexOf(searchElement, fromIndex or 0) != -1
 
 ###
 onload hook for Rubic.WindowController

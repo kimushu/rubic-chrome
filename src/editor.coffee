@@ -124,6 +124,10 @@ class Rubic.Editor
     DOMElement for this editor (if null, new &lt;div&gt; element will be created)
   ###
   constructor: (@controller, @fileEntry, @element) ->
+    @onSelectRequest = new Rubic.EventTarget()
+    @onCloseRequest = new Rubic.EventTarget()
+    @onChange = new Rubic.EventTarget()
+    @onChange.addEventListener(=> @_updateTab())
     @$ = @controller.$
     @_editorId = "editor_#{Editor._nextIdNumber++}"
     @element or= (@$("#content-wrapper").append("""
@@ -175,6 +179,14 @@ class Rubic.Editor
 
   ###*
   @method
+    Get name of this editor
+  @return {string}
+  ###
+  getName: ->
+    return "#{@_name or @fileEntry?.name}"
+
+  ###*
+  @method
     Set name of this editor
   @param {string} name
     New name
@@ -187,45 +199,21 @@ class Rubic.Editor
 
   ###*
   @event
-    Register handler for select request
-  @param {function(Rubic.Editor):void}  handler
-    Event handler
+    Editor select request event target
+  @param {Rubic.Editor} editor
+    The instance of editor
   @return {void}
   ###
-  onSelectRequest: (handler) ->
-    @_onSelectRequest = handler
-    return
-
-  ###*
-  @protected
-  @method
-    Fire select request event
-  @return {void}
-  ###
-  fireSelectRequest: ->
-    (handler = @_onSelectRequest)?(this)
-    return
+  onSelectRequest: null
 
   ###*
   @event
-    Register handler for close request
-  @param {function(Rubic.Editor):void}  handler
-    Event handler
+    Editor close request eevent target
+  @param {Rubic.Editor} editor
+    The instance of editor
   @return {void}
   ###
-  onCloseRequest: (handler) ->
-    @_onCloseRequest = handler
-    return
-
-  ###*
-  @protected
-  @method
-    Fire close request event
-  @return {void}
-  ###
-  fireCloseRequest: ->
-    (handler = @_onCloseRequest)?(this)
-    return
+  onCloseRequest: null
 
   ###*
   @private
@@ -242,14 +230,14 @@ class Rubic.Editor
       elem?.remove()
       return
     unless elem[0]
-      name = @_name or @fileEntry?.name
+      name = @getName()
       elem = @$("""
         <li id="#{tabId}">#{name}
-          <span class="modified" style="display: none;"> *</span>
+          <span class="modified"> *</span>
         </li>
       """)
       elem.click(=>
-        (handler = @_onSelectRequest)?(this)
+        @onSelectRequest.dispatchEvent(this)
       )
       @$("#editor-tabbar").append(elem)
 
@@ -270,31 +258,21 @@ class Rubic.Editor
   activate: (callback) ->
     @$(".editor-active").removeClass("editor-active")
     @$("ul.tabbar > li.active").removeClass("active")
-    @$(@element).addClass("editor-active")
     @$("##{@_editorId}-tab").addClass("active")
+    @$(@element).addClass("editor-active")
     callback(true)
     return
 
   ###*
   @event
-    Register handler for change event
-  @param {function(Rubic.Editor,boolean):void} handler
-    Event handler
+    Change event target
+  @param {Rubic.Editor} editor
+    The instance of editor
+  @param {boolean}  state
+    Change state (true: modified, false: not modified)
   @return {void}
   ###
-  onChange: (handler) ->
-    @_onChange = handler
-    return
-
-  ###*
-  @protected
-  @method
-    Fire change event
-  @return {void}
-  ###
-  fireChange: ->
-    (handler = @_onChange)?(this, @modified)
-    return
+  onChange: null
 
   ###*
   @method
