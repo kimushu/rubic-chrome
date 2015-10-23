@@ -2,7 +2,7 @@
 @class Rubic.App
   Application top class (singleton)
 
-  The only instance of this class can be found at ```window.app``` except a background page.
+  The only instance of this class can be found at ```window.app```
 ###
 class Rubic.App
   DEBUG = Rubic.DEBUG or 0
@@ -11,13 +11,19 @@ class Rubic.App
   @property {Rubic.MainController}
     Instance of main controller
   ###
-  main: null
+  @property("main",
+    get: -> @_main
+    set: (value) -> @_main = value
+  )
 
   ###*
   @property {Rubic.CatalogController}
     Instance of catalog controller
   ###
-  catalog: null
+  @property("catalog",
+    get: -> @_catalog
+    set: (value) -> @_catalog = value
+  )
 
   ###*
   @static
@@ -34,6 +40,16 @@ class Rubic.App
     Constructor
   ###
   constructor: ->
+    (@_background = window).app = this
+    return
+
+  ###*
+  @method
+    Print log
+  @return {void}
+  ###
+  log: (args...) ->
+    @_background.console.log(args...)
     return
 
 #----------------------------------------------------------------

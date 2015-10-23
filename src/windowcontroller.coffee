@@ -30,6 +30,14 @@ class Rubic.WindowController
 
   ###*
   @protected
+  @method constructor
+    Constructor of WindowController
+  ###
+  constructor: ->
+    return
+
+  ###*
+  @protected
   @method
     Start controller
   @param {string} html
@@ -56,8 +64,7 @@ class Rubic.WindowController
         # Store global members
         @window.app = Rubic.App.getInstance()
         @window.controller = this
-        @window.Rubic = {}
-        (@window.Rubic[key] = Rubic[key]) for key of Rubic
+        @window.Rubic = Rubic
 
         callback?()
         return
@@ -70,8 +77,7 @@ class Rubic.WindowController
     Event handler on document.onload
   @return {void}
   ###
-  onload: ->
-    console.log({info: "#{@constructor.name} loaded", data: this})
+  onLoad: ->
     Rubic.I18nT(@$)
     return
 
@@ -90,13 +96,14 @@ class Rubic.WindowController
   ###*
   @private
   @method
-    Fire onload event (instance method version)
+    Fire onload event
   @return {void}
   ###
   _fireOnLoad: ->
+    app.log({info: "#{@constructor.name} loaded", data: this})
     # Store jQuery object with short name
     @_$ = @window.$
     # Fire event
-    @onload()
+    @onLoad()
     return
 

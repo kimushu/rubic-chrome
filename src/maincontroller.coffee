@@ -18,6 +18,7 @@ class Rubic.MainController extends Rubic.WindowController
     Constructor of MainController
   ###
   constructor: ->
+    super
     @_sketch = null
     @_editors = []
     @_locked = false
@@ -70,7 +71,7 @@ class Rubic.MainController extends Rubic.WindowController
     Event handler on document.onload
   @return {void}
   ###
-  onload: ->
+  onLoad: ->
     super()
     @$(".act-toggle-menu"   ).click(=> @_toggleMenu())
     @$(".act-new-sketch"    ).click(=> @_newSketch())
@@ -80,6 +81,7 @@ class Rubic.MainController extends Rubic.WindowController
     @$(".act-build-sketch"  ).click(=> @_buildSketch())
     @$(".act-run-sketch"    ).click(=> @_runSketch())
     @$(".act-debug-sketch"  ).click(=> @_debugSketch())
+    @$(".act-open-catalog"  ).click(-> new Rubic.CatalogController().start())
     return
 
   ###*
@@ -316,7 +318,7 @@ class Rubic.MainController extends Rubic.WindowController
         )
       (seq) =>
         @_sketch = sketch
-        console.log({info: "Sketch loaded", data: sketch})
+        app.log({info: "Sketch loaded", data: sketch})
         return seq.next()
       (seq) =>
         @_editors[@_editors.length - 1].activate((result) ->

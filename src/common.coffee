@@ -172,7 +172,6 @@ unless Uint8Array::hexDump
     r = (v.hex(2) for v in @subarray(0, maxLength))
     r.push("...") if @length > maxLength
     return "[#{r.join(",")}]"
-
 ###*
 @private
 @class String
@@ -211,6 +210,7 @@ unless Array::includes
     return @indexOf(searchElement, fromIndex or 0) != -1
 
 ###
-onload hook for Rubic.WindowController
+Hook for Rubic.WindowController
 ###
 $?(-> Rubic.WindowController.fireOnLoad(window))
+

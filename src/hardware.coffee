@@ -1,9 +1,9 @@
 ###*
-@class
+@class Rubic.Hardware
   Combination of board and firmware (Model)
 ###
-class Hardware
-  DEBUG = if DEBUG? then DEBUG else 0
+class Rubic.Hardware
+  DEBUG = Rubic.DEBUG or 0
 
   ###*
   @property {string}
