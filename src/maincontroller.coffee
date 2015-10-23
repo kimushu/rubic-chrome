@@ -7,16 +7,20 @@ class Rubic.MainController extends Rubic.WindowController
   DEBUG = Rubic.DEBUG or 0
 
   ###*
-  @property {Rubic.Sketch}
+  @property {Rubic.Sketch} sketch
     Instance of current sketch
+  @readonly
   ###
-  sketch: null
+  @property("sketch", get: -> @_sketch)
 
   ###*
-  @property {Rubic.Editor[]}
-    List of editors
+  @method constructor
+    Constructor of MainController
   ###
-  editors: []
+  constructor: ->
+    @_sketch = null
+    @_editors = []
+    @_locked = false
 
   ###*
   @method
@@ -37,13 +41,6 @@ class Rubic.MainController extends Rubic.WindowController
         @window.app.main = this
     )
     return
-
-  ###*
-  @private
-  @property {boolean}
-    Locked flag for UI operation
-  ###
-  _locked: false
 
   ###*
   @private
@@ -273,8 +270,8 @@ class Rubic.MainController extends Rubic.WindowController
   _setSketch: (sketch, callback) ->
     new Function.Sequence(
       (seq) =>
-        return seq.next() unless @editors.length > 0
-        editor = @editors[0]
+        return seq.next() unless @_editors.length > 0
+        editor = @_editors[0]
         @_removeEditor(editor)
         editor.close((result) ->
           return seq.abort() unless result
@@ -294,12 +291,12 @@ class Rubic.MainController extends Rubic.WindowController
           return seq.next()
         )
       (seq) =>
-        name = sketch.getBootFile() or ""
+        name = sketch.bootFile or ""
         return seq.next() unless name != ""
         unless sketch.getFiles().includes(name)
           @_notify("warning", "#{Rubic.I18n("BootScriptIsNotRegisteredInThisSketchXc")}#{name}")
           return seq.next()
-        sketch.getDirEntry().getFile(
+        sketch.dirEntry.getFile(
           name
           {}
           (fileEntry) =>
@@ -318,10 +315,11 @@ class Rubic.MainController extends Rubic.WindowController
             return seq.next()
         )
       (seq) =>
-        @sketch = sketch
+        @_sketch = sketch
+        console.log({info: "Sketch loaded", data: sketch})
         return seq.next()
       (seq) =>
-        @editors[@editors.length - 1].activate((result) ->
+        @_editors[@_editors.length - 1].activate((result) ->
           return seq.next()
         )
     ).final(
@@ -341,7 +339,7 @@ class Rubic.MainController extends Rubic.WindowController
   _selectEditor: (editor) ->
     editor.activate((result) ->
       unless result
-        @_notify("danger", Rubic.I18n("CannotActivateEditorForFileXc") + editor.getName())
+        @_notify("danger", "#{Rubic.I18n("CannotActivateEditorForFileXc")}#{editor.name}")
     )
     return
 
@@ -355,7 +353,7 @@ class Rubic.MainController extends Rubic.WindowController
   ###
   _addEditor: (editor) ->
     editor.onSelectRequest.addEventListener(@_selectEditor, this)
-    @editors.push(editor)
+    @_editors.push(editor)
     return
 
   ###*
@@ -367,8 +365,8 @@ class Rubic.MainController extends Rubic.WindowController
   @return {void}
   ###
   _removeEditor: (editor) ->
-    index = @editors.indexOf(editor)
-    @editors.splice(index, 1) if index >= 0
+    index = @_editors.indexOf(editor)
+    @_editors.splice(index, 1) if index >= 0
     editor.onSelectRequest.removeEventListener(@_selectEditor, this)
     return
 
@@ -383,13 +381,13 @@ class Rubic.MainController extends Rubic.WindowController
     editors = null
     new Function.Sequence(
       (seq) =>
-        editors or= @editors
+        editors or= @_editors
         return seq.next() unless editors.length > 0
         editor = editors.shift()
         return seq.redo() unless editor.modified
         editor.save((result) =>
           return seq.redo() if result
-          @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.getName()}")
+          @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.name}")
           return seq.abort()
         )
       (seq) =>
@@ -447,12 +445,12 @@ class Rubic.MainController extends Rubic.WindowController
           return seq.next()
         )
       (seq) =>
-        editors or= @editors
+        editors or= @_editors
         return seq.next() unless editors.length > 0
         editor = editors.shift()
         editor.save((result) =>
           unless result
-            @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.getName()}")
+            @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.name}")
             return seq.abort()
           return seq.redo()
         )

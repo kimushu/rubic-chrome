@@ -9,7 +9,9 @@ class Rubic.EventTarget
   @property {Function[]}
     Array of event listeners
   ###
-  _listeners: []
+  #_listeners: []
+  constructor: ->
+    @_listeners = []
 
   ###*
   @method

@@ -15,9 +15,9 @@ class Rubic.SketchEditor extends Rubic.Editor
   @param {Rubic.Sketch} sketch
     Sketch for this view
   ###
-  constructor: (controller, @sketch) ->
+  constructor: (controller, @_sketch) ->
     super(controller)
-    @setName("[Sketch] #{@sketch.name}")
+    @name = "[Sketch] #{@_sketch.name}"
     return
 
   ###*
@@ -32,5 +32,15 @@ class Rubic.SketchEditor extends Rubic.Editor
   ###
   save: (callback) ->
     callback(true)  # TODO
+    return
+
+  ###*
+  @inheritdoc Rubic.Editor#close
+  ###
+  close: (callback) ->
+    super((result) =>
+      @_sketch = null if result
+      callback(result)
+    )
     return
 

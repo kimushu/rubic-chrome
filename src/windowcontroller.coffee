@@ -11,7 +11,7 @@ class Rubic.WindowController
     AppWindow instance of chrome
   @readonly
   ###
-  appWindow: null
+  @property("appWindow", get: -> @_appWindow)
 
   ###*
   @protected
@@ -19,14 +19,14 @@ class Rubic.WindowController
     JavaScript window object for this AppWindow
   @readonly
   ###
-  window: null
+  @property("window", get: -> @_window)
 
   ###*
   @property {jQuery}
     jQuery object for this window
   @readonly
   ###
-  $: null
+  @property("$", get: -> @_$)
 
   ###*
   @protected
@@ -50,27 +50,14 @@ class Rubic.WindowController
         return unless createdWindow
 
         # Store controller members
-        @appWindow = createdWindow
-        @window = @appWindow.contentWindow
+        @_appWindow = createdWindow
+        @_window = @appWindow.contentWindow
 
         # Store global members
         @window.app = Rubic.App.getInstance()
         @window.controller = this
         @window.Rubic = {}
         (@window.Rubic[key] = Rubic[key]) for key of Rubic
-        # @window.onload = =>
-        #   @window.console.log("onload")
-        #   @window.$ = $
-        #   @window.jQuery = jQuery
-        #   @window.document.onload = =>
-        #     @window.console.log("document.onload")
-        #   @window.console.log(JSON.stringify(@window.document))
-        #   @window.console.log(JSON.stringify(@window.document.body))
-        #   @translate()
-        # @window.onloadeddata = =>
-        #   @window.console.log("onloadeddata")
-        #   @window.console.log(JSON.stringify(@window.document))
-          # @window.console.log(JSON.stringify(@window.document.body))
 
         callback?()
         return
@@ -84,6 +71,7 @@ class Rubic.WindowController
   @return {void}
   ###
   onload: ->
+    console.log({info: "#{@constructor.name} loaded", data: this})
     Rubic.I18nT(@$)
     return
 
@@ -107,7 +95,7 @@ class Rubic.WindowController
   ###
   _fireOnLoad: ->
     # Store jQuery object with short name
-    @$ = @window.$
+    @_$ = @window.$
     # Fire event
     @onload()
     return

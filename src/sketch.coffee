@@ -21,36 +21,20 @@ class Rubic.Sketch
   @property("name", {get: -> @_dirEntry?.name})
 
   ###*
-  @property {boolean}
+  @property {boolean} modified
     Is sketch modified
   @readonly
   ###
   @property("modified", {get: -> @_modified})
 
   ###*
-  @private
-  @property {boolean}
-    Is sketch modified
-  ###
-  _modified: false
-
-  ###*
-  @event
+  @event onChange
     Changed event target
   @param {Rubic.Sketch} sketch
     The instance of sketch
   @return {void}
   ###
-  onChange: null
-
-  ###*
-  @private
-  @property {Object}
-    Dictionary of file configuration
-  ###
-  _files: {}
-
-  @property("files", {get: -> @_files}) # TODO
+  @property("onChange", get: -> @_onChange)
 
   ###*
   @method
@@ -73,7 +57,7 @@ class Rubic.Sketch
   addFile: (path, cfg) ->
     @_files[path] = JSON.parse(JSON.stringify(cfg or {}))
     @_modified = true
-    @onChange.dispatchEvent(this)
+    @_onChange.dispatchEvent(this)
     return
 
   ###*
@@ -86,7 +70,7 @@ class Rubic.Sketch
   removeFile: (path) ->
     delete @_files[path]
     @_modified = true
-    @onChange.dispatchEvent(this)
+    @_onChange.dispatchEvent(this)
     return
 
   ###*
@@ -116,86 +100,49 @@ class Rubic.Sketch
     return
 
   ###*
-  @private
-  @property {string}
-    Path of boot file
-  ###
-  _bootFile: ""
-
-  ###*
-  @method
-    Get path of boot file
-  @return {string}
+  @property {string} bootFile
     Relative path of boot file
   ###
-  getBootFile: ->
-    return "#{@_bootFile}"
+  @property("bootFile",
+    get: -> "#{@_bootFile}"
+    set: (value) ->
+      @_bootFile = "#{value}"
+      @_modified = true
+      @_onChange.dispatchEvent(this)
+  )
 
   ###*
-  @method
-    Set path of boot file
-  @param {string} path
-    Relative path of boot file
-  @return {void}
-  ###
-  setBootFile: (path) ->
-    @_bootFile = "#{path}"
-    @_modified = true
-    @onChange.dispatchEvent(this)
-    return
-
-  ###*
-  @private
   @property {boolean}
     Flag for downloading all files to target
   ###
-  _downloadAll: false
-
-  ###*
-  @method
-    Get the value of flag for downloading all files to target ({@link #_downloadAll})
-  @return {boolean}
-  ###
-  getDownloadAll: ->
-    return @_downloadAll
-
-  ###*
-  ###
+  @property("downloadAll",
+    get: -> @_downloadAll
+    set: (value) ->
+      @_downloadAll = (value != false)
+      @_modified = true
+      @_onChange.dispatchEvent(this)
+  )
 
   ###*
   @property {string}
     Rubic version when sketch has been saved last time
   @readonly
   ###
-  rubicVersion: "0.0.0.0"
+  @property("rubicVersion", get: -> @_rubicVersion)
 
   ###*
-  @private
   @property {DirectoryEntry}
     Saved directory
+  @readonly
   ###
-  _dirEntry: null
-
-  ###*
-  @method
-    Get saved directory
-  @return {DirectoryEntry}
-  ###
-  getDirEntry: ->
-    return @_dirEntry
-
-  # ###*
-  # @private
-  # @property {FileEntry}
-  #   Sketch settings file
-  # ###
-  # fileEntry: null
+  @property("dirEntry", get: -> @_dirEntry)
 
   ###*
   @property {Hardware}
     Target hardware
+  @readonly
   ###
-  hardware: null
+  @property("hardware", get: -> @_hardware)
 
   ###*
   @private
@@ -205,7 +152,13 @@ class Rubic.Sketch
     Directory to save sketch
   ###
   constructor: (@_dirEntry) ->
-    @onChange = new Rubic.EventTarget()
+    @_modified = false
+    @_onChange = new Rubic.EventTarget()
+    @_files = {}
+    @_bootFile = ""
+    @_downloadAll = false
+    @_rubicVersion = "0.0.0.0"
+    @_hardware = null
     return
 
   ###*
@@ -319,8 +272,8 @@ class Rubic.Sketch
     @_modified = false
     @_files = src.files or {}
     @_bootFile = src.boot_file or ""
-    @downloadAll = src.download_all or false
-    @rubicVersion = src.rubic_version or "0.0.0"
+    @_downloadAll = src.download_all or false
+    @_rubicVersion = src.rubic_version or "0.0.0"
     HardwareConfig.load(
       src.hardware_config
       (result, hwConfig) =>
@@ -359,7 +312,7 @@ class Rubic.Sketch
       [@_dirEntry, SKETCH_FILE]
       JSON.stringify(json)
       (res_write) ->
-        @rubicVersion = json.rubicVersion if res_write
+        @_rubicVersion = json.rubicVersion if res_write
         return callback(res_write)
     )
     return

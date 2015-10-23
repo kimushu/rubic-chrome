@@ -71,7 +71,7 @@ class Rubic.Editor
     Controller for this view
   @readonly
   ###
-  controller: null
+  @property("controller", get: -> @_controller)
 
   ###*
   @protected
@@ -79,15 +79,7 @@ class Rubic.Editor
     jQuery object for this view
   @readonly
   ###
-  $: null
-
-  ###*
-  @private
-  @property {string}
-    Unique ID of this editor
-  @readonly
-  ###
-  _editorId: null
+  @property("$", get: -> @_$)
 
   ###*
   @protected
@@ -95,7 +87,7 @@ class Rubic.Editor
     FileEntry for this document
   @readonly
   ###
-  fileEntry: null
+  @property("fileEntry", get: -> @_fileEntry)
 
   ###*
   @protected
@@ -103,14 +95,20 @@ class Rubic.Editor
     DOM Element for this editor
   @readonly
   ###
-  element: null
+  @property("element", get: -> @_element)
 
   ###*
   @property {boolean}
     Document is modified or not
   @readonly
   ###
-  modified: null
+  @property("modified",
+    get: -> @_modified
+    set: (value) ->
+      value = if value then true else false
+      return if @_modified == value
+      @_onChange.dispatchEvent(this, (@_modified = value))
+  )
 
   ###*
   @protected
@@ -123,18 +121,19 @@ class Rubic.Editor
   @param {DOMElement/null} [element]
     DOMElement for this editor (if null, new &lt;div&gt; element will be created)
   ###
-  constructor: (@controller, @fileEntry, @element) ->
-    @onSelectRequest = new Rubic.EventTarget()
-    @onCloseRequest = new Rubic.EventTarget()
-    @onChange = new Rubic.EventTarget()
+  constructor: (@_controller, @_fileEntry, @_element) ->
+    @_onSelectRequest = new Rubic.EventTarget()
+    @_onCloseRequest = new Rubic.EventTarget()
+    @_onChange = new Rubic.EventTarget()
     @onChange.addEventListener(=> @_updateTab())
-    @$ = @controller.$
+    @_$ = @controller.$
     @_editorId = "editor_#{Editor._nextIdNumber++}"
-    @element or= (@$("#content-wrapper").append("""
+    @_element or= (@$("#content-wrapper").append("""
       <div class="editor" id="#{@_editorId}"></div>
     """).find("##{@_editorId}")[0])
     @_name = @fileEntry?.name
-    @_updateTab() if @_name
+    @_updateTab()
+    @_modified = false
     return
 
   ###*
@@ -171,31 +170,15 @@ class Rubic.Editor
     return new editorClass(controller, fileEntry)
 
   ###*
-  @private
-  @property {string/null}
+  @property {string}
     Name of this editor
   ###
-  _name: null
-
-  ###*
-  @method
-    Get name of this editor
-  @return {string}
-  ###
-  getName: ->
-    return "#{@_name or @fileEntry?.name}"
-
-  ###*
-  @method
-    Set name of this editor
-  @param {string} name
-    New name
-  @return {void}
-  ###
-  setName: (name) ->
-    @_name = name
-    @_updateTab()
-    return
+  @property("name",
+    get: -> "#{@_name or @fileEntry?.name}"
+    set: (value) ->
+      @_name = "#{value}"
+      @_updateTab()
+  )
 
   ###*
   @event
@@ -204,7 +187,7 @@ class Rubic.Editor
     The instance of editor
   @return {void}
   ###
-  onSelectRequest: null
+  @property("onSelectRequest", get: -> @_onSelectRequest)
 
   ###*
   @event
@@ -213,7 +196,7 @@ class Rubic.Editor
     The instance of editor
   @return {void}
   ###
-  onCloseRequest: null
+  @property("onCloseRequest", get: -> @_onCloseRequest)
 
   ###*
   @private
@@ -229,10 +212,11 @@ class Rubic.Editor
     if remove
       elem?.remove()
       return
-    unless elem[0]
-      name = @getName()
+    if elem[0]
+      elem.find(".name").text(@name)
+    else
       elem = @$("""
-        <li id="#{tabId}">#{name}
+        <li id="#{tabId}"><span class="name">#{@name}</span>
           <span class="modified"> *</span>
         </li>
       """)
@@ -272,7 +256,7 @@ class Rubic.Editor
     Change state (true: modified, false: not modified)
   @return {void}
   ###
-  onChange: null
+  @property("onChange", get: -> @_onChange)
 
   ###*
   @method
@@ -306,6 +290,7 @@ class Rubic.Editor
   close: (callback) ->
     @$("##{@_editorId}").remove()
     @_updateTab(true)
+    @_editorId = null
     callback(true)
     return
 

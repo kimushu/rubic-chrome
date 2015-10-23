@@ -17,26 +17,20 @@ class Rubic.TextEditor extends Rubic.Editor
 
   ###*
   @private
-  @property {string}
-    Mode string for Ace
-  @readonly
-  ###
-  _mode: null
-
-  ###*
-  @private
+  @static
   @property {ace.EditSession}
-    Ace edit session instance
+    An empty EditSession
   @readonly
   ###
-  _aceSession: null
+  @_aceEmptySession: null
 
   ###*
-  @private
-  @property {boolean}
-    Ignore change event of ace
+  @protected
+  @property {ace.Editor}
+    Reference of Ace editor instance
+  @readonly
   ###
-  _ignoreChange: false
+  @property("ace", get: -> Rubic.TextEditor.ace)
 
   ###*
   @protected
@@ -51,13 +45,14 @@ class Rubic.TextEditor extends Rubic.Editor
   ###
   constructor: (controller, fileEntry, @_mode) ->
     super(controller, fileEntry, controller.$("#text-editor")[0])
-    @constructor.ace or= controller.window.ace.edit(@element)
+    Rubic.TextEditor.ace or= controller.window.ace.edit(@element)
+    Rubic.TextEditor._aceEmptySession or= Rubic.TextEditor.ace.getSession()
+    @_ignoreChange = false
     @_aceSession = new controller.window.ace.createEditSession("", @_mode)
     @_aceSession.on("change", =>
+      return unless @_aceSession
       return if @_ignoreChange
-      unless @modified
-        @modified = true
-        @onChange.dispatchEvent(this)
+      @modified = true
     )
     return
 
@@ -86,7 +81,6 @@ class Rubic.TextEditor extends Rubic.Editor
       Rubic.FileUtil.writeArrayBuf(@fileEntry, buffer, (res_write) =>
         return callback(false) unless res_write
         @modified = false
-        @onChange.dispatchEvent(this)
         return callback(true)
       )
     )
@@ -130,9 +124,22 @@ class Rubic.TextEditor extends Rubic.Editor
   @inheritdoc Rubic.Editor#activate
   ###
   activate: (callback) ->
-    @constructor.ace.setSession(@_aceSession)
+    @ace.setSession(@_aceSession)
     super(callback)
-    @constructor.ace.focus()
+    @ace.focus()
+    return
+
+  ###*
+  @inheritdoc Rubic.Editor#close
+  ###
+  close: (callback) ->
+    super((result) =>
+      if result
+        if @ace.getSession() == @_aceSession
+          @ace.setSession(Rubic.TextEditor._aceEmptySession)
+        @_aceSession = null
+      callback(result)
+    )
     return
 
   ###* @property _editorId @hide ###

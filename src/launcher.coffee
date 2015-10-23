@@ -10,6 +10,6 @@ window.Rubic or= {}
 
 # Start controller
 chrome.app.runtime.onLaunched.addListener((launchData) ->
-  console.log("info: Starting Rubic...")
+  console.log({info: "Starting Rubic..."})
   new Rubic.MainController().start()
 )
