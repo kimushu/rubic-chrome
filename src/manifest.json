@@ -19,6 +19,7 @@
     "background": {
       "scripts": [
         "canarium.js",
+        "coffeescript/extras/coffee-script.js",
         "js-yaml/dist/js-yaml.min.js",
         "js/launcher.js",
         "js/common.js",

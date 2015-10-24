@@ -13,3 +13,6 @@
 [submodule "src/bootstrap-notify"]
 	path = src/bootstrap-notify
 	url = https://github.com/mouse0270/bootstrap-notify.git
+[submodule "src/coffeescript"]
+	path = src/coffeescript
+	url = https://github.com/jashkenas/coffeescript.git
