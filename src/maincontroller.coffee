@@ -542,6 +542,9 @@ class Rubic.MainController extends Rubic.WindowController
       @_sketch.build((res_build) =>
         unless res_build
           @_notify("danger", Rubic.I18n("FailedToBuildSketch"))
+          return
+        @_notify("success", Rubic.I18n("BuildComplete"))
+        @stdout("#{Rubic.I18n("BuildComplete")}\n")
       )
     )
     return

@@ -20,14 +20,12 @@ class Rubic.EmscriptenRunner
       stderr: (code) =>
         @_stderrChar(code)
       preRun: [=> @_preRun()]
-      exit: [(value) => @_exitstatus = value]
       thisProgram: "#{@_lib}"
     }
     @_files = []
     @_printCommandLine = true
     @_stdout = (text) -> app.main.stdout(text)
     @_stderr = (text) -> app.main.stderr(text)
-    @_exitstatus = null
     return
 
   ###*
@@ -61,7 +59,7 @@ class Rubic.EmscriptenRunner
   @property {number}
     Exit status code
   ###
-  @property("exitstatus", get: -> @_exitstatus)
+  @property("exitstatus", get: -> @_module.exports.EXITSTATUS)
 
   ###*
   @private
@@ -146,6 +144,7 @@ class Rubic.EmscriptenRunner
     @_module.arguments = Array.prototype.concat.apply([], args)
     @_stdout("(emscripten) #{@_lib} #{args.join(" ")}\n") if @_printCommandLine
     Rubic.Lib[@_lib](@_module)
+    @_stdout("(emscripten) # => #{@exitstatus}\n") if @_printCommandLine
     @_outputChar(0)
     return
 

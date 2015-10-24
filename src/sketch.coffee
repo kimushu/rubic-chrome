@@ -229,7 +229,7 @@ class Rubic.Sketch
         )
       (seq) ->
         sketch = new Rubic.Sketch(dirEntry)
-        name = "main.rb"
+        name = "main.coffee"
         text = Rubic.Editor.guessEditorClass(name)?.getTemplate({})
         Rubic.FileUtil.writeText(
           [dirEntry, name]
@@ -348,7 +348,11 @@ class Rubic.Sketch
       (seq) =>
         return seq.next() unless files.length > 0
         file = files.shift()
-        new Rubic.MrubyBuilder(this, file, @_files[file].build_options).execute((result) ->
+        builderClass = Rubic.Builder.guessBuilderClass(file)
+        return seq.redo() unless builderClass
+        app.main.stdout("[#{Rubic.I18n("BuildingXc")}#{file} (#{builderClass.name})]\n")
+        builder = new builderClass(this, file, @_files[file].build_options)
+        builder.execute((result) ->
           return seq.abort() unless result
           return seq.redo()
         )

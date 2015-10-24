@@ -26,6 +26,54 @@ class Rubic.Builder
     @_builders.push(builderClass)
     return
 
+  ###*
+  @static
+  @inheritable
+  @cfg {string[]} SUFFIXES
+    List of supported suffixes
+  @readonly
+  ###
+  @SUFFIXES: []
+
+  ###*
+  @protected
+  @cfg {Object} DEFAULT_OPTIONS
+    Default options
+  @readonly
+  ###
+  DEFAULT_OPTIONS: {}
+
+  ###*
+  @static
+  @method
+    Guess builder class from filename
+  @param {string} name
+    File name
+  @return {Function}
+    Constructor of builder (return void if no suitable class)
+  ###
+  @guessBuilderClass: (name) ->
+    suffix = name.match(/\.([^.]+)$/)?[1]?.toLowerCase()
+    return unless suffix
+    for builderClass in @_builders
+      return builderClass if builderClass.SUFFIXES.includes(suffix)
+    return
+
+  ###*
+  @protected
+  @method constructor
+    Constructor of Builder classes
+  @param {Rubic.Sketch} _sketch
+    The instance of sketch
+  @param {string} _sourcePath
+    Relative path of source file
+  @param {Object} [_options]
+    Build options
+  ###
+  constructor: (@_sketch, @_sourcePath, @_options) ->
+    @_options or= @DEFAULT_OPTIONS
+    return
+
   # #----------------------------------------------------------------
   # # >>>> OLD contents >>>>
 

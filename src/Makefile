@@ -31,9 +31,11 @@ SOURCES = \
 		sketcheditor.coffee \
 		texteditor.coffee \
 			rubyeditor.coffee \
+			coffeescripteditor.coffee \
 	emscriptenrunner.coffee \
 	builder.coffee \
 		mrubybuilder.coffee \
+		coffeescriptbuilder.coffee \
 #	board.coffee \
 #		peridotboard.coffee \
 #			javascripteditor.coffee \
@@ -76,6 +78,8 @@ BKG_SOURCES = \
 	app.coffee \
 	windowcontroller.coffee \
 		maincontroller.coffee \
+
+EMLIB_EXPORTS := FS MEMFS EXITSTATUS
 
 comma := ,
 empty :=
@@ -132,7 +136,8 @@ lib.js: $(LIBS) $(MAKEFILE_LIST)
 		Lib.$(notdir $(basename $(f)))=function(Module){\
 		Module['preInit'] = Module['preInit'] || [];\
 		Module['preInit'].unshift(function(){\
-		  Module['exports'] = {FS: FS, MEMFS: MEMFS};\
+		Module['exports'] =\
+		{$(subst $(space),$(comma),$(foreach e,$(EMLIB_EXPORTS),$(e):$(e)))};\
 		});" >> $@.tmp \
 		&& cat $(f) >> $@.tmp \
 		&& echo "};" >> $@.tmp)

@@ -3,9 +3,9 @@
   Editor for CoffeeScript source (View)
 @extends TextEditor
 ###
-class CoffeeScriptEditor extends TextEditor
+class Rubic.CoffeeScriptEditor extends Rubic.TextEditor
   DEBUG = if DEBUG? then DEBUG else 0
-  Editor.addEditor(this)
+  Rubic.Editor.addEditor(this)
 
   ###*
   @static
@@ -23,13 +23,30 @@ class CoffeeScriptEditor extends TextEditor
   @EDITABLE: true
 
   ###*
+  @static
+  @method
+    Get new file template
+  @param {Object} header
+    Header information
+  @return {string}
+    Template text
+  ###
+  @getTemplate: (header) ->
+    return """
+    # #{Rubic.I18n("WriteYourSketchHere")}
+
+    """
+
+  ###*
   @method constructor
     Constructor
+  @param {Rubic.WindowController} controller
+    Controller for this view
   @param {FileEntry} fileEntry
     FileEntry for this document
   ###
-  constructor: (fileEntry) ->
-    super(fileEntry, "ace/mode/coffee")
+  constructor: (controller, fileEntry) ->
+    super(controller, fileEntry, "ace/mode/coffee")
     return
 
   ###* @property _mode @hide ###

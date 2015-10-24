@@ -35,9 +35,11 @@
         "js/sketcheditor.js",
         "js/texteditor.js",
         "js/rubyeditor.js",
+        "js/coffeescripteditor.js",
         "js/emscriptenrunner.js",
         "js/builder.js",
         "js/mrubybuilder.js",
+        "js/coffeescriptbuilder.js",
         "lib.js"
       ]
     }

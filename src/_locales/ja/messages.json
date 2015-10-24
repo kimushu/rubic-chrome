@@ -65,5 +65,7 @@
   "WouldYouLikeToOverwriteExistingFilesXq": {"message": "既存のファイルを上書きしてもよろしいですか？"},
   "YesXpOverwriteThemXp": {"message": "はい。上書きします。"},
   "StartBuildingSketchXd": {"message": "スケッチのビルドを開始します..."},
+  "BuildComplete": {"message": "ビルドが正常終了しました"},
+  "BuildingXc": {"message": "ビルド中："},
   "xxx": {"message": "xxx"}
 }

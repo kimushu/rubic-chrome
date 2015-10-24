@@ -146,9 +146,8 @@ class Rubic.Editor
     Constructor of editor (return void if no suitable class)
   ###
   @guessEditorClass: (name) ->
-    suffix = (name.match(/\.([^.]+)$/) or [])[1]
+    suffix = name.match(/\.([^.]+)$/)?[1]?.toLowerCase()
     return unless suffix
-    suffix = suffix.toLowerCase()
     for editorClass in @_editors
       return editorClass if editorClass.SUFFIXES.includes(suffix)
     return
