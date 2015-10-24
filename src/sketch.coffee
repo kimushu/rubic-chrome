@@ -335,6 +335,29 @@ class Rubic.Sketch
     )
     return
 
+  ###*
+  @method
+    Build sketch
+  @param {function(boolean):void} callback
+    Callback function with result
+  @return {void}
+  ###
+  build: (callback) ->
+    files = @getFiles()
+    new Function.Sequence(
+      (seq) =>
+        return seq.next() unless files.length > 0
+        file = files.shift()
+        new Rubic.MrubyBuilder(this, file, @_files[file].build_options).execute((result) ->
+          return seq.abort() unless result
+          return seq.redo()
+        )
+    ).final(
+      (seq) =>
+        callback(seq.finished)
+    ).start()
+    return
+
   #----------------------------------------------------------------
   # >>>> OLD contents >>>>
 

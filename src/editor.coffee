@@ -105,7 +105,7 @@ class Rubic.Editor
   @property("modified",
     get: -> @_modified
     set: (value) ->
-      value = if value then true else false
+      value = !!value
       return if @_modified == value
       @_onChange.dispatchEvent(this, (@_modified = value))
   )

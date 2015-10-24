@@ -73,6 +73,8 @@ class Rubic.MainController extends Rubic.WindowController
   ###
   onLoad: ->
     super()
+
+    # Register handlers for buttons
     @$(".act-toggle-menu"   ).click(=> @_toggleMenu())
     @$(".act-new-sketch"    ).click(=> @_newSketch())
     @$(".act-open-sketch"   ).click(=> @_openSketch())
@@ -82,6 +84,67 @@ class Rubic.MainController extends Rubic.WindowController
     @$(".act-run-sketch"    ).click(=> @_runSketch())
     @$(".act-debug-sketch"  ).click(=> @_debugSketch())
     @$(".act-open-catalog"  ).click(-> new Rubic.CatalogController().start())
+
+    # Setup output area
+    @window.ace.Range or= @window.ace.require("ace/range").Range
+    @_output = @window.ace.edit(@$("#output")[0])
+    @_output.renderer.setShowGutter(false)
+    @_output.setTheme("ace/theme/twilight")
+    @_output.setShowPrintMargin(false)
+    @_output.setReadOnly(true)
+    @clearOutput()
+    return
+
+  ###*
+  @private
+  @method
+    Print text to output window
+  @param {string} text
+    Text to print
+  @param {string/undefined} [marker=undefined]
+    Class name to mark up
+  @return {void}
+  ###
+  _printOutput: (text, marker) ->
+    sess = @_output.getSession()
+    range = new @window.ace.Range()
+    range.start = {row: sess.getLength()}
+    range.start.column = sess.getLine(range.start.row).length
+    range.end = sess.insert(range.start, text)
+    sess.addMarker(range, marker, "text") if marker
+    return
+
+  ###*
+  @method
+    Print text to output window as stdout
+  @param {string} text
+    Text to print
+  @return {void}
+  ###
+  stdout: (text) ->
+    @_printOutput(text, "marker-stdout")
+    return
+
+  ###*
+  @method
+    Print text to output window as stderr
+  @param {string} text
+    Text to print
+  @return {void}
+  ###
+  stderr: (text) ->
+    @_printOutput(text, "marker-stderr")
+    return
+
+  ###*
+  @method
+    Clear output window
+  @return {void}
+  ###
+  clearOutput: ->
+    session = @window.ace.createEditSession("", "ace/mode/text")
+    session.setUseWrapMode(true)
+    @_output.setSession(session)
     return
 
   ###*
@@ -376,16 +439,17 @@ class Rubic.MainController extends Rubic.WindowController
   @private
   @method
     Save sketch (overwrite)
+  @param {function(boolean):void} [callback]
+    Callback function with result
   @return {void}
   ###
-  _saveSketch: ->
+  _saveSketch: (callback) ->
     return unless @_lock()
-    editors = null
+    index = 0
     new Function.Sequence(
       (seq) =>
-        editors or= @_editors
-        return seq.next() unless editors.length > 0
-        editor = editors.shift()
+        return seq.next() unless index < @_editors.length
+        editor = @_editors[index++]
         return seq.redo() unless editor.modified
         editor.save((result) =>
           return seq.redo() if result
@@ -403,6 +467,7 @@ class Rubic.MainController extends Rubic.WindowController
         if seq.finished
           @_notify("success", Rubic.I18n("TheSketchHasBeenSavedXp"))
         @_unlock()
+        callback?(seq.finished)
     ).start()
     return
 
@@ -415,7 +480,7 @@ class Rubic.MainController extends Rubic.WindowController
   _saveSketchAs: ->
     return unless @_lock()
     newDirEntry = null
-    editors = null
+    index = 0
     new Function.Sequence(
       (seq) =>
         @window.chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
@@ -447,9 +512,8 @@ class Rubic.MainController extends Rubic.WindowController
           return seq.next()
         )
       (seq) =>
-        editors or= @_editors
-        return seq.next() unless editors.length > 0
-        editor = editors.shift()
+        return seq.next() unless index < @_editors.length
+        editor = @_editors[index++]
         editor.save((result) =>
           unless result
             @_notify("danger", "#{Rubic.I18n("CannotSaveXc")}#{editor.name}")
@@ -462,5 +526,23 @@ class Rubic.MainController extends Rubic.WindowController
           @_notify("success", Rubic.I18n("TheSketchHasBeenSavedXp"))
         @_unlock()
     ).start()
+    return
+
+  ###*
+  @private
+  @method
+    Build current sketch (Automatically save before build)
+  @return {void}
+  ###
+  _buildSketch: ->
+    @_saveSketch((res_save) =>
+      return unless res_save
+      @clearOutput()
+      @stdout("#{Rubic.I18n("StartBuildingSketchXd")}\n")
+      @_sketch.build((res_build) =>
+        unless res_build
+          @_notify("danger", Rubic.I18n("FailedToBuildSketch"))
+      )
+    )
     return
 

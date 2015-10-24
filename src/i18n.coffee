@@ -11,11 +11,11 @@
 @return {string} Localized message
 ###
 Rubic.I18n = (id, args...) ->
-  XESCAPE = {c: ":", p: ".", q: "?", s: " ", x: "X"}
+  XESCAPE = {c: ":", d: "...", p: ".", q: "?", s: " ", x: "X"}
   m = chrome.i18n.getMessage(id, [args...])
   return m.escapeHtml() if m != ""
   m = id
-  m = m.replace(/X([cpqsx])/g, (n, p1) -> "#{XESCAPE[p1]}")
+  m = m.replace(/X([cdpqsx])/g, (n, p1) -> "#{XESCAPE[p1]}")
   m = m.replace(/([.?])([A-Z])/g, (n, p1, p2) -> "#{p1} #{p2}")
   m = m.replace(/([A-Za-z])([A-Z])/g, (n, p1, p2) -> "#{p1} #{p2.toLowerCase()}")
   m = m.replace(/_/g, ' ')

@@ -45,8 +45,10 @@ class Rubic.TextEditor extends Rubic.Editor
   ###
   constructor: (controller, fileEntry, @_mode) ->
     super(controller, fileEntry, controller.$("#text-editor")[0])
-    Rubic.TextEditor.ace or= controller.window.ace.edit(@element)
-    Rubic.TextEditor._aceEmptySession or= Rubic.TextEditor.ace.getSession()
+    unless (selfClass = Rubic.TextEditor).ace
+      selfClass.ace = controller.window.ace.edit(@element)
+      selfClass._aceEmptySession = selfClass.ace.getSession()
+      selfClass.ace.setShowPrintMargin(false)
     @_ignoreChange = false
     @_aceSession = new controller.window.ace.createEditSession("", @_mode)
     @_aceSession.on("change", =>

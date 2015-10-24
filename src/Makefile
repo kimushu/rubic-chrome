@@ -31,6 +31,9 @@ SOURCES = \
 		sketcheditor.coffee \
 		texteditor.coffee \
 			rubyeditor.coffee \
+	emscriptenrunner.coffee \
+	builder.coffee \
+		mrubybuilder.coffee \
 #	board.coffee \
 #		peridotboard.coffee \
 #			javascripteditor.coffee \
@@ -46,8 +49,6 @@ SOURCES = \
 #			mrbviewer.coffee \
 	hardwarecatalog.coffee \
 	hardware.coffee \
-#	builder.coffee \
-#		mrubybuilder.coffee \
 #		pythonbuilder.coffee \
 #		javascriptbuilder.coffee \
 #	githubrepofilesystem.coffee \
@@ -123,9 +124,9 @@ manifest.json: manifest.head $(MAKEFILE_LIST) manifest.tail
 	$(Q)true $(foreach s,$(SOURCES),&& echo "        \"$(JS_DIR)/$(s:.coffee=.js)\"," >> $@)
 	$(Q)cat $(lastword $^) >> $@ || (rm -f $@; false)
 
-lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
+lib.js: $(LIBS) $(MAKEFILE_LIST)
 	@echo "[Importing external libraries]"
-	$(Q)echo "var Lib;Lib=(function(){function Lib(){}" > $@.tmp
+	$(Q)echo "Rubic.Lib=(function(){function Lib(){}" > $@.tmp
 	$(Q)true $(foreach f,$(filter %.js,$^), \
 		&& echo "\
 		Lib.$(notdir $(basename $(f)))=function(Module){\

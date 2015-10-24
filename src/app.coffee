@@ -45,7 +45,7 @@ class Rubic.App
 
   ###*
   @method
-    Print log
+    Print log (for Rubic developers)
   @return {void}
   ###
   log: (args...) ->

@@ -64,5 +64,6 @@
   "SelectedFolderIsNotEmpty": {"message": "選択したフォルダは空ではありません"},
   "WouldYouLikeToOverwriteExistingFilesXq": {"message": "既存のファイルを上書きしてもよろしいですか？"},
   "YesXpOverwriteThemXp": {"message": "はい。上書きします。"},
+  "StartBuildingSketchXd": {"message": "スケッチのビルドを開始します..."},
   "xxx": {"message": "xxx"}
 }
