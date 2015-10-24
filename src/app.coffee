@@ -26,6 +26,13 @@ class Rubic.App
   )
 
   ###*
+  @property {Object}
+    Window object of background page
+  @readonly
+  ###
+  @property("background", get: -> @_background)
+
+  ###*
   @static
   @method
     Get only instance of this class
