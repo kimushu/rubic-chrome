@@ -40,6 +40,7 @@ class Rubic.MainController extends Rubic.WindowController
       }
       =>
         @window.app.main = this
+        @appWindow.onClosed.addListener(=> @window.app.main = undefined)
     )
     return
 
@@ -83,7 +84,7 @@ class Rubic.MainController extends Rubic.WindowController
     @$(".act-build-sketch"  ).click(=> @_buildSketch())
     @$(".act-run-sketch"    ).click(=> @_runSketch())
     @$(".act-debug-sketch"  ).click(=> @_debugSketch())
-    @$(".act-open-catalog"  ).click(-> new Rubic.CatalogController().start())
+    @$(".act-open-catalog"  ).click(=> @_openCatalog())
 
     # Setup output area
     @window.ace.Range or= @window.ace.require("ace/range").Range
@@ -93,6 +94,17 @@ class Rubic.MainController extends Rubic.WindowController
     @_output.setShowPrintMargin(false)
     @_output.setReadOnly(true)
     @clearOutput()
+    return
+
+  ###*
+  @protected
+  @method
+    Event handler on appWindow.onClosed
+  @return {void}
+  ###
+  onClosed: ->
+    @window.app.catalog?.close()
+    @window.app.main = undefined
     return
 
   ###*
@@ -548,4 +560,12 @@ class Rubic.MainController extends Rubic.WindowController
       )
     )
     return
+
+  ###*
+  ###
+  _openCatalog: ->
+    if app.catalog
+      app.catalog.activate()
+    else
+      new Rubic.CatalogController().start()
 

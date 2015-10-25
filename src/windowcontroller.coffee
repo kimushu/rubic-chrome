@@ -61,6 +61,9 @@ class Rubic.WindowController
         @_appWindow = createdWindow
         @_window = @appWindow.contentWindow
 
+        # Add event listeners
+        @_appWindow.onClosed.addListener(=> @onClosed())
+
         # Store global members
         @window.app = Rubic.App.getInstance()
         @window.controller = this
@@ -79,6 +82,24 @@ class Rubic.WindowController
   ###
   onLoad: ->
     Rubic.I18nT(@$)
+    return
+
+  ###*
+  @method
+    Close window
+  @return {void}
+  ###
+  close: ->
+    @appWindow.close()
+    return
+
+  ###*
+  @protected
+  @method
+    Event handler on appWindow.onClosed
+  @return {void}
+  ###
+  onClosed: ->
     return
 
   ###*
@@ -105,5 +126,14 @@ class Rubic.WindowController
     @_$ = @window.$
     # Fire event
     @onLoad()
+    return
+
+  ###*
+  @method
+    Activate window
+  @return {void}
+  ###
+  activate: ->
+    @appWindow.focus()
     return
 

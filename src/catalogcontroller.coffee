@@ -45,3 +45,13 @@ class Rubic.CatalogController extends Rubic.WindowController
     @$(".act-refresh").click(=> @_refreshCatalog())
     return
 
+  ###*
+  @protected
+  @method
+    Event handler on appWindow.onClosed
+  @return {void}
+  ###
+  onClosed: ->
+    @window.app.catalog = undefined
+    return
+

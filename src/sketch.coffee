@@ -229,6 +229,20 @@ class Rubic.Sketch
         )
       (seq) ->
         sketch = new Rubic.Sketch(dirEntry)
+        return seq.next()
+      (seq) ->
+        name = "main.rb"
+        text = Rubic.Editor.guessEditorClass(name)?.getTemplate({})
+        Rubic.FileUtil.writeText(
+          [dirEntry, name]
+          text
+          (result) ->
+            return seq.abort() unless result
+            sketch._bootFile or= name
+            sketch._files[name] = {}
+            return seq.next()
+        )
+      (seq) ->
         name = "main.coffee"
         text = Rubic.Editor.guessEditorClass(name)?.getTemplate({})
         Rubic.FileUtil.writeText(
@@ -236,7 +250,7 @@ class Rubic.Sketch
           text
           (result) ->
             return seq.abort() unless result
-            sketch._bootFile = name
+            sketch._bootFile or= name
             sketch._files[name] = {}
             return seq.next()
         )
