@@ -4,7 +4,7 @@
 @extends TextEditor
 ###
 class Rubic.CoffeeScriptEditor extends Rubic.TextEditor
-  DEBUG = if DEBUG? then DEBUG else 0
+  DEBUG = Rubic.DEBUG or 0
   Rubic.Editor.addEditor(this)
 
   ###*
