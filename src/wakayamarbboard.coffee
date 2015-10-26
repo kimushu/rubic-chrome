@@ -1,17 +1,46 @@
 ###*
-@class
-Wakayama.rb board support
+@class Rubic.WakayamaRbBoard
+  Wakayama.rb board (Model)
+@extends Rubic.Board
 ###
-class WakayamaRbBoard extends Board
-  Board.addBoard(this)
+class Rubic.WakayamaRbBoard extends Rubic.Board
+  DEBUG = Rubic.DEBUG or 0
+  Rubic.Board.addBoard(this)
+
+  ###*
+  @static
+  @cfg {string}
+    Name of board
+  @readonly
+  ###
+  @NAME: "Wakayama.rb board"
+
+  ###*
+  @static
+  @cfg {string}
+    Author of board
+  @readonly
+  ###
+  @AUTHOR: "Minao Yamamoto (@momoonga)"
+
+  ###*
+  @static
+  @cfg {string}
+    Website of board (if available)
+  @readonly
+  ###
+  @WEBSITE: "https://github.com/tarosay/Wakayama-mruby-board"
+
+  ###*
+  @static
+  @inheritdoc Board#enumerate
+  ###
+  @enumerate: (callback) ->
+    # TODO
+    return
 
   #----------------------------------------------------------------
-  # Class attributes/methods
-
-  @NAME: "Wakayama.rb"
-  @AUTHOR: "Minao Yamamoto (@momoonga)"
-  @WEBSITE: "https://github.com/tarosay/Wakayama-mruby-board"
-  @PORTCLASSES: [SerialPort]
+  # >>>> OLD contents >>>>
 
   #----------------------------------------------------------------
   # Instance attributes/methods

@@ -1,11 +1,11 @@
 ###*
-@class PeridotBoard
+@class Rubic.PeridotBoard
   PERIDOT board (Model)
-@extends Board
+@extends Rubic.Board
 ###
-class PeridotBoard extends Board
-  DEBUG = if DEBUG? then DEBUG else 0
-  Board.addBoard(this)
+class Rubic.PeridotBoard extends Rubic.Board
+  DEBUG = Rubic.DEBUG or 0
+  Rubic.Board.addBoard(this)
 
   ###*
   @static
@@ -40,11 +40,11 @@ class PeridotBoard extends Board
     return
 
   ###*
-  @private
   @property {Canarium}
     Instance of canarium
+  @readonly
   ###
-  _canarium: null
+  @property("canarium", get: -> @_canarium)
 
   ###*
   @method constructor
@@ -113,12 +113,12 @@ class PeridotBoard extends Board
     callback(false)
     return
 
-###*
-@class
-  Pseudo file system class for Peridot
-@uses PeridotBoard
-###
-class PeridotBoard.FileSystem
-  DEBUG = if DEBUG? then DEBUG else 0
+# ###*
+# @class
+#   Pseudo file system class for Peridot
+# @uses PeridotBoard
+# ###
+# class PeridotBoard.FileSystem
+#   DEBUG = if DEBUG? then DEBUG else 0
 
 
