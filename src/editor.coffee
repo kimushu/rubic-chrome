@@ -67,7 +67,7 @@ class Rubic.Editor
 
   ###*
   @protected
-  @property {Rubic.WindowController}
+  @property {Rubic.WindowController} controller
     Controller for this view
   @readonly
   ###
@@ -75,7 +75,7 @@ class Rubic.Editor
 
   ###*
   @protected
-  @property {jQuery}
+  @property {jQuery} $
     jQuery object for this view
   @readonly
   ###
@@ -83,7 +83,7 @@ class Rubic.Editor
 
   ###*
   @protected
-  @property {FileEntry}
+  @property {FileEntry} fileEntry
     FileEntry for this document
   @readonly
   ###
@@ -91,14 +91,14 @@ class Rubic.Editor
 
   ###*
   @protected
-  @property {DOMElement}
+  @property {DOMElement} element
     DOM Element for this editor
   @readonly
   ###
   @property("element", get: -> @_element)
 
   ###*
-  @property {boolean}
+  @property {boolean} modified
     Document is modified or not
   @readonly
   ###
@@ -160,7 +160,7 @@ class Rubic.Editor
     Controller for this view
   @param {FileEntry}  fileEntry
     FileEntry to open
-  @return {Editor}
+  @return {Rubic.Editor}
     Generated instance of editor (return void if no suitable class)
   ###
   @createEditor: (controller, fileEntry) ->
@@ -169,7 +169,7 @@ class Rubic.Editor
     return new editorClass(controller, fileEntry)
 
   ###*
-  @property {string}
+  @property {string} name
     Name of this editor
   ###
   @property("name",
@@ -180,7 +180,7 @@ class Rubic.Editor
   )
 
   ###*
-  @event
+  @event onSelectRequest
     Editor select request event target
   @param {Rubic.Editor} editor
     The instance of editor
@@ -189,7 +189,7 @@ class Rubic.Editor
   @property("onSelectRequest", get: -> @_onSelectRequest)
 
   ###*
-  @event
+  @event onCloseRequest
     Editor close request eevent target
   @param {Rubic.Editor} editor
     The instance of editor
@@ -247,7 +247,7 @@ class Rubic.Editor
     return
 
   ###*
-  @event
+  @event onChange
     Change event target
   @param {Rubic.Editor} editor
     The instance of editor

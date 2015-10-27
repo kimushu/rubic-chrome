@@ -29,7 +29,7 @@ class Rubic.EmscriptenRunner
     return
 
   ###*
-  @property {boolean}
+  @property {boolean} printCommandLine
     Enables print command line
   ###
   @property("printCommandLine",
@@ -38,7 +38,7 @@ class Rubic.EmscriptenRunner
   )
 
   ###*
-  @property {function(string):void}
+  @property {function(string):void} stdout
     Handler of stdout
   ###
   @property("stdout",
@@ -47,7 +47,7 @@ class Rubic.EmscriptenRunner
   )
 
   ###*
-  @property {function(string):void}
+  @property {function(string):void} stderr
     Handler of stderr
   ###
   @property("stderr",
@@ -56,7 +56,7 @@ class Rubic.EmscriptenRunner
   )
 
   ###*
-  @property {number}
+  @property {number} exitstatus
     Exit status code
   ###
   @property("exitstatus", get: -> @_module.exports.EXITSTATUS)

@@ -1,7 +1,7 @@
 ###*
-@class CoffeeScriptEditor
+@class Rubic.CoffeeScriptEditor
   Editor for CoffeeScript source (View)
-@extends TextEditor
+@extends Rubic.TextEditor
 ###
 class Rubic.CoffeeScriptEditor extends Rubic.TextEditor
   DEBUG = Rubic.DEBUG or 0
@@ -48,7 +48,4 @@ class Rubic.CoffeeScriptEditor extends Rubic.TextEditor
   constructor: (controller, fileEntry) ->
     super(controller, fileEntry, "ace/mode/coffee")
     return
-
-  ###* @property _mode @hide ###
-  ###* @property _aceSession @hide ###
 

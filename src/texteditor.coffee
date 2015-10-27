@@ -26,7 +26,7 @@ class Rubic.TextEditor extends Rubic.Editor
 
   ###*
   @protected
-  @property {ace.Editor}
+  @property {ace.Editor} ace
     Reference of Ace editor instance
   @readonly
   ###
@@ -144,7 +144,5 @@ class Rubic.TextEditor extends Rubic.Editor
     )
     return
 
-  ###* @property _editorId @hide ###
-  ###* @property _name @hide ###
   ###* @method _updateTab @hide ###
 

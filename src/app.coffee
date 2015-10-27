@@ -8,7 +8,7 @@ class Rubic.App
   DEBUG = Rubic.DEBUG or 0
 
   ###*
-  @property {Rubic.MainController}
+  @property {Rubic.MainController} main
     Instance of main controller
   ###
   @property("main",
@@ -17,7 +17,7 @@ class Rubic.App
   )
 
   ###*
-  @property {Rubic.CatalogController}
+  @property {Rubic.CatalogController} catalog
     Instance of catalog controller
   ###
   @property("catalog",
@@ -26,7 +26,7 @@ class Rubic.App
   )
 
   ###*
-  @property {Object}
+  @property {Object} background
     Window object of background page
   @readonly
   ###

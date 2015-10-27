@@ -138,7 +138,7 @@ class Rubic.FileUtil
   @method
     Write data to FileEntry or pair of DirectoryEntry and path
   @param {Object}                         entry     FileEntry or [DirectoryEntry, path] to write
-  @param {String/ArrayBuffer/TypedArray}  data      Data to write
+  @param {string/ArrayBuffer/TypedArray}  data      Data to write
   @param {Function}                       callback  Callback ({Boolean} result)
   ###
   @_write: (entry, data, callback) ->

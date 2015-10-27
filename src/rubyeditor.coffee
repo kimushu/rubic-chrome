@@ -49,6 +49,3 @@ class Rubic.RubyEditor extends Rubic.TextEditor
     super(controller, fileEntry, "ace/mode/ruby")
     return
 
-  ###* @property _mode @hide ###
-  ###* @property _aceSession @hide ###
-

@@ -112,7 +112,7 @@ class Rubic.Sketch
   )
 
   ###*
-  @property {boolean}
+  @property {boolean} downloadAll
     Flag for downloading all files to target
   ###
   @property("downloadAll",
@@ -124,21 +124,21 @@ class Rubic.Sketch
   )
 
   ###*
-  @property {string}
+  @property {string} rubicVersion
     Rubic version when sketch has been saved last time
   @readonly
   ###
   @property("rubicVersion", get: -> @_rubicVersion)
 
   ###*
-  @property {DirectoryEntry}
+  @property {DirectoryEntry} dirEntry
     Saved directory
   @readonly
   ###
   @property("dirEntry", get: -> @_dirEntry)
 
   ###*
-  @property {Hardware}
+  @property {Rubic.Hardware} hardware
     Target hardware
   @readonly
   ###

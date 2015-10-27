@@ -7,7 +7,7 @@ class Rubic.WindowController
 
   ###*
   @protected
-  @property {AppWindow}
+  @property {AppWindow} appWindow
     AppWindow instance of chrome
   @readonly
   ###
@@ -15,14 +15,14 @@ class Rubic.WindowController
 
   ###*
   @protected
-  @property {Object}
+  @property {Object} window
     JavaScript window object for this AppWindow
   @readonly
   ###
   @property("window", get: -> @_window)
 
   ###*
-  @property {jQuery}
+  @property {jQuery} $
     jQuery object for this window
   @readonly
   ###

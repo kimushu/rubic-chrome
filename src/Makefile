@@ -92,6 +92,7 @@ EXTERNAL_CLASSES = \
 	DOMElement \
 	DirectoryEntry \
 	FileEntry \
+	TypedArray \
 	ace.EditSession \
 	ace.Editor \
 	jQuery \

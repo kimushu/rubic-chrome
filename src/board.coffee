@@ -61,7 +61,7 @@ class Board
     Name of class
   @return {Function} Constructor of found class
   ###
-  @getBoard: (name) ->
+  @getBoardClass: (name) ->
     (return c) for c in @_boards when c.name == name
     return
 

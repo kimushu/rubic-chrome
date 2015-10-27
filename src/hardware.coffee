@@ -10,14 +10,14 @@ class Rubic.Hardware
     Name of this hardware
   @readonly
   ###
-  name: null
+  @property("name", get: -> @_name)
 
   ###*
   @property {Function}
     Constructor of board class
   @readonly
   ###
-  boardClass: null
+  @property("boardClass", get: -> @_boardClass)
 
   ###*
   @property {string}
