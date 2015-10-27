@@ -6,14 +6,6 @@ class Rubic.Editor
   DEBUG = Rubic.DEBUG or 0
 
   ###*
-  @private
-  @static
-  @property {Function[]}
-    List of subclasses
-  ###
-  @_editors: []
-
-  ###*
   @protected
   @static
   @method
@@ -23,7 +15,7 @@ class Rubic.Editor
   @return {void}
   ###
   @addEditor: (editorClass) ->
-    @_editors.push(editorClass)
+    (@_editors or= {})[editorClass.name] = editorClass
     return
 
   ###*
@@ -148,7 +140,7 @@ class Rubic.Editor
   @guessEditorClass: (name) ->
     suffix = name.match(/\.([^.]+)$/)?[1]?.toLowerCase()
     return unless suffix
-    for editorClass in @_editors
+    for name, editorClass of @_editors
       return editorClass if editorClass.SUFFIXES.includes(suffix)
     return
 

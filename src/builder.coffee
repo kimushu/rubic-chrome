@@ -6,14 +6,6 @@ class Rubic.Builder
   DEBUG = Rubic.DEBUG or 0
 
   ###*
-  @private
-  @static
-  @property {Function[]}
-    List of subclasses
-  ###
-  @_builders: []
-
-  ###*
   @protected
   @static
   @method
@@ -23,7 +15,7 @@ class Rubic.Builder
   @return {void}
   ###
   @addBuilder: (builderClass) ->
-    @_builders.push(builderClass)
+    (@_builders or= {})[builderClass.name] = builderClass
     return
 
   ###*
@@ -55,7 +47,7 @@ class Rubic.Builder
   @guessBuilderClass: (name) ->
     suffix = name.match(/\.([^.]+)$/)?[1]?.toLowerCase()
     return unless suffix
-    for builderClass in @_builders
+    for name, builderClass of @_builders
       return builderClass if builderClass.SUFFIXES.includes(suffix)
     return
 
