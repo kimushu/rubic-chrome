@@ -67,5 +67,6 @@
   "StartBuildingSketchXd": {"message": "スケッチのビルドを開始します..."},
   "BuildComplete": {"message": "ビルドが正常終了しました"},
   "BuildingXc": {"message": "ビルド中："},
+  "TheSketchHasBeenSavedXp": {"message": "スケッチが保存されました。"},
   "xxx": {"message": "xxx"}
 }

@@ -86,6 +86,14 @@ class Rubic.MainController extends Rubic.WindowController
     @$(".act-debug-sketch"  ).click(=> @_debugSketch())
     @$(".act-open-catalog"  ).click(=> @_openCatalog())
 
+    # Bind shortcut keys
+    @bindKey("Ctrl+N",        => @_newSketch())
+    @bindKey("Ctrl+O",        => @_openSketch())
+    @bindKey("Ctrl+S",        => @_saveSketch())
+    @bindKey("Ctrl+Shift+S",  => @_saveSketchAs())
+    @bindKey("Ctrl+B",        => @_buildSketch())
+    @bindKey("Ctrl+R",        => @_runSketch())
+
     # Setup output area
     @window.ace.Range or= @window.ace.require("ace/range").Range
     @_output = @window.ace.edit(@$("#output")[0])

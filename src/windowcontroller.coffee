@@ -137,3 +137,39 @@ class Rubic.WindowController
     @appWindow.focus()
     return
 
+  ###*
+  @protected
+  @method
+    Bind shortcut key
+  @param {string} key
+    Key combination by "Ctrl+A" like format
+  @param {function():void}  callback
+    Function called when key pressed
+  @return {void}
+  ###
+  bindKey: (key, callback) ->
+    # Get modifier
+    mod = [(-> not @altKey), (-> not @ctrlKey), (-> not @shiftKey)]
+    key = key.replace('Alt+', -> (mod[0] = (-> @altKey); ''))
+    key = key.replace('Ctrl+', -> (mod[1] = (-> @ctrlKey); ''))
+    key = key.replace('Shift+', -> (mod[2] = (-> @shiftKey); ''))
+
+    # Get key code
+    if key.match(/^[A-Z0-9]$/)
+      code = key.charCodeAt(0)
+    else
+      match = key.match(/^F(\d+)$/)
+      code = parseInt(match[1]) + 0x6f if match
+
+    throw new Error("Unknown key name") unless code
+
+    # Bind to document
+    @$(@window.document).keydown((event) =>
+      return unless event.keyCode == code
+      for m in mod
+        return unless m.call(event)
+      callback(event)
+      event.preventDefault()
+    )
+    return
+

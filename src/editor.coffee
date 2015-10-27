@@ -50,14 +50,6 @@ class Rubic.Editor
     return ""
 
   ###*
-  @private
-  @static
-  @property {number}
-    Next unique number for editor IDs
-  ###
-  @_nextIdNumber: 0
-
-  ###*
   @protected
   @property {Rubic.WindowController} controller
     Controller for this view
@@ -119,6 +111,7 @@ class Rubic.Editor
     @_onChange = new Rubic.EventTarget()
     @onChange.addEventListener(=> @_updateTab())
     @_$ = @controller.$
+    Editor._nextIdNumber or= 1
     @_editorId = "editor_#{Editor._nextIdNumber++}"
     @_element or= (@$("#content-wrapper").append("""
       <div class="editor" id="#{@_editorId}"></div>
