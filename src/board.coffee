@@ -19,38 +19,79 @@ class Board
   ###
   @_boards: []
 
+  UNCONNECTED:  0
+  UNAVAILABLE:  1
+  WAITING:      2
+  RUNNING:      3
+
   #----------------------------------------------------------------
   # Instance attributes/methods
+
+  ###*
+  ###
+  activate: (callback) ->
+    if @connection
+      callback(true)
+      return
+    @connector((@connection) =>
+      @connection.onDisconnect = =>
+        @state = @UNAVAILABLE
+      @state = @WAITING
+      callback(true)
+    )
+    return
 
   ###*
   Get board information
   @param {Function} callback  Callback ({Boolean} result, {Object} info)
   ###
   getInfo: (callback) ->
-    callback?(true, {message: "No information for this board"})
+    @activate(=>
+      callback?(true, {message: "No information for this board"})
+    )
+    return
+
+  ###*
+  Connect to board
+  ###
+  connect: (@connector, callback) ->
+    @connection = null
+    @activate(callback)
+    return
 
   ###*
   Disconnect from board
   @param {Function} callback  Callback ({Boolean} result)
   ###
   disconnect: (callback) ->
-    return callback?(true) unless @isConnected
-    Notify.info("Disconnected")
-    @isConnected = false
-    callback?(true)
+    if @state <= @UNAVAILABLE
+      @state = @UNCONNECTED
+      callback(true)
+      return
+    @connection.disconnect((result) =>
+      @state = if result then @UNCONNECTED else @UNAVAILABLE
+      Notify.info("Disconnected") if result
+      @connection = null
+      callback(result)
+    )
+    return
 
-  ###*
-  @property
-  @readonly
-  Connection state
-  ###
-  isConnected: false
+  @property("state",
+    get: -> @_state
+    set: (v) ->
+      return if @_state == v
+      @_state = v
+      @onStateChange?(v)
+  )
 
   ###*
   @private
   Constructor
   ###
-  constructor: @pureClass
+  constructor: ->
+    @_state = @UNCONNECTED
+    @onStateChange = null
+    return
 
   ###*
   [UI action] Refresh port list

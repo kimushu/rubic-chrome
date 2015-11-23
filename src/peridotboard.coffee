@@ -29,7 +29,7 @@ class PeridotBoard extends Board
   ###
   connect: (port, callback) ->
     return callback?(true) if @isConnected
-    @canarium.open(port.name, (result) =>
+    @canarium.open(port.path, (result) =>
       return callback?(false) unless result
       @canarium.avm.option({forceConfigured: true}, (result) =>
         return callback?(false) unless result

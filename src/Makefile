@@ -16,6 +16,7 @@ SOURCES = \
 	memhttprequest.coffee \
 	board.coffee \
 		peridotboard.coffee \
+		wakayamarbboard.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
 		yamleditor.coffee \
