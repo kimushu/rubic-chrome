@@ -25,6 +25,69 @@ class App
   ###
   @defaultSuffix: ".rb"
 
+  ###*
+  @private
+  @method
+    Print text to output window
+  @param {string} text
+    Text to print
+  @param {string/undefined} [marker=undefined]
+    Class name to mark up
+  @return {void}
+  ###
+  @_printOutput: (text, marker) ->
+    sess = @_output.getSession()
+    range = new window.ace.Range()
+    range.start = {row: sess.getLength()}
+    range.start.column = sess.getLine(range.start.row).length
+    range.end = sess.insert(range.start, text)
+    sess.addMarker(range, marker, "text") if marker
+    return
+
+  ###*
+  @method
+    Print text to output window as stdout
+  @param {string} text
+    Text to print
+  @return {void}
+  ###
+  @stdout: (text) ->
+    @_printOutput(text, "marker-stdout")
+    return
+
+  ###*
+  @method
+    Print text to output window as stderr
+  @param {string} text
+    Text to print
+  @return {void}
+  ###
+  @stderr: (text) ->
+    @_printOutput(text, "marker-stderr")
+    return
+
+  ###*
+  @method
+    Clear output window
+  @return {void}
+  ###
+  @clearOutput: ->
+    session = window.ace.createEditSession("", "ace/mode/text")
+    session.setUseWrapMode(true)
+    @_output.setSession(session)
+    return
+
+  $(=>
+    # Setup output area
+    window.ace.Range or= window.ace.require("ace/range").Range
+    @_output = window.ace.edit($("#output")[0])
+    @_output.renderer.setShowGutter(false)
+    @_output.setTheme("ace/theme/twilight")
+    @_output.setShowPrintMargin(false)
+    @_output.setReadOnly(true)
+    @clearOutput()
+  )
+
 ###*
 @class
 Helper class for spin.js with modal backdrop

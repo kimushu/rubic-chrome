@@ -202,11 +202,44 @@ span.menu-icon {
   top: 0;
   left: 0;
   right: 0;
-  height: 100%;
+  bottom: 90px;
   transition: all 0.5s ease;
 }
 #wrapper.toggled #content-wrapper {
   margin-left: 200px;
+}
+#output-wrapper {
+  background-color: #ccc;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 90px;
+  transition: all 0.5s ease;
+  padding-top: 6px;
+}
+#wrapper.toggled #output-wrapper {
+  margin-left: 200px;
+}
+.marker-stdout {
+  position: absolute;
+}
+.marker-stderr {
+  position: absolute;
+  background-color: #833;
+}
+.resize-h {
+  border-top: 1px solid #888;
+  background-color: #ddd;
+  cursor: row-resize;
+  width: 100%;
+  height: 6px;
+  margin-top: -6px;
+}
+#output {
+  background-color: #444;
+  width: 100%;
+  height: 100%;
 }
 .sidebar-nav {
   position: absolute;
