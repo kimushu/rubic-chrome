@@ -11,6 +11,7 @@ DOCDIR = docs
 SOURCES = \
 	async.coffee \
 	base.coffee \
+	emscriptenrunner.coffee \
 	port.coffee \
 		serialport.coffee \
 	memhttprequest.coffee \
@@ -37,6 +38,12 @@ SOURCES = \
 
 LIB_SOURCES = \
 	mruby/build/emscripten/bin/mrbc.js
+
+EMLIB_EXPORTS := FS MEMFS EXITSTATUS
+
+comma := ,
+empty :=
+space := $(empty) $(empty)
 
 .PHONY: all
 all: $(TARGET)
@@ -73,7 +80,8 @@ lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
 		Lib.$(notdir $(basename $(f)))=function(Module){\
 		Module['preInit'] = Module['preInit'] || [];\
 		Module['preInit'].unshift(function(){\
-		  Module['exports'] = {FS: FS, MEMFS: MEMFS};\
+		Module['exports'] =\
+		{$(subst $(space),$(comma),$(foreach e,$(EMLIB_EXPORTS),$(e):$(e)))};\
 		});" >> $@.tmp \
 		&& cat $(f) >> $@.tmp \
 		&& echo "};" >> $@.tmp)

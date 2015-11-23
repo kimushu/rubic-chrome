@@ -276,7 +276,14 @@ class Sketch
     unless sketch
       Notify.error("No sketch to build")
       return callback?(false)
+    if sketch.modified
+      sketch.save((result) =>
+        return callback?(false) unless result
+        @uiBuildSketch(callback)
+      )
+      return
     ModalSpin.show() unless callback
+    App.clearOutput()
     progress = Notify.info("Building...")
     sketch.build((result, message) ->
       progress.close()
@@ -408,7 +415,7 @@ class Sketch
         @dirEntry = dirEntry if dirEntry
         @name = @dirEntry.name
         $("li#sketch").text("[Sketch] #{@name}")
-        @saveConfig((result) ->
+        @saveConfig((result) =>
           @modified = false if result
           callback?(result)
         )

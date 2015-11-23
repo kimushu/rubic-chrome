@@ -17,7 +17,7 @@ class MRubyBuilder extends Builder
   @param {String}         opt.version   Prefered version @nullable
   ###
   constructor: (@dirEntry, @fileEntry, opt) ->
-    @options = $.extend({version: "1.0.0"}, opt)
+    @options = $.extend({version: "1.0.0", flags: ["-g"]}, opt)
 
   ###*
   Build mruby source
@@ -28,33 +28,28 @@ class MRubyBuilder extends Builder
       @fileEntry
       (result, readdata) =>
         return callback?(false) unless result
-        rb_name = "/#{@fileEntry.name}"
-        mrb_name = "/out.mrb"
-        log = [""]
-        module = {
-          print: (data) ->
-            console.log("mruby(stdout):#{data}") if DEBUG_LIB
-          printErr: (data) ->
-            console.log("mruby(stderr):#{data}") if DEBUG_LIB
-            log.push(data.substring(1)) if data.lastIndexOf("/", 0) == 0
-          preRun: [->
-            module.exports.FS.writeFile(rb_name, readdata, {encoding: "utf8"})
-          ]
-          "arguments": ["-o#{mrb_name}", rb_name].concat(@options.flags or [])
-        }
-        Lib.mrbc(module)
-        try
-          output = module.exports.FS.readFile(mrb_name)
-        catch
-          log.push("")
-          App.lastError = log.join("<br/>")
+        src_path = "/#{@fileEntry.name}"
+        src_data = readdata
+        dest_path = "#{src_path.replace(/\.[^.]+$/, "")}.mrb"
+        dest_data = null
+        runner = new EmscriptenRunner("mrbc")
+        runner.addFile(src_path, src_data, {encoding: "utf8"})
+        runner.execute("-o#{dest_path}", @options.flags or [], src_path)
+        if runner.exitstatus != 0
+          App.lastError = "Build failed (exitstatus=#{runner.exitstatus})"
           return callback?(false)
+
+        dest_data = runner.getFileAsArrayBuffer(dest_path)
+        unless dest_data
+          App.lastError = "Build failed"
+          return callback?(false)
+
         FileUtil.writeArrayBuf(
-          [@dirEntry, @fileEntry.name.replace(/\.[^.]+$/, "") + ".mrb"]
-          output
+          [@dirEntry, dest_path.slice(1)]
+          dest_data
           (result) ->
             return callback?(false) unless result
-            callback?(true, output.byteLength)
+            callback?(true, dest_data.byteLength)
         ) # FileUtil.writeArrayBuf
     ) # FileUtil.readText
 
