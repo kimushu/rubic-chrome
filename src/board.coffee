@@ -34,8 +34,11 @@ class Board
       callback(true)
       return
     @connector((@connection) =>
+      @temporary = {}
+      return callback(false) unless @connection
       @connection.onDisconnect = =>
         @state = @UNAVAILABLE
+        @temporary = {}
       @state = @WAITING
       callback(true)
     )
@@ -102,6 +105,7 @@ class Board
     p.find(".list-item").remove()
     p.find(".list-refresh").unbind("click").click(=> @uiRefreshPorts())
     p.find(".btn").prop("disabled", false).find(".ph-body").empty()
+    @disconnect(=> return)
     index = 0
     portClass.enumerate((ports) =>
       return unless ports.length > 0
@@ -123,6 +127,7 @@ class Board
                 Notify.success("Connected #{@constructor.boardname} on #{port.name}")
               else
                 @port = null
+                p.find(".ph-body").text("")
                 Notify.error("Cannot connect #{@constructor.boardname} on #{port.name}")
               @constructor.uiChangeButtonState(result)
             )
@@ -232,7 +237,8 @@ class Board
   [UI action] "Run" button
   ###
   @runSketch: ->
-    return unless App.sketch?.board?.isConnected?
+    return unless board = App.sketch?.board
+    return unless board.state > board.UNCONNECTED
     ModalSpin.show()
     Sketch.uiBuildSketch((result) ->
       sketch = App.sketch

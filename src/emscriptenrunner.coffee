@@ -3,7 +3,6 @@
   Runner class for emscripten libraries
 ###
 class EmscriptenRunner
-  console.log(EmscriptenRunner)
   ###*
   @method constructor
     Constructor of EmscriptenRunner

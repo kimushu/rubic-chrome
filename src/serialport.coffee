@@ -53,6 +53,28 @@ class SerialPort extends Port
           array[i++] = (c)
       return array.slice(0, i)
 
+  unless String::toDebugString
+    String::toDebugString = ->
+      r = ""
+      for i in [0...this.length]
+        ch = this.charCodeAt(i)
+        switch ch
+          when 0x00 then r += "\\0"
+          when 0x07 then r += "\\a"
+          when 0x08 then r += "\\b"
+          when 0x09 then r += "\\t"
+          when 0x0a then r += "\\n"
+          when 0x0b then r += "\\v"
+          when 0x0c then r += "\\f"
+          when 0x0d then r += "\\r"
+          when 0x5c then r += "\\\\"
+          else
+            if ch < 0x20 or ch > 0x7e
+              r += "\\x#{("0"+ch.toString(16)).slice(-2)}"
+            else
+              r += String.fromCharCode(ch)
+      return r
+
   ###*
   @private
   @static
@@ -74,10 +96,13 @@ class SerialPort extends Port
   Connect to serial port
   @param {String}   path
   @param {Object}   options
-  @param {Function} callback  Callback ({Boolean} result, {SerialPort} connection)
+  @param {Function} callback  Callback ({SerialPort} connection)
   ###
   @connect: (path, options, callback) ->
     chrome.serial.connect(path, options, (connectionInfo) =>
+      unless connectionInfo?.connectionId?
+        chrome.runtime.lastError
+        return callback?(null)
       callback?(new this(path, connectionInfo))
     )
 
@@ -90,30 +115,40 @@ class SerialPort extends Port
   constructor: (@path, @connectionInfo) ->
     @cid = @connectionInfo.connectionId
     @constructor._map[@cid] = this
+    console.log({connection: this})
     return
 
   @_onReceive: (info) ->
-    instance = @_map[info.connectionId]
-    instance?._onReceive(info)
+    if instance = @_map[info.connectionId]
+      data = info.data.slice(0)
+      window.setTimeout(
+        =>
+          instance._onReceive({data: data})
+        0
+      )
     return
 
   _onReceive: (info) ->
     # Append received data
     oldLength = (@receivedLength or= 0)
-    @receivedLength += info.data.byteLength
     @receivedArray or= new Uint8Array(256)
-    if @receivedLength > @receivedArray.byteLength
-      newArray = new Uint8Array(@receivedArray.byteLength * 2)
-      newArray.set(@receivedArray, 0)
-      @receivedArray = newArray
-    @receivedArray.set(new Uint8Array(info.data), oldLength)
+
+    if info
+      console.log({recv: new Uint8Array(info.data).toUtf8String().toDebugString()})
+      @receivedLength += info.data.byteLength
+      if @receivedLength > @receivedArray.byteLength
+        newArray = new Uint8Array(@receivedArray.byteLength * 2)
+        newArray.set(@receivedArray, 0)
+        @receivedArray = newArray
+      @receivedArray.set(new Uint8Array(info.data), oldLength)
 
     return unless @waitingToken
 
     # Search token
     if @waitingToken instanceof Uint8Array
-      i = @receivedArray.findArray(@waitingToken, oldLength - @waitingToken.length)
-      return unless i
+      return unless oldLength >= @waitingToken.byteLength
+      i = @receivedArray.findArray(@waitingToken, oldLength - @waitingToken.byteLength)
+      return unless i?
       tokenLength = i + @waitingToken.byteLength
     else
       tokenLength = @waitingToken
@@ -127,24 +162,27 @@ class SerialPort extends Port
     receiver = @receiver
     @waitingToken = null
     @receiver = null
+    console.log({token: tokenFound.toUtf8String().toDebugString()})
     receiver(tokenFound)
     return
 
   @_onReceiveError: (info) ->
-    instance = @_map[info.connectionId]
-    instance?._onReceiveError(info)
+    console.log({_onReceiveError: info})
+    if instance = @_map[info.connectionId]
+      instance._onReceiveError(info)
     return
 
   _onReceiveError: (info) ->
     # To release device, automatically disconnect
-    @disconnect(-> return)
+    console.log({auto_disconnect: this})
+    @disconnect(=> return)
     return
 
   disconnect: (callback) ->
     unless @cid?
       callback(false)
       return
-    chrome.serial.disconnect(@cid, (result) ->
+    chrome.serial.disconnect(@cid, (result) =>
       unless result
         callback(false)
         return
@@ -160,12 +198,14 @@ class SerialPort extends Port
       return
     throw "illegal Serial#write" if @writing > 0
     @writing = data.byteLength
-    chrome.serial.send(@cid, data, (sendInfo) ->
+    console.log({send: new Uint8Array(data).toUtf8String().toDebugString()})
+    chrome.serial.send(@cid, data, (sendInfo) =>
+      @writing = 0
       if (sendInfo.error)
-        callback?(false)
-        @writing = 0
+        return callback?(false)
+      callback?(true)
     )
-    chrome.serial.flush(@cid, (result) ->
+    chrome.serial.flush(@cid, (result) =>
       # nothing to do
     )
 
@@ -176,6 +216,7 @@ class SerialPort extends Port
     throw "illegal SerialPort#read" if @waitingToken
     @waitingToken = token
     @receiver = callback
+    @_onReceive(null)
     return
 
   $(=>

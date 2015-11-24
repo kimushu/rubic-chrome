@@ -124,7 +124,7 @@ class Notify
       type: type
       allow_dismiss: true
       placement: {from: "bottom", align: "center"}
-      delay: 2000
+      delay: 1000
       newest_on_top: true
       offset: 52
     }, options))
