@@ -36,7 +36,8 @@ class Board
     @connector((@connection) =>
       @temporary = {}
       return callback(false) unless @connection
-      @connection.onDisconnect = =>
+      @connection.onDisconnected = =>
+        @connection = null
         @state = @UNAVAILABLE
         @temporary = {}
       @state = @WAITING
@@ -151,6 +152,19 @@ class Board
       b.find(".ph-body").text(boardClass.boardname)
       board.uiRefreshPorts()
     )
+
+  @selectBoardFromClassName: (name) ->
+    e = $("#board-item-#{name}")
+    if e[0]
+      e.click()
+    else
+      b = $("#group-board")
+      b.find(".ph-body").empty()
+      p = $("#group-port")
+      p.find(".list-item").remove()
+      p.find(".list-refresh").unbind("click").click(=> @uiRefreshPorts())
+      p.find(".btn").prop("disabled", false).find(".ph-body").empty()
+    return
 
   ###
   [UI initialization]
