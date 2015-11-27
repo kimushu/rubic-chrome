@@ -3,11 +3,14 @@
 # Target version: >= 33
 class SerialPort extends Port
   Port.add(this)
+  CHECK_DISCONNECT_BY_UPDATE = false
 
   unless Uint8Array::findArray
-    Uint8Array::findArray = (array, startIndex) ->
+    Uint8Array::findArray = (array, startIndex, lastIndex) ->
       startIndex or= 0
-      for i in [startIndex..(this.byteLength - array.byteLength)]
+      length = this.byteLength
+      lastIndex or= Math.min(lastIndex or length, length)
+      for i in [startIndex..(lastIndex - array.byteLength)]
         found = true
         for j in [0...array.byteLength]
           if array[j] and array[j] != this[i + j]
@@ -116,16 +119,18 @@ class SerialPort extends Port
     @cid = @connectionInfo.connectionId
     @constructor._map[@cid] = this
     console.log({connection: this})
+    @tid = window.setInterval((=> @_checkDisconnect()), 100)
     return
 
   @_onReceive: (info) ->
     if instance = @_map[info.connectionId]
-      data = info.data.slice(0)
-      window.setTimeout(
-        =>
-          instance._onReceive({data: data})
-        0
-      )
+      instance._onReceive(info)
+      # data = info.data.slice(0)
+      # window.setTimeout(
+      #   =>
+      #     instance._onReceive({data: data})
+      #   0
+      # )
     return
 
   _onReceive: (info) ->
@@ -146,8 +151,7 @@ class SerialPort extends Port
 
     # Search token
     if @waitingToken instanceof Uint8Array
-      return unless oldLength >= @waitingToken.byteLength
-      i = @receivedArray.findArray(@waitingToken, oldLength - @waitingToken.byteLength)
+      i = @receivedArray.findArray(@waitingToken, 0, @receivedLength)
       return unless i?
       tokenLength = i + @waitingToken.byteLength
     else
@@ -178,7 +182,19 @@ class SerialPort extends Port
     @disconnect(=> return)
     return
 
+  _checkDisconnect: ->
+    return unless CHECK_DISCONNECT_BY_UPDATE
+    chrome.serial.update(@cid, {}, (result) =>
+      unless result
+        console.log({auto_disconnect_poll: this})
+        @disconnect(=> return)
+    )
+    return
+
   disconnect: (callback) ->
+    if @tid?
+      window.clearInterval(@tid)
+      @tid = null
     unless @cid?
       callback(false)
       return
@@ -203,10 +219,9 @@ class SerialPort extends Port
       @writing = 0
       if (sendInfo.error)
         return callback?(false)
-      callback?(true)
-    )
-    chrome.serial.flush(@cid, (result) =>
-      # nothing to do
+      chrome.serial.flush(@cid, (result) =>
+        callback?(true)
+      )
     )
 
   read: (token, callback) ->
