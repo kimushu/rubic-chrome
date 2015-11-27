@@ -130,7 +130,7 @@ DIST_FILES += jquery-2.1.1.min.js
 DIST_FILES += $(addprefix bootstrap/dist/,css/bootstrap.min.css js/bootstrap.min.js)
 DIST_FILES += $(addprefix bootstrap/dist/fonts/glyphicons-halflings-regular.,woff2)
 # Ace (body and mode files)
-DIST_FILES += $(addprefix ace-builds/src-noconflict/,ace.js mode-ruby.js mode-yaml.js)
+DIST_FILES += $(addprefix ace-builds/src-noconflict/,ace.js mode-ruby.js mode-yaml.js mode-text.js theme-twilight.js)
 # Bootstrap Notify
 DIST_FILES += bootstrap-notify/dist/bootstrap-notify.min.js
 # Bootbox.js
