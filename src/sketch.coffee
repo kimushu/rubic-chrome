@@ -2,7 +2,7 @@ class Sketch
   #----------------------------------------------------------------
   # Private constants
 
-  CONFIG_FILE = "sketch.yml"  # Configuration file name
+  CONFIG_FILE = "sketch.json" # Configuration file name
   TEMP_QUOTA  = 1*1024*1024   # Quota (in bytes) for TEMPORARY filesystem
 
   #----------------------------------------------------------------
@@ -21,7 +21,9 @@ class Sketch
         unless result
           App.lastError = "Failed to open sketch (Cannot open #{CONFIG_FILE})"
           return callback?(false)
-        callback?(true, new this(dirEntry, jsyaml.safeLoad(readdata)))
+        try
+          obj = JSON.parse(readdata)
+        callback?(true, new this(dirEntry, obj or {}))
     ) # FileUtil.readText
 
   ###*
@@ -73,11 +75,14 @@ class Sketch
         files: {}
         downloadAll: false
       }
+      board: {
+        class: ""
+      }
     }
     config.sketch.files[bootFile] = {}
     FileUtil.writeText(
       [dirEntry, CONFIG_FILE]
-      jsyaml.safeDump(config)
+      JSON.stringify(config)
       (result) =>
         return callback?(false) unless result
         FileUtil.writeText(
@@ -144,6 +149,7 @@ class Sketch
         Notify.error(App.lastError)
         return callback?(false)
       App.sketch = sketch
+      Board.selectBoardFromClassName()
       sketch.openEditor(
         sketch.config.bootFile
         (result, editor) ->
@@ -314,48 +320,48 @@ class Sketch
   @readonly
   DirectoryEntry of directory which contains sketch files
   ###
-  dirEntry: null
+  # dirEntry: null
 
   ###*
   @property {Object}
   Configuration of sketch
   ###
-  config: null
+  # config: null
 
   ###*
   @property {String}
   @readonly
   Name of sketch
   ###
-  name: null
+  # name: null
 
   ###*
   @property {Board}
   @readonly
   Board selection
   ###
-  board: null
+  # board: null
 
   ###*
   @property {Editor[]}
   @readonly
   List of opened editors
   ###
-  editors: []
+  # editors: []
 
   ###*
   @property {Boolean}
   @readonly
   Saved in TEMPORARY storage
   ###
-  isTemporary: false
+  # isTemporary: false
 
   ###*
   @property {Boolean}
   @readonly
   Is sketch modified?
   ###
-  modified: false
+  # modified: false
 
   ###*
   Mark as modified
@@ -370,7 +376,7 @@ class Sketch
   ###
   setBoard: (boardClass, callback) ->
     ((@config.sketch or= {}).board or= {}).class = boardClass.name
-    @board or= {disconnect: (callback) -> callback?(true)}
+    @board or= {disconnect: (callback) => callback?(true)}
     @board.disconnect((result) =>
       return callback?(false) unless result
       @board = new boardClass()
@@ -430,7 +436,7 @@ class Sketch
     (@config.sketch or= {}).rubicVersion or= manifest.version
     FileUtil.writeText(
       [@dirEntry, CONFIG_FILE]
-      jsyaml.safeDump(@config)
+      JSON.stringify(@config)
       callback
     ) # FileUtil.writeText
 
@@ -498,6 +504,10 @@ class Sketch
   ###
   constructor: (@dirEntry, @config) ->
     @name = @dirEntry.name
+    @board = null
+    @editors = []
+    @isTemporary = false
+    @modified = false
     li = $("<li id=\"sketch\">[Sketch] #{@name}</li>")
     li.click(-> Notify.info("Sketch configuration editor is not implemented yet. Sorry."))
     $("#file-tabbar").append(li)
