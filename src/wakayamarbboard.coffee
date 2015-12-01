@@ -78,8 +78,9 @@ class WakayamaRbBoard extends Board
         callback?(true, {message: "No information for this board"})
         return
       @_command("H", (result) =>
+        count = 0
         push = =>
-          console.log({time:parseInt(window.performance.now()), push:true})
+          console.log({time:parseInt(window.performance.now()), push:true, count: count++})
           @connection.write(" ".toArrayBuffer(), => return)
         id = window.setInterval(push, 200)
         @connection.read("\r\n>".toUint8Array(), (result) =>
@@ -96,13 +97,13 @@ class WakayamaRbBoard extends Board
     )
 
   _command: (cmd, callback, auto) ->
-    unless auto
-      @_command(
-        ""
-        => @_command(cmd, callback, true)
-        true
-      )
-      return
+    # unless auto
+    #   @_command(
+    #     ""
+    #     => @_command(cmd, callback, true)
+    #     true
+    #   )
+    #   return
 
     bytes = (byte for byte in "#{cmd}\r".toUint8Array())
     id = null

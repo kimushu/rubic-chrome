@@ -221,9 +221,7 @@ class SerialPort extends Port
       @writing = 0
       if (sendInfo.error)
         return callback?(false)
-      chrome.serial.flush(@cid, (result) =>
-        callback?(true)
-      )
+      callback?(true)
     )
 
   read: (token, callback) ->
