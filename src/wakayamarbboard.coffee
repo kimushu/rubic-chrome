@@ -77,21 +77,57 @@ class WakayamaRbBoard extends Board
       unless result
         callback?(true, {message: "No information for this board"})
         return
-      @connection.read("\r\n>".toUint8Array(), (result) =>
-        lines = result.toUtf8String().split("\r\n")
-        lines.pop()
-        @version_line = lines.pop() or ""
-        match = @version_line.match(/^WAKAYAMA\.RB Board ([^,]+),([^(]+)/)
-        return callback?(false) unless match
-        callback?(true, {board_version: match[1].trim(), mruby_version: match[2].trim()})
-      )
-      @connection.write("H\r".toArrayBuffer(), (result) =>
-        callback?(false) unless result
+      @_command("H", (result) =>
+        push = =>
+          console.log({time:parseInt(window.performance.now()), push:true})
+          @connection.write(" ".toArrayBuffer(), => return)
+        id = window.setInterval(push, 200)
+        @connection.read("\r\n>".toUint8Array(), (result) =>
+          window.clearInterval(id)
+          lines = result.toUtf8String().split("\r\n")
+          lines.pop()
+          @version_line = lines.pop() or ""
+          match = @version_line.match(/^WAKAYAMA\.RB Board ([^,]+),([^(]+)/)
+          return callback?(false) unless match
+          console.log("================================================================================")
+          callback?(true, {board_version: match[1].trim(), mruby_version: match[2].trim()})
+        )
       )
     )
 
+  _command: (cmd, callback, auto) ->
+    unless auto
+      @_command(
+        ""
+        => @_command(cmd, callback, true)
+        true
+      )
+      return
+
+    bytes = (byte for byte in "#{cmd}\r".toUint8Array())
+    id = null
+    send = =>
+      return if id
+      unless bytes.length > 0
+        callback?(true)
+        return
+      @connection.read()
+      byte = Uint8Array.from([bytes[0]])
+      @connection.write(byte.buffer, (result) =>
+        id = window.setTimeout(send, 100)
+        @connection.read(byte, =>
+          window.clearTimeout(id)
+          bytes.shift()
+          id = null
+          return send()
+        )
+      )
+      return
+    send()
+    return
+
   _writeFile: (name, data, callback) ->
-    @connection.write("W #{name} #{data.byteLength}\r".toArrayBuffer(), (result) =>
+    @_command("W #{name} #{data.byteLength}", (result) =>
       return callback?(false) unless result
       @connection.read("Waiting ".toUint8Array(), =>
         @connection.write(data, (result) =>
@@ -155,14 +191,11 @@ class WakayamaRbBoard extends Board
         printSerial()
       )
     return callback?(false) unless @downloaded_name
-    cmd = "R #{@downloaded_name}\r"
-    @connection.write(cmd.toArrayBuffer(), (result) =>
+    @_command("R #{@downloaded_name}", (result) =>
       return callback?(false) unless result
       App.stdout("[Run #{@downloaded_name}]\r\n")
-      @connection.read("#{cmd}\n".toUint8Array(), (token) =>
-        printSerial()
-        callback?(true)
-      )
+      printSerial()
+      callback?(true)
     )
     return
 

@@ -194,6 +194,8 @@ class KeyBind
   ###
   constructor: @pureClass
 
+window.show = (args...) ->
+  console.log({show: args})
 
 $("#menu").click(->
   Editor.focus()

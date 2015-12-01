@@ -259,7 +259,7 @@ class Board
       sketch.board.uiDownloadAndRun(sketch, (result) ->
         ModalSpin.hide()
         if result
-          Notify.success("Download succeeded.")
+          null #Notify.success("Download succeeded.")
         else
           Notify.error("Download failed. (#{App.lastError})")
       )

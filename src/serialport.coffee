@@ -117,6 +117,7 @@ class SerialPort extends Port
   ###
   constructor: (@path, @connectionInfo) ->
     @cid = @connectionInfo.connectionId
+    window.cid = @cid
     @constructor._map[@cid] = this
     console.log({connection: this})
     @tid = window.setInterval((=> @_checkDisconnect()), 100)
@@ -139,7 +140,7 @@ class SerialPort extends Port
     @receivedArray or= new Uint8Array(256)
 
     if info
-      console.log({recv: new Uint8Array(info.data).toUtf8String().toDebugString()})
+      console.log({time:parseInt(window.performance.now()), recv: new Uint8Array(info.data).toUtf8String().toDebugString()})
       @receivedLength += info.data.byteLength
       if @receivedLength > @receivedArray.byteLength
         newArray = new Uint8Array(@receivedArray.byteLength * 2)
@@ -166,7 +167,7 @@ class SerialPort extends Port
     receiver = @receiver
     @waitingToken = null
     @receiver = null
-    console.log({token: tokenFound.toUtf8String().toDebugString()})
+    console.log({time:parseInt(window.performance.now()), token: tokenFound.toUtf8String().toDebugString()})
     receiver(tokenFound)
     return
 
@@ -214,8 +215,9 @@ class SerialPort extends Port
       return
     throw "illegal Serial#write" if @writing > 0
     @writing = data.byteLength
-    console.log({send: new Uint8Array(data).toUtf8String().toDebugString()})
+    console.log({time:parseInt(window.performance.now()), send: new Uint8Array(data).toUtf8String().toDebugString()})
     chrome.serial.send(@cid, data, (sendInfo) =>
+      console.log({time:parseInt(window.performance.now()), sent: sendInfo}) 
       @writing = 0
       if (sendInfo.error)
         return callback?(false)
@@ -229,8 +231,13 @@ class SerialPort extends Port
       callback(false)
       return
     throw "illegal SerialPort#read" if @waitingToken
-    @waitingToken = token
-    @receiver = callback
+    if token
+      @waitingToken = token
+      @receiver = callback
+      console.log({time:parseInt(window.performance.now()), read: token.toUtf8String().toDebugString(), callback: callback})
+    else
+      @waitingToken = @receivedLength
+      @receiver = -> return
     @_onReceive(null)
     return
 
