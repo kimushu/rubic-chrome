@@ -109,6 +109,14 @@ class SerialPort extends Port
       callback?(new this(path, connectionInfo))
     )
 
+  setPollByte: (@pollByte) ->
+    return
+
+  _receivePoll: ->
+    return unless @pollByte?
+    @write(new Uint8Array([@pollByte]).buffer, => return) if @waitingToken
+    return
+
   ###*
   @private
   Constructor
@@ -120,7 +128,12 @@ class SerialPort extends Port
     window.cid = @cid
     @constructor._map[@cid] = this
     console.log({connection: this})
-    @tid = window.setInterval((=> @_checkDisconnect()), 100)
+    @tid = window.setInterval(
+      =>
+        @_checkDisconnect()
+        @_receivePoll()
+      100
+    )
     return
 
   @_onReceive: (info) ->
@@ -141,12 +154,20 @@ class SerialPort extends Port
 
     if info
       console.log({time:parseInt(window.performance.now()), recv: new Uint8Array(info.data).toUtf8String().toDebugString()})
-      @receivedLength += info.data.byteLength
-      if @receivedLength > @receivedArray.byteLength
-        newArray = new Uint8Array(@receivedArray.byteLength * 2)
-        newArray.set(@receivedArray, 0)
-        @receivedArray = newArray
-      @receivedArray.set(new Uint8Array(info.data), oldLength)
+      data = info.data
+      if @pollByte?
+        oldArray = new Uint8Array(data)
+        newArray = new Uint8Array(data.byteLength)
+        i = 0
+        newArray[i++] = byte for byte in oldArray when byte != @pollByte
+        data = newArray.slice(0, i).buffer
+      if data.byteLength > 0
+        @receivedLength += data.byteLength
+        if @receivedLength > @receivedArray.byteLength
+          newArray = new Uint8Array(@receivedArray.byteLength * 2)
+          newArray.set(@receivedArray, 0)
+          @receivedArray = newArray
+        @receivedArray.set(new Uint8Array(data), oldLength)
 
     return unless @waitingToken
 
@@ -185,6 +206,7 @@ class SerialPort extends Port
 
   _checkDisconnect: ->
     return unless CHECK_DISCONNECT_BY_UPDATE
+    console.log({update: "polling"})
     chrome.serial.update(@cid, {}, (result) =>
       unless result
         console.log({auto_disconnect_poll: this})
