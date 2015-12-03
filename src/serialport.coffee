@@ -231,6 +231,17 @@ class SerialPort extends Port
       callback(true)
     )
 
+  chrome.app.window.current().onClosed.addListener(=>
+    console = window.background.console
+    chrome = window.background.chrome
+    for scid, obj of @_map
+      console.log({clean: obj.cid})
+      chrome.serial.disconnect(obj.cid, (result) => console.log({cleaned: result}))
+      obj.cid = null
+    @_map = {}
+    return
+  )
+
   write: (data, callback) ->
     unless @cid?
       callback(false)
