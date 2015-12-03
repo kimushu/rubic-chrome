@@ -14,6 +14,7 @@ class WakayamaRbBoard extends Board
   @portClasses: [SerialPort]
 
   WRBB_POLL_BYTE = 0xfe
+  # WRBB_POLL_BYTE = undefined
 
   WRBB_MRB_DATA = new Uint8Array([
     # System.fileload()
@@ -100,6 +101,7 @@ class WakayamaRbBoard extends Board
     )
 
   _command: (cmd, callback) ->
+    @connection.setPollByte(WRBB_POLL_BYTE)
     @connection.write("#{cmd}\r".toArrayBuffer(), (result) =>
       @connection.read("\r\n".toUint8Array(), (result) =>
         callback(true)
@@ -119,7 +121,6 @@ class WakayamaRbBoard extends Board
           b2a[index * 2 + 0] = HEX2ASCII[(byte >>> 4) & 15]
           b2a[index * 2 + 1] = HEX2ASCII[(byte >>> 0) & 15]
         @connection.write(b2a.buffer, (result) =>
-          @connection.setPollByte(WRBB_POLL_BYTE)
           return callback?(false) unless result
           @connection.read("Saving..".toUint8Array(), =>
             @connection.read("\r\n>".toUint8Array(), =>
@@ -186,6 +187,7 @@ class WakayamaRbBoard extends Board
       =>
         @_command("R #{@downloaded_name}", (result) =>
           return callback?(false) unless result
+          @connection.setPollByte()
           App.stdout("[Run #{@downloaded_name}]\r\n")
           printSerial()
           callback?(true)
