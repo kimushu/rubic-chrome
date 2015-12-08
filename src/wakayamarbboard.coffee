@@ -54,7 +54,6 @@ class WakayamaRbBoard extends Board
           stopBits: "one"
           ctsFlowControl: true
         }, (connection) =>
-          connection.setPollByte(WRBB_POLL_BYTE)
           callback(connection)
         )
       callback
@@ -112,7 +111,7 @@ class WakayamaRbBoard extends Board
   HEX2ASCII = [0x30..0x39].concat([0x41..0x46])
 
   _writeFile: (name, data, callback) ->
-    @connection.setPollByte()
+    # @connection.setPollByte()
     @_command("U #{name} #{data.byteLength * 2}", (result) =>
       return callback?(false) unless result
       @connection.read("Waiting ".toUint8Array(), =>
@@ -187,7 +186,7 @@ class WakayamaRbBoard extends Board
       =>
         @_command("R #{@downloaded_name}", (result) =>
           return callback?(false) unless result
-          @connection.setPollByte()
+          # @connection.setPollByte()
           App.stdout("[Run #{@downloaded_name}]\r\n")
           printSerial()
           callback?(true)

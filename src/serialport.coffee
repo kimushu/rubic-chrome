@@ -4,6 +4,7 @@
 class SerialPort extends Port
   Port.add(this)
   CHECK_DISCONNECT_BY_UPDATE = false
+  POLLING_INTERVAL = 200
 
   unless Uint8Array::findArray
     Uint8Array::findArray = (array, startIndex, lastIndex) ->
@@ -114,7 +115,9 @@ class SerialPort extends Port
 
   _receivePoll: ->
     return unless @pollByte?
-    @write(new Uint8Array([@pollByte]).buffer, => return) if @waitingToken
+    chrome.serial.send(@cid, new Uint8Array([@pollByte]).buffer, (sendInfo) =>
+      console.log({time:parseInt(window.performance.now()), poll: @pollByte})
+    ) if @waitingToken
     return
 
   ###*
@@ -132,7 +135,7 @@ class SerialPort extends Port
       =>
         @_checkDisconnect()
         @_receivePoll()
-      100
+      POLLING_INTERVAL
     )
     return
 
