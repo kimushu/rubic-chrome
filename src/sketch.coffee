@@ -110,6 +110,7 @@ class Sketch
         App.sketch = null
         @uiNewSketch(callback)
       )
+    Board.selectBoardFromClassName()
     @create(
       (result, sketch) ->
         return callback?(false) unless result
@@ -289,6 +290,7 @@ class Sketch
       )
       return
     ModalSpin.show() unless callback
+    App.showOutput()
     App.clearOutput()
     progress = Notify.info("Building...")
     sketch.build((result, message) ->

@@ -66,6 +66,17 @@ class App
     @_printOutput(text, "marker-stderr")
     return
 
+  @showOutput: =>
+    # $("body").addClass("o-toggled")
+    # @_output.resize(true)
+    return
+
+  $(".action-toggle-output").click(=>
+    Editor.focus()
+    # $("body").toggleClass("o-toggled")
+    # @_output.resize(true)
+  )
+
   ###*
   @method
     Clear output window
@@ -199,5 +210,6 @@ window.show = (args...) ->
 
 $("#menu").click(->
   Editor.focus()
-  $("#wrapper").toggleClass("toggled")
+  $("#wrapper").toggleClass("s-toggled")
 )
+
