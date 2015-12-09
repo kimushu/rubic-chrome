@@ -28,22 +28,37 @@ class PeridotBoard extends Board
   @param {Function} callback  Callback ({Boolean} result)
   ###
   connect: (port, callback) ->
-    return callback?(true) if @isConnected
-    @canarium.open(port.path, (result) =>
-      return callback?(false) unless result
-      @canarium.avm.option({forceConfigured: true}, (result) =>
-        return callback?(false) unless result
-        @isConnected = true
-        callback?(true)
-      )
+    return callback?(true) if @state > @UNAVAILABLE
+    path = "#{port.path}"
+    super(
+      (callback2) =>
+        @canarium.open(path, (result) =>
+          return callback2() unless result
+          @canarium.avm.option({forceConfigured: true}, (result) =>
+            return callback2() unless result
+            @canarium.disconnect = (callback3) =>
+              @canarium.close((result) =>
+                return callback3?(false) unless result
+                @state = @UNCONNECTED
+                f = @canarium.onDisconnected
+                f?()
+                callback3?(true)
+              )
+            callback2(@canarium)
+          )
+        )
+      callback
     )
+    return
 
   ###*
   Disconnect from PERIDOT board
   @param {Function} callback  Callback ({Boolean} result)
   ###
   disconnect: (callback) ->
-    return callback?(true) unless @isConnected
+    if @state <= @UNAVAILABLE
+      @state = @UNCONNECTED
+      return callback?(true)
     @canarium.close((result) =>
       return callback?(false) unless result
       super(callback)
@@ -68,7 +83,7 @@ class PeridotBoard extends Board
   @param {Function} callback  Callback ({Boolean} result, {Object} info)
   ###
   getInfo: (callback) ->
-    return callback?(false) unless @isConnected
+    return callback?(false) if @state <= @UNAVAILABLE
     # return @dumpMemory(0xfffc000, 8, -> null)
     @canarium.getinfo((result) =>
       return callback?(false) unless result
