@@ -13,8 +13,8 @@ class WakayamaRbBoard extends Board
   @website: "https://github.com/tarosay/Wakayama-mruby-board"
   @portClasses: [SerialPort]
 
-  WRBB_POLL_BYTE = 0xfe
-  # WRBB_POLL_BYTE = undefined
+  @WRBB_POLL_BYTE: 0xfe
+  # @WRBB_POLL_BYTE: undefined
 
   WRBB_MRB_DATA = new Uint8Array([
     # System.fileload()
@@ -27,6 +27,9 @@ class WakayamaRbBoard extends Board
     0x73,0x74,0x65,0x6d,0x00,0x00,0x08,0x66,0x69,0x6c,0x65,0x6c,
     0x6f,0x61,0x64,0x00,0x45,0x4e,0x44,0x00,0x00,0x00,0x00,0x08,
   ]).buffer
+
+  @WRBB_SEND_BYTES: undefined
+  @WRBB_SEND_INTERVAL: undefined
 
   #----------------------------------------------------------------
   # Instance attributes/methods
@@ -100,7 +103,7 @@ class WakayamaRbBoard extends Board
     )
 
   _command: (cmd, callback) ->
-    @connection.setPollByte(WRBB_POLL_BYTE)
+    @connection.setPollByte(@constructor.WRBB_POLL_BYTE)
     @connection.write("#{cmd}\r".toArrayBuffer(), (result) =>
       @connection.read("\r\n".toUint8Array(), (result) =>
         callback(true)
@@ -114,19 +117,32 @@ class WakayamaRbBoard extends Board
     # @connection.setPollByte()
     @_command("U #{name} #{data.byteLength * 2}", (result) =>
       return callback?(false) unless result
+      src = new Uint8Array(data)
       @connection.read("Waiting ".toUint8Array(), =>
-        b2a = new Uint8Array(data.byteLength * 2)
-        for byte, index in new Uint8Array(data)
-          b2a[index * 2 + 0] = HEX2ASCII[(byte >>> 4) & 15]
-          b2a[index * 2 + 1] = HEX2ASCII[(byte >>> 0) & 15]
-        @connection.write(b2a.buffer, (result) =>
-          return callback?(false) unless result
-          @connection.read("Saving..".toUint8Array(), =>
-            @connection.read("\r\n>".toUint8Array(), =>
-              callback?(true)
+        remainder = data.byteLength
+        pos = 0
+        console.log("DEBUG: total=#{remainder}")
+        next = =>
+          if remainder <= 0
+            @connection.read("Saving..".toUint8Array(), =>
+              @connection.read("\r\n>".toUint8Array(), =>
+                callback?(true)
+              )
             )
+            return
+          len = Math.min(remainder, @constructor.WRBB_SEND_BYTES or remainder)
+          console.log("DEBUG: part=#{len}, rem=#{remainder}")
+          b2a = new Uint8Array(len * 2)
+          for i in [0...len]
+            b2a[i * 2 + 0] = HEX2ASCII[(src[pos + i] >>> 4) & 15]
+            b2a[i * 2 + 1] = HEX2ASCII[(src[pos + i] >>> 0) & 15]
+          @connection.write(b2a.buffer, (result) =>
+            return callback?(false) unless result
+            pos += len
+            remainder -= len
+            window.setTimeout((=> next()), @constructor.WRBB_SEND_INTERVAL or 0)
           )
-        )
+        next()
       )
     )
     return
