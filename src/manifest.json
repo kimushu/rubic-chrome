@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Rubic for Testers",
+  "name": "Rubic",
   "version": "0.2.1",
   "description": "Prototyping tool for embedded-boards with Ruby language",
   "icons": {
