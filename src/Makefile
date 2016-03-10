@@ -18,6 +18,7 @@ SOURCES = \
 	board.coffee \
 		peridotboard.coffee \
 		wakayamarbboard.coffee \
+		grcitrusboard.coffee \
 	editor.coffee \
 		rubyeditor.coffee \
 		yamleditor.coffee \
