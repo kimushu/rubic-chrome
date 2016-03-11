@@ -217,3 +217,4 @@ class WakayamaRbBoard extends Board
     )
     return
 
+window.Rubic.WakayamaRbBoard = WakayamaRbBoard

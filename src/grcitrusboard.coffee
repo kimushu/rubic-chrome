@@ -16,3 +16,4 @@ class GrCitrusBoard extends WakayamaRbBoard
   @WRBB_SEND_BYTES: 16
   @WRBB_SEND_INTERVAL: 50
 
+window.Rubic.GrCitrusBoard = GrCitrusBoard

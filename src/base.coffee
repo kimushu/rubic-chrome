@@ -208,6 +208,8 @@ class KeyBind
 window.show = (args...) ->
   console.log({show: args})
 
+window.Rubic = {}
+
 $("#menu").click(->
   Editor.focus()
   $("#wrapper").toggleClass("s-toggled")
