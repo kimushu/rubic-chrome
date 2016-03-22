@@ -2,6 +2,7 @@
 COFFEE    := $(shell which coffee 2>/dev/null)
 JSDUCKIFY := $(shell which jsduckify 2>/dev/null)
 UGLIFYJS  := $(shell which uglifyjs 2>/dev/null)
+JQ        := $(shell which jq 2>/dev/null)
 
 Q ?= @
 TARGET = app.js lib.js
@@ -114,6 +115,12 @@ jsduckify-is-missing:
 	@echo "**** Please visit https://github.com/lmaccherone/jsduckify"
 	@false
 
+.PHONY: jq-is-missing
+jq-is-missing:
+	@echo "**** jq is required to generate distribution files for this project."
+	@echo "**** Please visit https://stedolan.github.io/jq/"
+	@false
+
 DIST_DIR = ../dist
 
 # Main files and mruby
@@ -143,8 +150,10 @@ DIST_FILES += spin.min.js jquery.spin.js
 
 DIST_INFO = $(DIST_DIR)/dist.txt
 
+DIST_VER = $(shell jq -r .version $(DIST_DIR)/manifest.json)
+
 .PHONY: dist
-dist: $(DIST_FILES)
+dist: $(DIST_FILES) $(firstword $(JQ) jq-is-missing)
 	@echo "[Packing distribution files]"
 	$(Q)test -z "$$(git status -uno --porcelain)" || \
 		(echo "**** You must commit all files before distribution."; \
@@ -154,9 +163,10 @@ dist: $(DIST_FILES)
 	$(Q)echo -n " " > $(DIST_INFO)
 	$(Q)git log -1 --pretty=oneline >> $(DIST_INFO)
 	$(Q)git submodule >> $(DIST_INFO)
-	$(Q)cp --parent $^ $(DIST_DIR)
+	$(Q)cp --parent $(DIST_FILES) $(DIST_DIR)
 	$(Q)rm -f $(DIST_DIR)/../rubic.zip
-	$(Q)cd $(DIST_DIR)/.. && zip -r rubic.zip $(notdir $(DIST_DIR))
+	$(Q)F=rubic-$(DIST_VER).zip; cd $(DIST_DIR)/.. && rm -f $$F && zip -r $$F $(notdir $(DIST_DIR)) && \
+		echo "[Package name]" && echo " $$F"
 	@echo "[Commits]"
 	$(Q)cat $(DIST_INFO)
 
