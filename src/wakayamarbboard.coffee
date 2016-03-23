@@ -15,6 +15,7 @@ class WakayamaRbBoard extends Board
 
   @WRBB_POLL_BYTE: 0xfe
   # @WRBB_POLL_BYTE: undefined
+  @WRBB_H_RETRY: undefined
 
   WRBB_MRB_DATA = new Uint8Array([
     # System.fileload()
@@ -99,13 +100,19 @@ class WakayamaRbBoard extends Board
           console.log("================================================================================")
           callback?(true, {board_version: match[1].trim(), mruby_version: match[2].trim()})
         )
-      )
+      , @constructor.WRBB_H_RETRY)
     )
 
-  _command: (cmd, callback) ->
+  _command: (cmd, callback, retry) ->
     @connection.setPollByte(@constructor.WRBB_POLL_BYTE)
-    @connection.write("#{cmd}\r".toArrayBuffer(), (result) =>
+    tries = 0
+    req = (cb) =>
+      console.log("command(#{cmd}):try=#{++tries}") if retry?
+      @connection.write("#{cmd}\r".toArrayBuffer(), cb or (-> return))
+    tid = window.setInterval(req, retry) if retry?
+    req((result) =>
       @connection.read("\r\n".toUint8Array(), (result) =>
+        clearInterval(tid) if tid?
         callback(true)
       )
     )
