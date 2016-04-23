@@ -85,6 +85,9 @@ comma := ,
 empty :=
 space := $(empty) $(empty)
 
+DOC_TAGS = \
+	plantuml.rb
+
 EXTERNAL_CLASSES = \
 	AppWindow \
 	ArrayBuffer \
@@ -155,6 +158,7 @@ doc: $(TARGETS) $(firstword $(JSDUCK) jsduckify-is-missing)
 	@echo "[Generating document]"
 	$(Q)$(JSDUCK) \
 		-o $(DOC_DIR) \
+		--tags=$(DOC_TAGS) \
 		--external=$(subst $(space),$(comma),$(EXTERNAL_CLASSES)) \
 		$(filter $(JS_DIR)/%.js,$^)
 
