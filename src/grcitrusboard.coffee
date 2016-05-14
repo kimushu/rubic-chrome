@@ -9,8 +9,8 @@ class GrCitrusBoard extends WakayamaRbBoard
   # Class attributes/methods
 
   @boardname: "GR-CITRUS"
-  @author: "FIXME"
-  @website: "FIXME"
+  @author: "Wakarama.rb"
+  @website: "https://github.com/wakayamarb/wrbb-v2lib-firm"
 
   @WRBB_POLL_BYTE: undefined
   @WRBB_SEND_BYTES: null
