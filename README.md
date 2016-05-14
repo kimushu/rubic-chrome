@@ -25,7 +25,7 @@ Rubyスクリプト入力画面でプログラムを書いたら、接続して�
 
 - GR-CITRUS (https://github.com/wakayamarb/wrbb-v2lib-firm)
   - 0.2.2 から対応しました。
-  - Windows / Mac OS X にて動作検証しています。
+  - Windows にて動作検証しています。
 
 ## 仕組み
 Rubicアプリ本体はCoffeeScriptから変換されたJavaScriptで構成されており、その内部には、emscriptenでビルドすることでJavaScriptに変換されたmruby(1.1.0)が同梱されています。
