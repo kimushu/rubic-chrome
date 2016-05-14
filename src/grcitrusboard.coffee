@@ -13,7 +13,7 @@ class GrCitrusBoard extends WakayamaRbBoard
   @website: "https://github.com/wakayamarb/wrbb-v2lib-firm"
 
   @WRBB_POLL_BYTE: undefined
-  @WRBB_SEND_BYTES: null
+  @WRBB_SEND_BYTES: 256
   @WRBB_SEND_INTERVAL: 50
   @WRBB_H_RETRY: 250
 
