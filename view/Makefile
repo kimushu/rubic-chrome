@@ -4,6 +4,8 @@ all: html
 clean: clean-html
 clobber: clobber-html
 
+dwld_dir  = $(VIEW_DIR)/downloads
+
 #--------------------------------------------------------------------------------
 # HTML generation
 #
@@ -65,7 +67,7 @@ clobber-css: clean-css
 
 jqy_ver   = 2.2.4
 jqy_url   = https://code.jquery.com/jquery-$(jqy_ver).min.js
-jqy_src   = $(VIEW_DIR)/$(notdir $(jqy_url))
+jqy_src   = $(dwld_dir)/$(notdir $(jqy_url))
 jqy_out   = $(DIST_DIR)/$(notdir $(jqy_src))
 
 .PHONY: jquery
@@ -75,7 +77,7 @@ $(jqy_out): $(jqy_src)
 	$(Q)cp $< $@
 
 $(jqy_src):
-	$(call ECHO_Y,"Downloading jQuery tarball ($(jqy_url))")
+	$(call ECHO_Y,"Downloading jQuery source ($(jqy_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqy_url)"
 
 .PHONY: clean-jquery
@@ -91,7 +93,7 @@ clobber-jquery: clean-jquery
 #
 
 twbs_ver  = 3.3.4
-twbs_dir  = $(VIEW_DIR)/bootstrap-$(twbs_ver)
+twbs_dir  = $(dwld_dir)/bootstrap-$(twbs_ver)
 twbs_tgz  = $(twbs_dir).tar.gz
 twbs_key  = $(twbs_dir)/README.md
 twbs_url  = https://github.com/twbs/bootstrap/archive/v$(twbs_ver).tar.gz
@@ -111,7 +113,7 @@ $(twbs_jout): $(twbs_key)
 
 $(twbs_key): $(twbs_tgz)
 	$(call ECHO_W,"Unpacking bootstrap tarball ($<)")
-	$(Q)tar xf $< && touch $@
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(twbs_tgz):
 	$(call ECHO_Y,"Downloading bootstrap tarball ($(twbs_url))")
@@ -131,7 +133,7 @@ clobber-twbs: clean-twbs
 #
 
 fawe_ver  = 4.6.3
-fawe_dir  = $(VIEW_DIR)/Font-Awesome-$(fawe_ver)
+fawe_dir  = $(dwld_dir)/Font-Awesome-$(fawe_ver)
 fawe_tgz  = $(fawe_dir).tar.gz
 fawe_key  = $(fawe_dir)/README.md
 fawe_url  = https://github.com/FortAwesome/Font-Awesome/archive/v$(fawe_ver).tar.gz
@@ -151,7 +153,7 @@ $(fawe_fout): $(fawe_key)
 
 $(fawe_key): $(fawe_tgz)
 	$(call ECHO_W,"Unpacking font-awesome tarball ($<)")
-	$(Q)tar xf $< && touch $@
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(fawe_tgz):
 	$(call ECHO_Y,"Downloading font-awesome tarball ($(fawe_url))")
@@ -172,7 +174,7 @@ clobber-fawe: clean-fawe
 
 ace_ver   = 1.2.3
 ace_url   = https://github.com/ajaxorg/ace-builds/archive/v$(ace_ver).tar.gz
-ace_dir   = $(VIEW_DIR)/ace-builds-$(ace_ver)
+ace_dir   = $(dwld_dir)/ace-builds-$(ace_ver)
 ace_tgz   = $(ace_dir).tar.gz
 ace_key   = $(ace_dir)/README.md
 ace_src   = $(ace_dir)/src-min-noconflict
@@ -186,7 +188,7 @@ $(ace_out): $(ace_key)
 
 $(ace_key): $(ace_tgz)
 	$(call ECHO_W,"Unpacking Ace tarball ($<)")
-	$(Q)tar xf $< && touch $@
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(ace_tgz):
 	$(call ECHO_Y,"Downloading Ace tarball ($(ace_url))")
