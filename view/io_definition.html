@@ -1,0 +1,223 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="rubic.js"></script>
+    <script type="text/javascript" src="messages.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="hide-right">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <div class="sidebar-left"></div>
+    <div class="main-outer">
+      <div class="main-inner config-header">
+        <div class="row">
+          <div class="col-md-12">
+            <ul class="nav nav-justified nav-pills">
+              <li>
+                <a href="#" class="i18n">{Select_board}</a>
+              </li>
+              <li>
+                <a href="#" class="i18n">{Select_features}</a>
+              </li>
+              <li class="active">
+                <a href="#" class="i18n">{Configure_io_pins}</a>
+              </li>
+              <li>
+                <a href="#" class="i18n">{Save_your_settings}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!--begin-->
+      <div class="main-inner config-body">
+        <div class="row">
+          <div class="col-md-12">
+            <datalist id="list1">
+              <option value="spi1.sck">SPI clock</option>
+              <option value="spi1.mosi">SPI Master-&gt;Slave</option>
+              <option value="spi1.miso">SPI Slave-&gt;Master</option>
+              <option value="spi1.ss_n">SPI Slave select</option>
+            </datalist>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th style="text-align: center">Board illust (Top view)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody class="iopin-editor">
+                <tr>
+                  <td class="iopin-left">
+                    <label>D16</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td rowspan="17"></td>
+                  <td class="iopin-right">
+                    <datalist id="list1">
+                      <option value="hoge"></option>
+                      <option value="bar"></option>
+                    </datalist>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D15</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D17</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D14</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D18</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D13</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D19</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D12</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D20</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D11</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D21</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D10</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left"></td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D9</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D22</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D8</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D23</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right"></td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D24</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D7</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D25</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D6</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D26</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D5</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left">
+                    <label>D27</label>
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                  </td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D4</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left"></td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D3</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left"></td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D2</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left"></td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D1</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="iopin-left"></td>
+                  <td class="iopin-right">
+                    <input type="text" list="list1" size="16" spellcheck="false" autocomplete="on">
+                    <label>D0</label>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!--end-->
+    </div>
+    <div class="sidebar-right">
+      <p></p>
+    </div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse "></div>
+  
+
+</body></html>

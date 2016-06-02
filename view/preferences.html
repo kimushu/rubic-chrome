@@ -1,0 +1,152 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="controller-pref right-hidden">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <div class="sidebar-left"></div>
+    <!--begin-->
+    <div class="main-outer when-pref">
+      <div class="main-inner">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title">TODO</h3>
+              </div>
+              <div class="panel-body">
+                <p>TODO</p>
+              </div>
+            </div>
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title i18n">
+                  <b>{Hidden_devices}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_hidden_devices}</p>
+              </div>
+            </div>
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title i18n">
+                  <a id="config-cloud-service"><b>{Cloud_service_auth}</b></a>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_cloud_services}
+                  <a href="#" class="link-privacy-policy">{See_privacy_policy}</a>
+                  <br>
+                  <br>{Desc_of_cloud_auth}</p>
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label for="inputEmail3" class="control-label i18n">{Google_Drive}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <button type="button" class="btn btn-success i18n when-not-googledrive">{Acquire_access}</button>
+                      <button type="button" class="btn btn-danger i18n when-googledrive">{Revoke_access}</button>
+                      <span class="i18n when-googledrive">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label for="inputEmail3" class="control-label i18n">{Dropbox}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <button type="button" class="btn btn-success i18n when-not-dropbox">{Acquire_access}</button>
+                      <button type="button" class="btn btn-danger i18n when-dropbox">{Revoke_access}</button>
+                      <span class="i18n when-dropbox">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label for="inputEmail3" class="control-label i18n">{OneDrive}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <button type="button" class="btn btn-success i18n when-not-onedrive">{Acquire_access}</button>
+                      <button type="button" class="btn btn-danger i18n when-onedrive">{Revoke_access}</button>
+                      <span class="i18n when-onedrive">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-danger">
+              <div class="panel-heading">
+                <h3 class="i18n panel-title">
+                  <b>{For_Rubic_testers}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_for_testers}</p>
+                <div class="checkbox">
+                  <label class="i18n">
+                    <input type="checkbox" id="config-for-testers">{Show_tester_settings}</label>
+                </div>
+                <div class="only-testers">
+                  <p class="i18n">{Thanks_testers}</p>
+                  <div class="form-horizontal">
+                    <div class="form-group">
+                      <div class="col-sm-3">
+                        <label class="control-label i18n">{Beta_firmware}</label>
+                      </div>
+                      <div class="col-sm-9">
+                        <select class="form-control" id="config-beta-firmware">
+                          <option class="i18n" value="false">{Hide_beta_versions}</option>
+                          <option class="i18n" value="true">{Show_beta_versions}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-offset-3 col-sm-9">
+                        <p class="help-block i18n">{Desc_of_beta_firmware}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-3">
+                        <label class="control-label i18n">{Log_verbosity}</label>
+                      </div>
+                      <div class="col-sm-9">
+                        <select class="form-control" id="config-log-verbosity">
+                          <option class="i18n" value="0">{No_log}</option>
+                          <option class="i18n" value="1">{Simple_logs}</option>
+                          <option class="i18n" value="2">{Detail_logs}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-offset-3 col-sm-9">
+                        <p class="help-block i18n">{Desc_of_log_verbosity}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-3">
+                        <label class="control-label i18n">{Init_cache}</label>
+                      </div>
+                      <div class="col-sm-9">
+                        <select class="form-control" id="config-init-cache">
+                          <option class="i18n" value="false">{Do_not_init_cache}</option>
+                          <option class="i18n" value="true">{Init_cache_at_next_boot}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-offset-3 col-sm-9">
+                        <p class="help-block i18n">{Desc_of_init_cache}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end-->
+    <div class="sidebar-right"></div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse"></div>
+  
+
+</body></html>

@@ -1,0 +1,241 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="jquery-2.2.4.min.js"></script>
+    <script type="text/javascript" src="bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <!--end-->
+    <script type="text/javascript" src="../src/ace-builds/src-noconflict/ace.js"></script>
+    <!--begin-->
+    <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="css/window.css" rel="stylesheet" type="text/css">
+  </head><body class="right-hidden">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+      <div class="container">
+        <div class="btn-group btn-group-xs">
+          <a class="btn hidden"></a>
+          <a class="btn btn-link i18n hide-left" title="{Hide_menu}"><span class="fa fa-bars fa-lg"></span></a>
+          <a class="btn btn-link i18n show-left" title="{Show_menu}"><span class="fa fa-bars fa-lg"></span></a>
+        </div>
+        <div class="btn-group btn-group-xs">
+          <span class="navbar-brand" id="rubic-brand">Rubic</span>
+        </div>
+        <div class="btn-group btn-group-xs when-main">
+          <a class="btn btn-default i18n" title="{New_sketch}">{New}</a>
+        </div>
+        <div class="btn-group btn-group-xs when-main">
+          <div class="btn-group btn-group-xs">
+            <button class="btn btn-default i18n" title="{Open_sketch/} ({Open_from_local/})"><span class="glyphicon glyphicon-open"></span> {Open}</button>
+            <button class="btn btn-default btn-thin dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&nbsp;<span class="caret"></span>&nbsp;</button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="#" class="btn-xs i18n open-local"><span class="fa-fw glyphicon glyphicon-open"></span> {Open_from_local}</a>
+              </li>
+              <li class="when-googledrive">
+                <a href="#" class="btn-xs i18n open-googledrive"><span class="fa fa-fw"></span> {Open_from_Google_Drive}</a>
+              </li>
+              <li class="when-dropbox">
+                <a href="#" class="btn-xs i18n open-dropbox"><span class="fa fa-fw"></span> {Open_from_Dropbox}</a>
+              </li>
+              <li class="when-onedrive">
+                <a href="#" class="btn-xs i18n open-onedrive"><span class="fa fa-fw"></span> {Open_from_OneDrive}</a>
+              </li>
+              <li class="when-no-cloud">
+                <a href="#config-cloud-service" class="btn-xs i18n activate-pref"><span class="fa fa-fw fa-cloud"></span> {Open_from_cloud}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="btn-group btn-group-xs when-main">
+          <div class="btn-group btn-group-xs">
+            <a class="btn btn-default i18n" title="{Save_sketch}"><span class="glyphicon glyphicon-save"></span> {Save}</a>
+            <a class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</a>
+            <ul class="dropdown-menu" role="menu">
+              <li>
+                <a href="#" class="btn-xs i18n save-over"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_overwrite}</a>
+              </li>
+              <li class="divider"></li>
+              <li>
+                <a href="#" class="btn-xs i18n save-local"><span class="fa fa-fw fa-laptop"></span> {Save_to_local}</a>
+              </li>
+              <li class="when-googledrive">
+                <a href="#" class="btn-xs i18n save-googledrive"><span class="fa fa-fw"></span> {Save_to_Google_Drive}</a>
+              </li>
+              <li class="when-dropbox">
+                <a href="#" class="btn-xs i18n save-dropbox"><span class="fa fa-fw"></span> {Save_to_Dropbox}</a>
+              </li>
+              <li class="when-onedrive">
+                <a href="#" class="btn-xs i18n save-onedrive"><span class="fa fa-fw"></span> {Save_to_OneDrive}</a>
+              </li>
+              <li class="when-no-cloud">
+                <a href="#config-cloud-service" class="btn-xs i18n activate-pref"><span class="fa fa-fw fa-cloud"></span> {Save_to_cloud}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="btn-group btn-group-xs pull-right when-main">
+          <a class="btn btn-primary i18n sketch-run" title="{Run_sketch} (Ctrl+R)"><span class="fa fa-fw fa-play"></span> {Run}</a>
+          <a class="btn btn-primary btn-thin dropdown-toggle" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs i18n sketch-run"><span class="fa fa-fw fa-play"></span> {Run}</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n sketch-debug"><span class="fa fa-fw fa-bug"></span> {Debug}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs pull-right when-main">
+          <a class="btn btn-default i18n sketch-build" title="{Build_sketch} (Ctrl+B)"><span class="fa fa-fw fa-cogs"></span> {Build}</a>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-left">
+      <ul class="list-group">
+        <li class="list-group-item btn-xs when-main">
+          <a href="#" class="i18n sketch-new"><span class="fa fa-fw fa-file"></span> {New_sketch}</a>
+        </li>
+        <li class="list-group-item btn-xs when-main">
+          <a class="i18n open-latest" href="#"><span class="fa-fw glyphicon glyphicon-open"></span> {Open_sketch}</a>
+        </li>
+        <ul class="list-sub-group when-main">
+          <li class="list-group-item btn-xs">
+            <a class="i18n open-local" href="#"><span class="fa fa-fw fa-laptop"></span> {Open_from_local}</a>
+          </li>
+          <li class="list-group-item btn-xs when-googledrive">
+            <a class="i18n open-googledrive" href="#"><span class="fa fa-fw"></span> {Open_from_Google_Drive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-dropbox">
+            <a class="i18n open-dropbox" href="#"><span class="fa fa-fw"></span> {Open_from_Dropbox}</a>
+          </li>
+          <li class="list-group-item btn-xs when-onedrive">
+            <a class="i18n open-onedrive" href="#" class=""><span class="fa fa-fw"></span> {Open_from_OneDrive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-no-cloud">
+            <a class="i18n activate-pref" href="#config-cloud-service"><span class="fa fa-fw fa-cloud"></span> {Open_from_cloud}</a>
+          </li>
+        </ul>
+        <li class="list-group-item btn-xs when-main">
+          <a class="i18n save-latest" href="#"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_sketch}</a>
+        </li>
+        <ul class="list-sub-group when-main">
+          <li class="list-group-item btn-xs">
+            <a class="i18n save-over" href="#"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_overwrite}</a>
+          </li>
+          <li class="list-group-item divider"></li>
+          <li class="list-group-item btn-xs">
+            <a class="i18n save-local" href="#"><span class="fa fa-fw fa-laptop"></span> {Save_to_local}</a>
+          </li>
+          <li class="list-group-item btn-xs when-googledrive">
+            <a class="i18n save-googledrive" href="#"><span class="fa fa-fw"></span> {Save_to_Google_Drive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-dropbox">
+            <a class="i18n save-dropbox" href="#"><span class="fa fa-fw"></span> {Save_to_Dropbox}</a>
+          </li>
+          <li class="list-group-item btn-xs when-onedrive">
+            <a class="i18n save-onedrive" href="#"><span class="fa fa-fw"></span> {Save_to_OneDrive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-no-cloud">
+            <a class="i18n activate-pref" href="#config-cloud-service"><span class="fa fa-fw fa-cloud"></span> {Save_to_cloud}</a>
+          </li>
+        </ul>
+        <li class="list-group-item btn-xs when-main">
+          <a class="i18n sketch-share" href="#"><span class="fa fa-fw fa-share-alt"></span> {Share_sketch}</a>
+        </li>
+        <li class="list-group-item divider when-main"></li>
+        <li class="list-group-item btn-xs when-not-main">
+          <a class="i18n activate-main" href="#"><span class="fa fa-fw fa-arrow-circle-left"></span> {Back_to_editor}</a>
+        </li>
+        <li class="list-group-item divider when-not-main"></li>
+        <li class="list-group-item btn-xs when-not-pref">
+          <a class="i18n activate-pref" href="#"><span class="fa fa-fw fa-gear"></span> {Preferences}</a>
+        </li>
+        <li class="list-group-item btn-xs when-not-tutorial">
+          <a class="i18n activate-tutorial" href="#"><span class="fa fa-fw fa-flag-o"></span> {Tutorial}</a>
+        </li>
+        <li class="list-group-item btn-xs when-not-about">
+          <a class="i18n activate-about" href="#"><span class="fa fa-fw fa-info-circle"></span> {About_this_app}</a>
+        </li>
+      </ul>
+    </div>
+    <div class="main-outer when-main">
+      <div class="editor-header">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#">Sketch<br></a>
+          </li>
+          <li class="active">
+            <a href="#">File1</a>
+          </li>
+          <li>
+            <a href="#">File2</a>
+          </li>
+        </ul>
+      </div>
+      <div class="editor-body" id="text-editor">
+      </div>
+      <div class="editor-bottom"></div>
+    </div>
+    <!--include(board_catalog.html)-->
+    <!--include(about.html)-->
+    <!--include(preferences.html)-->
+    <div class="sidebar-right">
+      <div class="container"></div>
+    </div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse">
+      <div class="container">
+        <div class="btn-group btn-group-xs btn-group-lg dropup">
+          <a class="btn btn-default dropdown-toggle i18n" data-toggle="dropdown">{Select_hardware} <span class="fa fa-caret-up"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs">(Recent items)</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n">{Show_all_hardwares}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n">{Edit_hardware}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs btn-group-lg dropup">
+          <a class="btn btn-default dropdown-toggle i18n" data-toggle="dropdown">{Select_connection} <span class="fa fa-caret-up"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs i18n">{Scan_connections}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs">(Connections)</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs btn-group-lg dropup pull-right">
+          <a class="btn btn-default dropdown-toggle i18n" data-toggle="dropdown">{Guide_view} <span class="fa fa-caret-up"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs i18n">{Hardware_info}</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n">(Language manual)</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n">{Library_manual}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n">{Output_window}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n">{Hide_all}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  
+
+</body></html>

@@ -1,0 +1,91 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="rubic.js"></script>
+    <script type="text/javascript" src="messages.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="hide-right">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <div class="sidebar-left"></div>
+    <div class="main-outer">
+      <div class="main-inner config-header">
+        <div class="row">
+          <div class="col-md-12">
+            <ul class="nav nav-justified nav-pills">
+              <li>
+                <a href="#" class="i18n">{Select_board}</a>
+              </li>
+              <li class="active">
+                <a href="#" class="i18n">{Select_features}</a>
+              </li>
+              <li>
+                <a href="#" class="i18n">{Configure_io_pins}</a>
+              </li>
+              <li>
+                <a href="#" class="i18n">{Save_your_settings}</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!--begin-->
+      <div class="main-inner config-body">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title i18n">{Basic_settings}</h3>
+              </div>
+              <div class="panel-body">
+                <div class="form-horizontal">
+                  <div class="form-group" id="board-version">
+                    <div class="col-sm-4">
+                      <label class="control-label i18n">{Board_version}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option>(Versions)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group" id="board-engine">
+                    <div class="col-sm-4">
+                      <label class="control-label i18n">{Script_engine}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option>mruby</option>
+                        <option>Lua</option>
+                        <option>Duktape (JavaScript/CoffeeScript)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group" id="board-engine-ver">
+                    <div class="col-sm-4">
+                      <label class="control-label i18n">{Version_pre}
+                        <span class="placeholder">{Engine}</span>{Version_post}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-control">
+                        <option>(Version)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--end-->
+    </div>
+    <div class="sidebar-right">
+      <p></p>
+    </div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse"></div>
+  
+
+</body></html>
