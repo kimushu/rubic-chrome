@@ -34,6 +34,48 @@ clobber-html: clean-html
 clobber-html: clobber-css clobber-jquery clobber-twbs clobber-fawe clobber-ace
 
 #--------------------------------------------------------------------------------
+# Twitter Bootstrap
+#
+
+twbs_ver  = 3.3.4
+twbs_dir  = $(dwld_dir)/bootstrap-$(twbs_ver)
+twbs_tgz  = $(twbs_dir).tar.gz
+twbs_key  = $(twbs_dir)/README.md
+twbs_url  = https://github.com/twbs/bootstrap/archive/v$(twbs_ver).tar.gz
+twbs_fsrc = $(twbs_dir)/dist/fonts/glyphicons-halflings-regular.woff2
+twbs_jsrc = $(twbs_dir)/dist/js/bootstrap.min.js
+twbs_fout = $(DIST_DIR)/fonts/$(notdir $(twbs_fsrc))
+twbs_jout = $(DIST_DIR)/$(notdir $(twbs_jsrc))
+
+.PHONY: twbs
+twbs: $(twbs_fout) $(twbs_jout) $(twbs_key)
+
+$(twbs_fout): $(twbs_key)
+	$(call ECHO_W,"Locating bootstrap font ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(twbs_fsrc) $@
+
+$(twbs_jout): $(twbs_key)
+	$(call ECHO_W,"Locating bootstrap script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(twbs_jsrc) $@
+
+$(twbs_key): $(twbs_tgz)
+	$(call ECHO_W,"Unpacking bootstrap tarball ($<)")
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
+
+$(twbs_tgz):
+	$(call ECHO_C,"Downloading bootstrap tarball ($(twbs_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(twbs_url)"
+
+.PHONY: clean-twbs
+clean-twbs:
+	$(Q)rm -f $(twbs_fout) $(twbs_jout)
+
+.PHONY: clobber-twbs
+clobber-twbs: clean-twbs
+	$(Q)rm -rf $(twbs_dir)
+	$(Q)rm -f $(twbs_tgz)
+
+#--------------------------------------------------------------------------------
 # CSS generation (from less)
 #
 
@@ -41,12 +83,12 @@ css_src   = $(VIEW_DIR)/window.less
 css_out   = $(DIST_DIR)/css/window.css
 css_link  = $(VIEW_DIR)/css/window.css
 
-lessc_opts = --no-ie-compat --clean-css
+lessc_opts = --no-ie-compat --clean-css --include-path=$(dwld_dir)
 
 .PHONY: css
-css: $(css_out) $(css_link) twbs
+css: $(css_out) $(css_link)
 
-$(css_out): $(css_src) $(firstword $(lessc)) $(MAKEFILE_LIST)
+$(css_out): $(css_src) $(twbs_key) $(firstword $(lessc)) $(MAKEFILE_LIST)
 	$(call ECHO_W,"Compiling CSS ($@)")
 	$(Q)mkdir -p $(dir $@)
 	$(Q)$(LESSC) $(lessc_opts) $< > $@ || (rm -f $@; false)
@@ -74,10 +116,11 @@ jqy_out   = $(DIST_DIR)/$(notdir $(jqy_src))
 jquery: $(jqy_out)
 
 $(jqy_out): $(jqy_src)
+	$(call ECHO_W,"Locating jQuery script ($@)")
 	$(Q)cp $< $@
 
 $(jqy_src):
-	$(call ECHO_Y,"Downloading jQuery source ($(jqy_url))")
+	$(call ECHO_C,"Downloading jQuery source ($(jqy_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqy_url)"
 
 .PHONY: clean-jquery
@@ -87,46 +130,6 @@ clean-jquery:
 .PHONY: clobber-jquery
 clobber-jquery: clean-jquery
 	$(Q)rm -f $(jqy_src)
-
-#--------------------------------------------------------------------------------
-# Twitter Bootstrap
-#
-
-twbs_ver  = 3.3.4
-twbs_dir  = $(dwld_dir)/bootstrap-$(twbs_ver)
-twbs_tgz  = $(twbs_dir).tar.gz
-twbs_key  = $(twbs_dir)/README.md
-twbs_url  = https://github.com/twbs/bootstrap/archive/v$(twbs_ver).tar.gz
-twbs_fsrc = $(twbs_dir)/dist/fonts/glyphicons-halflings-regular.woff2
-twbs_jsrc = $(twbs_dir)/dist/js/bootstrap.min.js
-twbs_fout = $(DIST_DIR)/fonts/$(notdir $(twbs_fsrc))
-twbs_jout = $(DIST_DIR)/$(notdir $(twbs_jsrc))
-
-.PHONY: twbs
-twbs: $(twbs_fout) $(twbs_jout) $(twbs_key)
-
-$(twbs_fout): $(twbs_key)
-	$(Q)mkdir -p $(dir $@) && cp $(twbs_fsrc) $@
-
-$(twbs_jout): $(twbs_key)
-	$(Q)mkdir -p $(dir $@) && cp $(twbs_jsrc) $@
-
-$(twbs_key): $(twbs_tgz)
-	$(call ECHO_W,"Unpacking bootstrap tarball ($<)")
-	$(Q)tar -C $(dir $<) -xf $< && touch $@
-
-$(twbs_tgz):
-	$(call ECHO_Y,"Downloading bootstrap tarball ($(twbs_url))")
-	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(twbs_url)"
-
-.PHONY: clean-twbs
-clean-twbs:
-	$(Q)rm -f $(twbs_fout) $(twbs_jout)
-
-.PHONY: clobber-twbs
-clobber-twbs: clean-twbs
-	$(Q)rm -rf $(twbs_dir)
-	$(Q)rm -f $(twbs_tgz)
 
 #--------------------------------------------------------------------------------
 # font awesome
@@ -146,9 +149,11 @@ fawe_fout = $(DIST_DIR)/fonts/$(notdir $(fawe_fsrc))
 fawe: $(fawe_cout) $(fawe_fout)
 
 $(fawe_cout): $(fawe_key)
+	$(call ECHO_W,"Locating font-awesome css ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(fawe_csrc) $@
 
 $(fawe_fout): $(fawe_key)
+	$(call ECHO_W,"Locating font-awesome font ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(fawe_fsrc) $@
 
 $(fawe_key): $(fawe_tgz)
@@ -156,7 +161,7 @@ $(fawe_key): $(fawe_tgz)
 	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(fawe_tgz):
-	$(call ECHO_Y,"Downloading font-awesome tarball ($(fawe_url))")
+	$(call ECHO_C,"Downloading font-awesome tarball ($(fawe_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(fawe_url)"
 
 .PHONY: clean-fawe
@@ -184,6 +189,7 @@ ace_out   = $(DIST_DIR)/ace
 ace: $(ace_out)
 
 $(ace_out): $(ace_key)
+	$(call ECHO_W,"Locating Ace scripts ($@)")
 	$(Q)mkdir -p $(dir $@) && cp -r $(ace_src) $(ace_out)
 
 $(ace_key): $(ace_tgz)
@@ -191,7 +197,7 @@ $(ace_key): $(ace_tgz)
 	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(ace_tgz):
-	$(call ECHO_Y,"Downloading Ace tarball ($(ace_url))")
+	$(call ECHO_C,"Downloading Ace tarball ($(ace_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(ace_url)"
 
 .PHONY: clean-ace

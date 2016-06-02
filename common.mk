@@ -26,12 +26,25 @@ ECHO_W     = @echo -e "\033[1;37m\# "$1"\033[0m"
 
 .PHONY: all clean clobber
 all:
+	$(call ECHO_B,"Build finished for target \`$@'")
 
 $(BROWSERIFY) $(COFFEE) $(UGLIFYJS) $(LESSC):
-	@echo "Installing npm packages"
+	$(call ECHO_C,"Installing npm packages")
 	$(Q)cd $(ROOT_DIR) && npm install
 
 $(JSDUCK):
-	@echo "Installing gem packages"
-	$Q()cd $(ROOT_DIR) && bundle install
+	$(call ECHO_C,"Installing gem packages")
+	$(Q)cd $(ROOT_DIR) && bundle install
+
+clean: clean-message
+
+.PHONY: clean-message
+clean-message:
+	$(call ECHO_Y,"Cleaning files")
+
+clobber: clobber-message
+
+.PHONY: clobber-message
+clobber-message:
+	$(call ECHO_M,"Clobbering files")
 
