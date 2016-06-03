@@ -5,50 +5,63 @@ clean: clean-html
 clobber: clobber-html
 
 dwld_dir  = $(VIEW_DIR)/downloads
+modules   = jqy twbs fawe ace spin bbox
+
+info:
+	$(call ECHO_W,"Module versions")
+	@true $(foreach m,$(modules),&& printf "    %-12s : %s\n" "$($(m)_name)" "$($(m)_ver)")
 
 #--------------------------------------------------------------------------------
-# HTML generation
+# jQuery
 #
 
-html_gen  = $(VIEW_DIR)/generate_html.rb
-html_src  = $(VIEW_DIR)/main.html
-html_out  = $(DIST_DIR)/window.html
-html_dep  = $(VIEW_DIR)/.$(notdir $(html_src)).dep
+jqy_name  = jQuery
+jqy_ver   = 2.2.4
+jqy_url   = https://code.jquery.com/jquery-$(jqy_ver).min.js
+jqy_src   = $(dwld_dir)/$(notdir $(jqy_url))
+jqy_out   = $(DIST_DIR)/$(notdir $(jqy_src))
 
-.PHONY: html
-html: $(html_out) css jquery twbs fawe ace
+.PHONY: jqy clean-jqy clobber-jqy
+jqy: $(jqy_out)
 
-$(html_out): $(html_gen) $(MAKEFILE_LIST)
-	$(call ECHO_W,"Generating HTML ($@)")
-	$(Q)mkdir -p $(dir $@)
-	$(Q)ruby $< -d $(html_dep) -v -s $(html_src) $@
+clean-jqy:
+	$(Q)rm -f $(jqy_out)
 
--include $(html_dep)
+clobber-jqy: clean-jqy
+	$(Q)rm -f $(jqy_src)
 
-.PHONY: clean-html
-clean-html: clean-css clean-jquery clean-twbs clean-fawe clean-ace
-	$(Q)rm -f $(html_out)
+$(jqy_out): $(jqy_src)
+	$(call ECHO_W,"Locating jQuery script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $< $@
 
-.PHONY: clobber-html
-clobber-html: clean-html
-clobber-html: clobber-css clobber-jquery clobber-twbs clobber-fawe clobber-ace
+$(jqy_src):
+	$(call ECHO_C,"Downloading jQuery source ($(jqy_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqy_url)"
 
 #--------------------------------------------------------------------------------
 # Twitter Bootstrap
 #
 
+twbs_name = Bootstrap
 twbs_ver  = 3.3.4
 twbs_dir  = $(dwld_dir)/bootstrap-$(twbs_ver)
 twbs_tgz  = $(twbs_dir).tar.gz
-twbs_key  = $(twbs_dir)/README.md
+twbs_key  = $(twbs_dir)/.unpacked
 twbs_url  = https://github.com/twbs/bootstrap/archive/v$(twbs_ver).tar.gz
 twbs_fsrc = $(twbs_dir)/dist/fonts/glyphicons-halflings-regular.woff2
 twbs_jsrc = $(twbs_dir)/dist/js/bootstrap.min.js
 twbs_fout = $(DIST_DIR)/fonts/$(notdir $(twbs_fsrc))
 twbs_jout = $(DIST_DIR)/$(notdir $(twbs_jsrc))
 
-.PHONY: twbs
+.PHONY: twbs clean-twbs clobber-twbs
 twbs: $(twbs_fout) $(twbs_jout) $(twbs_key)
+
+clean-twbs:
+	$(Q)rm -f $(twbs_fout) $(twbs_jout)
+
+clobber-twbs: clean-twbs
+	$(Q)rm -rf $(twbs_dir)
+	$(Q)rm -f $(twbs_tgz)
 
 $(twbs_fout): $(twbs_key)
 	$(call ECHO_W,"Locating bootstrap font ($@)")
@@ -66,87 +79,30 @@ $(twbs_tgz):
 	$(call ECHO_C,"Downloading bootstrap tarball ($(twbs_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(twbs_url)"
 
-.PHONY: clean-twbs
-clean-twbs:
-	$(Q)rm -f $(twbs_fout) $(twbs_jout)
-
-.PHONY: clobber-twbs
-clobber-twbs: clean-twbs
-	$(Q)rm -rf $(twbs_dir)
-	$(Q)rm -f $(twbs_tgz)
-
-#--------------------------------------------------------------------------------
-# CSS generation (from less)
-#
-
-css_src   = $(VIEW_DIR)/window.less
-css_out   = $(DIST_DIR)/css/window.css
-css_link  = $(VIEW_DIR)/css/window.css
-
-lessc_opts = --no-ie-compat --clean-css --include-path=$(dwld_dir)
-
-.PHONY: css
-css: $(css_out) $(css_link)
-
-$(css_out): $(css_src) $(twbs_key) $(firstword $(lessc)) $(MAKEFILE_LIST)
-	$(call ECHO_W,"Compiling CSS ($@)")
-	$(Q)mkdir -p $(dir $@)
-	$(Q)$(LESSC) $(lessc_opts) $< > $@ || (rm -f $@; false)
-
-$(css_link): $(css_out)
-	$(Q)mkdir -p $(dir $@) && ln -sr $< $@
-
-.PHONY: clean-css
-clean-css: clean-twbs
-	$(Q)rm -f $(css_out) $(css_link)
-
-.PHONY: clobber-css
-clobber-css: clean-css
-
-#--------------------------------------------------------------------------------
-# jQuery
-#
-
-jqy_ver   = 2.2.4
-jqy_url   = https://code.jquery.com/jquery-$(jqy_ver).min.js
-jqy_src   = $(dwld_dir)/$(notdir $(jqy_url))
-jqy_out   = $(DIST_DIR)/$(notdir $(jqy_src))
-
-.PHONY: jquery
-jquery: $(jqy_out)
-
-$(jqy_out): $(jqy_src)
-	$(call ECHO_W,"Locating jQuery script ($@)")
-	$(Q)cp $< $@
-
-$(jqy_src):
-	$(call ECHO_C,"Downloading jQuery source ($(jqy_url))")
-	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqy_url)"
-
-.PHONY: clean-jquery
-clean-jquery:
-	$(Q)rm -f $(jqy_out)
-
-.PHONY: clobber-jquery
-clobber-jquery: clean-jquery
-	$(Q)rm -f $(jqy_src)
-
 #--------------------------------------------------------------------------------
 # font awesome
 #
 
+fawe_name = Font Awesome
 fawe_ver  = 4.6.3
 fawe_dir  = $(dwld_dir)/Font-Awesome-$(fawe_ver)
 fawe_tgz  = $(fawe_dir).tar.gz
-fawe_key  = $(fawe_dir)/README.md
+fawe_key  = $(fawe_dir)/.unpacked
 fawe_url  = https://github.com/FortAwesome/Font-Awesome/archive/v$(fawe_ver).tar.gz
 fawe_csrc = $(fawe_dir)/css/font-awesome.min.css
 fawe_fsrc = $(fawe_dir)/fonts/fontawesome-webfont.woff2
 fawe_cout = $(DIST_DIR)/css/$(notdir $(fawe_csrc))
 fawe_fout = $(DIST_DIR)/fonts/$(notdir $(fawe_fsrc))
 
-.PHONY: fawe
+.PHONY: fawe clean-fawe clobber-fawe
 fawe: $(fawe_cout) $(fawe_fout)
+
+clean-fawe:
+	$(Q)rm -f $(fawe_cout) $(fawe_fout)
+
+clobber-fawe: clean-fawe
+	$(Q)rm -rf $(fawe_dir)
+	$(Q)rm -f $(fawe_tgz)
 
 $(fawe_cout): $(fawe_key)
 	$(call ECHO_W,"Locating font-awesome css ($@)")
@@ -164,29 +120,28 @@ $(fawe_tgz):
 	$(call ECHO_C,"Downloading font-awesome tarball ($(fawe_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(fawe_url)"
 
-.PHONY: clean-fawe
-clean-fawe:
-	$(Q)rm -f $(fawe_cout) $(fawe_fout)
-
-.PHONY: clobber-fawe
-clobber-fawe: clean-fawe
-	$(Q)rm -rf $(fawe_dir)
-	$(Q)rm -f $(fawe_tgz)
-
 #--------------------------------------------------------------------------------
 # Ace
 #
 
+ace_name  = Ace
 ace_ver   = 1.2.3
 ace_url   = https://github.com/ajaxorg/ace-builds/archive/v$(ace_ver).tar.gz
 ace_dir   = $(dwld_dir)/ace-builds-$(ace_ver)
 ace_tgz   = $(ace_dir).tar.gz
-ace_key   = $(ace_dir)/README.md
+ace_key   = $(ace_dir)/.unpacked
 ace_src   = $(ace_dir)/src-min-noconflict
 ace_out   = $(DIST_DIR)/ace
 
-.PHONY: ace
+.PHONY: ace clean-ace clobber-ace
 ace: $(ace_out)
+
+clean-ace:
+	$(Q)rm -rf $(ace_out)
+
+clobber-ace: clean-ace
+	$(Q)rm -rf $(ace_dir)
+	$(Q)rm -f $(ace_tgz)
 
 $(ace_out): $(ace_key)
 	$(call ECHO_W,"Locating Ace scripts ($@)")
@@ -200,12 +155,116 @@ $(ace_tgz):
 	$(call ECHO_C,"Downloading Ace tarball ($(ace_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(ace_url)"
 
-.PHONY: clean-ace
-clean-ace:
-	$(Q)rm -rf $(ace_out)
+#--------------------------------------------------------------------------------
+# spin.js
+#
 
-.PHONY: clobber-ace
-clobber-ace: clean-ace
-	$(Q)rm -rf $(ace_dir)
-	$(Q)rm -f $(ace_tgz)
+spin_name = spin.js
+spin_ver  = 2.3.2
+spin_url  = https://github.com/fgnass/spin.js/archive/$(spin_ver).tar.gz
+spin_dir  = $(dwld_dir)/spin.js-$(spin_ver)
+spin_tgz  = $(spin_dir).tar.gz
+spin_key  = $(spin_dir)/.unpacked
+spin_src  = $(spin_dir)/spin.min.js
+spin_out  = $(DIST_DIR)/$(notdir $(spin_src))
+
+.PHONY: spin clean-spin clobber-spin
+spin: $(spin_out)
+
+clean-spin:
+	$(Q)rm -f $(spin_out)
+
+clobber-spin: clean-spin
+	$(Q)rm -rf $(spin_dir)
+	$(Q)rm -f $(spin_tgz)
+
+$(spin_out): $(spin_key)
+	$(call ECHO_W,"Locating spin.js script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(spin_src) $@
+
+$(spin_key): $(spin_tgz)
+	$(call ECHO_W,"Unpacking spin.js tarball ($<)")
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
+
+$(spin_tgz):
+	$(call ECHO_C,"Downloading spin.js tarball ($(spin_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(spin_url)"
+
+#--------------------------------------------------------------------------------
+# Bootbox
+#
+
+bbox_name = Bootbox
+bbox_ver  = 4.4.0
+bbox_url  = https://github.com/makeusabrew/bootbox/releases/download/v$(bbox_ver)/bootbox.min.js
+bbox_src  = $(dwld_dir)/$(notdir $(bbox_url))
+bbox_out  = $(DIST_DIR)/$(notdir $(bbox_src))
+
+.PHONY: bbox clean-bbox clobber-bbox
+bbox: $(bbox_out)
+
+clean-bbox:
+	$(Q)rm -f $(bbox_out)
+
+clobber-bbox: clean-bbox
+	$(Q)rm -f $(bbox_src)
+
+$(bbox_out): $(bbox_src)
+	$(call ECHO_W,"Locating Bootbox script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $< $@
+
+$(bbox_src):
+	$(call ECHO_C,"Downloading Bootbox script ($(bbox_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(bbox_url)"
+
+#--------------------------------------------------------------------------------
+# CSS generation (from less)
+#
+
+css_src   = $(VIEW_DIR)/window.less
+css_out   = $(DIST_DIR)/css/window.css
+css_link  = $(VIEW_DIR)/css/window.css
+
+lessc_opts = --no-ie-compat --clean-css --include-path=$(dwld_dir)
+
+.PHONY: css clean-css clobber-css
+css: $(css_out) $(css_link)
+
+clean-css: clean-twbs
+	$(Q)rm -f $(css_out) $(css_link)
+
+clobber-css: clean-css
+
+$(css_out): $(css_src) $(twbs_key) $(firstword $(lessc)) $(MAKEFILE_LIST)
+	$(call ECHO_W,"Compiling CSS ($@)")
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(LESSC) $(lessc_opts) $< > $@ || (rm -f $@; false)
+
+$(css_link): $(css_out)
+	$(Q)mkdir -p $(dir $@) && ln -sr $< $@
+
+#--------------------------------------------------------------------------------
+# HTML generation
+#
+
+html_gen  = $(VIEW_DIR)/generate_html.rb
+html_src  = $(VIEW_DIR)/main.html
+html_out  = $(DIST_DIR)/window.html
+html_dep  = $(VIEW_DIR)/.$(notdir $(html_src)).dep
+
+.PHONY: html clean-html clobber-html
+html: $(html_out) css $(modules)
+
+clean-html: $(addprefix clean-,css $(modules))
+	$(Q)rm -f $(html_out)
+
+clobber-html: clean-html
+clobber-html: $(addprefix clobber-,css $(modules))
+
+$(html_out): $(html_gen) $(MAKEFILE_LIST)
+	$(call ECHO_W,"Generating HTML ($@)")
+	$(Q)mkdir -p $(dir $@)
+	$(Q)ruby $< -d $(html_dep) -v -s $(html_src) $@
+
+-include $(html_dep)
 
