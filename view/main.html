@@ -3,10 +3,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="jquery-2.2.4.min.js"></script>
     <script type="text/javascript" src="bootstrap.min.js"></script>
+    <script type="text/javascript" src="spin.min.js"></script>
+    <script type="text/javascript" src="bootbox.min.js"></script>
     <script type="text/javascript" src="locale.js"></script>
     <script type="text/javascript" src="window.js"></script>
     <!--end-->
-    <script type="text/javascript" src="../src/ace-builds/src-noconflict/ace.js"></script>
+    <script type="text/javascript" src="ace/ace.js"></script>
     <!--begin-->
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="css/window.css" rel="stylesheet" type="text/css">
@@ -19,10 +21,15 @@
           <a class="btn btn-link i18n show-left" title="{Show_menu}"><span class="fa fa-bars fa-lg"></span></a>
         </div>
         <div class="btn-group btn-group-xs">
-          <span class="navbar-brand" id="rubic-brand">Rubic</span>
+          <img src="images/rubic_text_24.png" id="rubic-brand">
         </div>
         <div class="btn-group btn-group-xs when-main">
-          <a class="btn btn-default i18n" title="{New_sketch}">{New}</a>
+          <button class="btn btn-default i18n dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{New} <span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="#" class="btn-xs i18n new-sketch">{New_sketch}</a>
+            </li>
+          </ul>
         </div>
         <div class="btn-group btn-group-xs when-main">
           <div class="btn-group btn-group-xs">
@@ -49,8 +56,8 @@
         </div>
         <div class="btn-group btn-group-xs when-main">
           <div class="btn-group btn-group-xs">
-            <a class="btn btn-default i18n" title="{Save_sketch}"><span class="glyphicon glyphicon-save"></span> {Save}</a>
-            <a class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</a>
+            <button class="btn btn-default i18n" title="{Save_sketch}"><span class="glyphicon glyphicon-save"></span> {Save}</button>
+            <button class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
             <ul class="dropdown-menu" role="menu">
               <li>
                 <a href="#" class="btn-xs i18n save-over"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_overwrite}</a>
@@ -75,8 +82,8 @@
           </div>
         </div>
         <div class="btn-group btn-group-xs pull-right when-main">
-          <a class="btn btn-primary i18n sketch-run" title="{Run_sketch} (Ctrl+R)"><span class="fa fa-fw fa-play"></span> {Run}</a>
-          <a class="btn btn-primary btn-thin dropdown-toggle" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</a>
+          <button class="btn btn-primary i18n sketch-run" title="{Run_sketch} (Ctrl+R)"><span class="fa fa-fw fa-play"></span> {Run}</button>
+          <button class="btn btn-primary btn-thin dropdown-toggle" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
           <ul class="dropdown-menu" role="menu">
             <li>
               <a href="#" class="btn-xs i18n sketch-run"><span class="fa fa-fw fa-play"></span> {Run}</a>
@@ -87,7 +94,7 @@
           </ul>
         </div>
         <div class="btn-group btn-group-xs pull-right when-main">
-          <a class="btn btn-default i18n sketch-build" title="{Build_sketch} (Ctrl+B)"><span class="fa fa-fw fa-cogs"></span> {Build}</a>
+          <button class="btn btn-default i18n sketch-build" title="{Build_sketch} (Ctrl+B)"><span class="fa fa-fw fa-cogs"></span> {Build}</button>
         </div>
       </div>
     </div>

@@ -244,6 +244,37 @@ $(css_link): $(css_out)
 	$(Q)mkdir -p $(dir $@) && ln -sr $< $@
 
 #--------------------------------------------------------------------------------
+# Image files
+#
+
+img_sdir  = $(VIEW_DIR)/images
+img_ddir  = $(DIST_DIR)/images
+img_files = \
+	mruby_logo_red_cropped.png \
+	peridotcraft_logo_1.png \
+	emscripten_logo_full_cropped.png \
+	rubic_cube2x2_16.png \
+	rubic_cube2x2_20.png \
+	rubic_cube2x2_32.png \
+	rubic_cube2x2_48.png \
+	rubic_cube2x2_128.png \
+	rubic_text_24.png \
+	rubic_text_48.png \
+
+img_out   = $(addprefix $(img_ddir)/,$(img_files))
+
+.PHONY: images clean-images clobber-images
+images: $(img_out)
+
+$(img_ddir)/%: $(img_sdir)/%
+	$(Q)mkdir -p $(dir $@) && cp $< $@ && chmod a-x $@
+
+clean-images:
+	$(Q)rm -f $(img_out)
+
+clobber-images: clean-images
+
+#--------------------------------------------------------------------------------
 # HTML generation
 #
 
@@ -253,13 +284,13 @@ html_out  = $(DIST_DIR)/window.html
 html_dep  = $(VIEW_DIR)/.$(notdir $(html_src)).dep
 
 .PHONY: html clean-html clobber-html
-html: $(html_out) css $(modules)
+html: $(html_out) css images $(modules)
 
-clean-html: $(addprefix clean-,css $(modules))
+clean-html: $(addprefix clean-,css images $(modules))
 	$(Q)rm -f $(html_out)
 
 clobber-html: clean-html
-clobber-html: $(addprefix clobber-,css $(modules))
+clobber-html: $(addprefix clobber-,css images $(modules))
 
 $(html_out): $(html_gen) $(MAKEFILE_LIST)
 	$(call ECHO_W,"Generating HTML ($@)")
