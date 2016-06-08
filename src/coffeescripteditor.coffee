@@ -1,51 +1,58 @@
+# Dependencies
+TextEditor = require("./texteditor")
+
 ###*
-@class Rubic.CoffeeScriptEditor
+@class CoffeeScriptEditor
   Editor for CoffeeScript source (View)
-@extends Rubic.TextEditor
+@extends TextEditor
 ###
-class Rubic.CoffeeScriptEditor extends Rubic.TextEditor
-  DEBUG = Rubic.DEBUG or 0
-  Rubic.Editor.addEditor(this)
+class CoffeeScriptEditor extends TextEditor
+  TextEditor.register(this)
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
   @static
-  @cfg {string[]}
-    List of suffixes
-  ###
-  @SUFFIXES: ["coffee"]
-
-  ###*
-  @static
-  @cfg {boolean}
-    Editable or not
+  @inheritdoc Editor#editable
   @readonly
   ###
-  @EDITABLE: true
+  @editable: true
+
+  #--------------------------------------------------------------------------------
+  # Private constants
+  #
+
+  SUFFIX_RE = /\.coffee$/i
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
-  @static
-  @method
-    Get new file template
-  @param {Object} header
-    Header information
-  @return {string}
-    Template text
+  @inheritdoc Editor#supports
   ###
-  @getTemplate: (header) ->
-    return """
-    # #{Rubic.I18n("WriteYourSketchHere")}
+  @supports: (path) ->
+    return !!path.match(SUFFIX_RE)
 
-    """
+  #--------------------------------------------------------------------------------
+  # Protected properties
+  #
 
   ###*
+  @protected
   @method constructor
-    Constructor
-  @param {Rubic.WindowController} controller
-    Controller for this view
-  @param {FileEntry} fileEntry
-    FileEntry for this document
+    Constructor of CoffeeScriptEditor class
+  @param {jQuery} $
+    jQuery object
+  @param {Sketch} sketch
+    Sketch instance
+  @param {string} path
+    Path of target file
   ###
-  constructor: (controller, fileEntry) ->
-    super(controller, fileEntry, "ace/mode/coffee")
+  constructor: ($, sketch, path) ->
+    super($, sketch, path, "ace/mode/coffee")
     return
 
+module.exports = CoffeeScriptEditor

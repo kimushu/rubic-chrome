@@ -1,175 +1,67 @@
+# Pre dependencies
+Controller = require("./controller")
+MainController = null
+PrefController = null
+TutorialController = null
+AboutController = null
+BoardController = null
+
 ###*
-@class Rubic.WindowController
-  Base controller for windows (Controller)
+@class WindowController
+  Base controller for window.html (Controller)
 ###
-class Rubic.WindowController
-  DEBUG = Rubic.DEBUG or 0
+class WindowController extends Controller
+  null
 
-  ###*
-  @protected
-  @property {AppWindow} appWindow
-    AppWindow instance of chrome
-  @readonly
-  ###
-  @property("appWindow", get: -> @_appWindow)
-
-  ###*
-  @protected
-  @property {Object} window
-    JavaScript window object for this AppWindow
-  @readonly
-  ###
-  @property("window", get: -> @_window)
-
-  ###*
-  @property {jQuery} $
-    jQuery object for this window
-  @readonly
-  ###
-  @property("$", get: -> @_$)
+  #--------------------------------------------------------------------------------
+  # Protected methods
+  #
 
   ###*
   @protected
   @method constructor
-    Constructor of WindowController
+    Constructor of WindowController class
+  @param {Window} window
+    window object
   ###
-  constructor: ->
+  constructor: (window) ->
+    super(window)
     return
 
   ###*
-  @protected
-  @method
-    Start controller
-  @param {string} html
-    Filename of html source
-  @param {Object} [options]
-    Options for chrome.app.window.create
-  @param {function():void}  [callback]
-    Callback function
-  @return {void}
+  @inheritdoc Controller#onActivated
   ###
-  start: (html, options, callback) ->
-    (merged_options = options or {}).id = @constructor.name
-    chrome.app.window.create(
-      html
-      merged_options
-      (createdWindow) =>
-        # Chrome sometimes raises spurious call with createdWindow==undefined
-        return unless createdWindow
-
-        # Store controller members
-        @_appWindow = createdWindow
-        @_window = @appWindow.contentWindow
-
-        # Add event listeners
-        @_appWindow.onClosed.addListener(=> @onClosed())
-
-        # Store global members
-        @window.app = Rubic.App.getInstance()
-        @window.controller = this
-        @window.Rubic = Rubic
-
-        callback?()
-        return
+  onActivated: ->
+    super
+    MainController or= require("./maincontroller")
+    PrefController or= require("./prefcontroller")
+    TutorialController or= require("./tutorialcontroller")
+    AboutController or= require("./aboutcontroller")
+    BoardController or= require("./boardcontroller")
+    @$(".show-left").click(=> @$("body").removeClass("left-hidden"))
+    @$(".hide-left").click(=> @$("body").addClass("left-hidden"))
+    @$(".activate-main").click(=> MainController.instance.activate())
+    @$(".activate-pref").click(=> PrefController.instance.activate())
+    @$(".activate-tutorial").click(=> TutorialController.instance.activate())
+    @$(".activate-about").click(=> AboutController.instance.activate())
+    @$(".activate-board").click(=> BoardController.instance.activate())
+    @$(".fold-toggle").click((event) =>
+      @$(event.target).parents(".fold-header").toggleClass("fold-opened")
     )
     return
 
   ###*
-  @protected
-  @method
-    Event handler on document.onload
-  @return {void}
+  @inheritdoc Controller#onDeactivated
   ###
-  onLoad: ->
-    Rubic.I18nT(@$)
+  onDeactivated: ->
+    @$(".show-left").unbind("click")
+    @$(".hide-left").unbind("click")
+    @$(".activate-main").unbind("click")
+    @$(".activate-pref").unbind("click")
+    @$(".activate-tutorial").unbind("click")
+    @$(".activate-about").unbind("click")
+    @$(".fold-toggle").unbind("click")
+    super
     return
 
-  ###*
-  @method
-    Close window
-  @return {void}
-  ###
-  close: ->
-    @appWindow.close()
-    return
-
-  ###*
-  @protected
-  @method
-    Event handler on appWindow.onClosed
-  @return {void}
-  ###
-  onClosed: ->
-    return
-
-  ###*
-  @static
-  @method
-    Fire onload event
-  @param {Object} contentWindow
-    Global window object of new window
-  @return {void}
-  ###
-  @fireOnLoad: (contentWindow) ->
-    contentWindow.controller._fireOnLoad()
-    return
-
-  ###*
-  @private
-  @method
-    Fire onload event
-  @return {void}
-  ###
-  _fireOnLoad: ->
-    app.log({info: "#{@constructor.name} loaded", data: this})
-    # Store jQuery object with short name
-    @_$ = @window.$
-    # Fire event
-    @onLoad()
-    return
-
-  ###*
-  @method
-    Activate window
-  @return {void}
-  ###
-  activate: ->
-    @appWindow.focus()
-    return
-
-  ###*
-  @protected
-  @method
-    Bind shortcut key
-  @param {string} key
-    Key combination by "Ctrl+A" like format
-  @param {function():void}  callback
-    Function called when key pressed
-  @return {void}
-  ###
-  bindKey: (key, callback) ->
-    # Get modifier
-    mod = [(-> not @altKey), (-> not @ctrlKey), (-> not @shiftKey)]
-    key = key.replace('Alt+', -> (mod[0] = (-> @altKey); ''))
-    key = key.replace('Ctrl+', -> (mod[1] = (-> @ctrlKey); ''))
-    key = key.replace('Shift+', -> (mod[2] = (-> @shiftKey); ''))
-
-    # Get key code
-    if key.match(/^[A-Z0-9]$/)
-      code = key.charCodeAt(0)
-    else
-      match = key.match(/^F(\d+)$/)
-      code = parseInt(match[1]) + 0x6f if match
-
-    throw new Error("Unknown key name") unless code
-
-    # Bind to document
-    @$(@window.document).keydown((event) =>
-      return unless event.keyCode == code
-      for m in mod
-        return unless m.call(event)
-      callback(event)
-      event.preventDefault()
-    )
-    return
-
+module.exports = WindowController

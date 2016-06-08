@@ -1,148 +1,166 @@
+# Dependencies
+Editor = require("./editor")
+I18n = require("./i18n")
+
 ###*
-@class Rubic.TextEditor
+@class TextEditor
   Base class for text editors (View)
-@extends Rubic.Editor
+@extends Editor
 ###
-class Rubic.TextEditor extends Rubic.Editor
-  DEBUG = Rubic.DEBUG or 0
+class TextEditor extends Editor
+  null
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
+
+  #--------------------------------------------------------------------------------
+  # Private properties
+  #
+
+  Ace = null
+  domElement = null
+  aceEditor = null
+  aceEmptySession = null
+
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
 
   ###*
-  @protected
-  @static
-  @property {ace.Editor}
-    Ace editor instance
-  @readonly
+  @inheritdoc Editor#load
   ###
-  @ace: null
+  load: ->
+    return @sketch.dirFs.readFile(@path).then((rawdata) =>
+      return @convertForReading(rawdata)
+    ).then((text) =>
+      @_quiet(=>
+        @_aceSession.setValue(text)
+      )
+      @modified = false
+      return  # Last PromiseValue
+    ) # return @sketch.dirFs.readFile().then()...
 
   ###*
-  @private
-  @static
-  @property {ace.EditSession}
-    An empty EditSession
-  @readonly
+  @inheritdoc Editor#save
   ###
-  @_aceEmptySession: null
+  save: ->
+    text = @_aceSession.getValue()
+    return @convertForWriting(text).then((rawdata) =>
+      return @sketch.dirFs.writeFile(@path, rawdata)
+    ).then(=>
+      @modified = false
+      return  # Last PromiseValue
+    ) # return @convertForWriting().then()...
 
   ###*
-  @protected
-  @property {ace.Editor} ace
-    Reference of Ace editor instance
-  @readonly
+  @inheritdoc Editor#activate
   ###
-  @property("ace", get: -> Rubic.TextEditor.ace)
+  activate: ->
+    aceEditor.setSession(@_aceSession)
+    super()
+    return
+
+  ###*
+  @inheritdoc Editor#deactivate
+  ###
+  deactivate: ->
+    super()
+    aceEditor.setSession(aceEmptySession)
+    return
+
+  ###*
+  @inheritdoc Editor#focus
+  ###
+  focus: ->
+    super()
+    aceEditor.focus()
+    return
+
+  ###*
+  @inheritdoc Editor#close
+  ###
+  close: ->
+    @deactivate() if aceEditor.getSession() == @_aceSession
+    @_aceSession = null
+    return
+
+  #--------------------------------------------------------------------------------
+  # Protected methods
+  #
 
   ###*
   @protected
   @method constructor
-    Constructor
-  @param {Rubic.WindowController} controller
-    Controller for this view
-  @param {FileEntry} fileEntry
-    FileEntry for this document
-  @param {string} _mode
-    Mode string for Ace
+    Constructor of TextEditor class
+  @param {jQuery} $
+    jQuery object
+  @param {Sketch} sketch
+    Sketch instance
+  @param {string} path
+    Path of target file
+  @param {string} _aceMode
+    Ace mode name
   ###
-  constructor: (controller, fileEntry, @_mode) ->
-    super(controller, fileEntry, controller.$("#text-editor")[0])
-    unless (selfClass = Rubic.TextEditor).ace
-      selfClass.ace = controller.window.ace.edit(@element)
-      selfClass._aceEmptySession = selfClass.ace.getSession()
-      selfClass.ace.setShowPrintMargin(false)
-    @_ignoreChange = false
-    @_aceSession = new controller.window.ace.createEditSession("", @_mode)
+  constructor: ($, sketch, path, @_aceMode) ->
+    super($, sketch, path, (domElement or= $("#text-editor")[0]))
+    Ace or= window.ace
+    unless aceEditor
+      aceEditor = Ace.edit(domElement)
+      aceEmptySession = aceEditor.getSession()
+      aceEditor.setShowPrintMargin(false)
+    @_aceSession = new Ace.createEditSession("", @_aceMode)
     @_aceSession.on("change", =>
-      return unless @_aceSession
-      return if @_ignoreChange
-      @modified = true
+      @modified = true unless @_ignoreEvents
+      # TODO raise event listener
     )
-    return
-
-  ###*
-  @inheritdoc Rubic.Editor#load
-  ###
-  load: (callback) ->
-    Rubic.FileUtil.readArrayBuf(@fileEntry, (res_read, buffer) =>
-      return callback(false) unless res_read
-      @convertForReading(buffer, (res_conv, text) =>
-        return callback(false) unless res_conv
-        @_ignoreChange = true
-        @_aceSession.setValue(text)
-        @_ignoreChange = false
-        return callback(true)
-      )
-    )
-    return
-
-  ###*
-  @inheritdoc Rubic.Editor#save
-  ###
-  save: (callback) ->
-    @convertForWriting(@_aceSession.getValue(), (res_conv, buffer) =>
-      return callback(false) unless res_conv
-      Rubic.FileUtil.writeArrayBuf(@fileEntry, buffer, (res_write) =>
-        return callback(false) unless res_write
-        @modified = false
-        return callback(true)
-      )
-    )
+    @_ignoreEvents = false
+    @_quiet = (action) =>
+      try
+        @_ignoreEvents = true
+        action()
+      finally
+        @_ignoreEvents = false
     return
 
   ###*
   @protected
+  @template
   @method
-    Convert for reading (default: convert to UTF-8 text)
-  @param {ArrayBuffer}  rawdata
-    ArrayBuffer of raw data
-  @param {function(boolean,string)} callback
-    Callback function with result and converted data
-  @return {void}
+    Convert data for reading (Raw to Text)
+  @param {ArrayBuffer} rawdata
+    Raw data to convert
+  @return {Promise}
+    Promise object
+  @return {string} return.PromiseValue
+    Converted text
   ###
-  convertForReading: (rawdata, callback) ->
-    reader = new FileReader()
-    reader.onloadend = -> return callback(true, reader.result)
-    reader.onerror = -> return callback(false, null)
-    reader.readAsText(new Blob([rawdata]))
-    return
+  convertForReading: (rawdata) ->
+    return new Promise((resolve, reject) =>
+      reader = new FileReader()
+      reader.onloadend = => resolve(reader.result)
+      reader.onerror = => reject(I18n("Conversion_failed"))
+      reader.readAsText(new Blob([rawdata]))
+    ) # return new Promise()
 
   ###*
   @protected
+  @template
   @method
-    Convert for writing (default: convert from UTF-8 text)
+    Convert data for reading (Raw to Text)
   @param {string} text
-    Text data
-  @param {function(boolean,ArrayBuffer)}  callback
-    Callback function with result and converted data
-  @return {void}
+    Text to convert
+  @return {Promise}
+    Promise object
+  @return {string} return.PromiseValue
+    Converted raw data
   ###
-  convertForWriting: (text, callback) ->
-    reader = new FileReader()
-    reader.onloadend = -> return callback(true, reader.result)
-    reader.onerror = -> return callback(false, null)
-    reader.readAsArrayBuffer(new Blob([text]))
-    return
+  convertForWriting: (text) ->
+    return new Promise((resolve, reject) =>
+      reader = new FileReader()
+      reader.onloadend = => resolve(reader.result)
+      reader.onerror = => reject(I18n("Conversion_failed"))
+      reader.readAsArrayBuffer(new Blob([text]))
+    ) # return new Promise()
 
-  ###*
-  @inheritdoc Rubic.Editor#activate
-  ###
-  activate: (callback) ->
-    @ace.setSession(@_aceSession)
-    super(callback)
-    @ace.focus()
-    return
-
-  ###*
-  @inheritdoc Rubic.Editor#close
-  ###
-  close: (callback) ->
-    super((result) =>
-      if result
-        if @ace.getSession() == @_aceSession
-          @ace.setSession(Rubic.TextEditor._aceEmptySession)
-        @_aceSession = null
-      callback(result)
-    )
-    return
-
-  ###* @method _updateTab @hide ###
-
+module.exports = TextEditor

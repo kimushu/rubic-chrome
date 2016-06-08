@@ -1,219 +1,308 @@
+# Pre dependencies
+JSONable = require("./jsonable")
+App = require("./app")
+Preferences = require("./preferences")
+# From library.min.js
+# JSZip
+# GitHub
+
+CAT_OWNER = "kimushu"
+CAT_REPO  = "rubic-catalog"
+CAT_REF   = "heads/master"
+CAT_PATH  = "catalog.json"
+
+AUTO_UPDATE_PERIOD = 12 * 60 * 60 * 1000  # 1 update per 12 hours
+
 ###*
 @class Board
   Base class for embedded boards (Model)
+@extends JSONable
 ###
-class Board
-  DEBUG = if DEBUG? then DEBUG else 0
+class Board extends JSONable
+  null
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
-  @static
-  @inheritable
-  @cfg {string}
-    Name of board
-  @readonly
+  @property {boolean} connected
   ###
-  @NAME: null
+  @property("connected", get: -> @_connected)
 
   ###*
-  @static
-  @inheritable
-  @cfg {string}
-    Author of board
-  @readonly
+  @property {string} engineId
+    The ID of engine
   ###
-  @AUTHOR: null
+  @property("engineId",
+    get: -> @_engineId
+    set: (v) -> @_engineId = v
+  )
 
-  ###*
-  @static
-  @inheritable
-  @cfg {string}
-    Website of board (if available)
-  @readonly
-  ###
-  @WEBSITE: null
+  window.Board = Board
 
-  ###*
-  @private
-  @static
-  @property {Function[]}
-    List of subclasses
-  ###
-  @_boards: []
-
-  ###*
-  @protected
-  @static
-  @method
-    Register board class
-  @param {Function} boardClass
-    Constructor of subclass
-  @return {void}
-  ###
-  @addBoard: (boardClass) ->
-    @_boards.push(boardClass)
-    return
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
 
   ###*
   @static
   @method
-    Get constructor from its name
-  @param {string} name
-    Name of class
-  @return {Function} Constructor of found class
+    Update catalog for boards
+  @param {string} [className=null]
+    The name of board to be updated (if null, update all boards)
+  @param {boolean} [force=false]
+    Force update
+  @return {Promise}
+    Promise object
+  @return {Object} return.PromiseValue
+    Update information
+  @return {boolean} return.PromiseValue.succeeded
+    Update succeeded or not
+  @return {number} return.PromiseValue.timestamp
+    Timestamp of latest update
   ###
-  @getBoardClass: (name) ->
-    (return c) for c in @_boards when c.name == name
-    return
+  @updateCatalog: (className = null, force = false) ->
+    return Promise.resolve(
+    ).then(=>
+      return Preferences.get({"catalog.lastFetched": 0})
+    ).then((value) =>
+      diff = Date.now() - value["catalog.lastFetched"]
+      if !force and diff < AUTO_UPDATE_PERIOD
+        console.log("Update catalog has been skipped")
+        return  # Last PromiseValue
+
+      repo = new GitHub().getRepo(CAT_OWNER, CAT_REPO)
+      timestamp = null
+      return repo.getContents(CAT_REF, CAT_PATH, true).then((response) =>
+        timestamp = Date.now()
+        return Preferences.set({"catalog.lastFetched": timestamp}).then(=>
+          return response.data
+        )
+      ).then((catalog) =>
+        boards = []
+        for boardClass in Board.subclasses
+          name = boardClass.name
+          continue if className? and name != className
+          source = catalog[name]
+          boards.push({class: boardClass, source: source}) if source?
+        return boards
+      ).then((boards) =>
+        lastError = null
+        return boards.reduce(
+          (promise, board) =>
+            return promise.then(=>
+              return @_mergeBoardCatalog(board.class, board.source, timestamp)
+            ).catch((error) =>
+              lastError = error
+              return
+            )
+          Promise.resolve()
+        ).then(=>
+          return Promise.reject(lastError) if lastError?
+          return  # Last PromiseValue
+        )
+      ) # return repo.getContents().then()...
+    ) # return Promise.resolve().then()...
 
   ###*
-  @static
   @method
-    Enumerate connected boards
-  @param {function(boolean,Object[]):void}  callback
-    Callback function with result and array of boards
-
-    - name : Name for user interface (ex: COMxx)
-    - path : Path for internal use
-  @return {void}
+    Enumerate ID of engines
+  @param {boolean} [update=false]
+    Try update from web if true
+  @return {Promise}
+    Promise object
+  @return {string[]} return.PromiseValue
+    Array of engine IDs
   ###
-  @enumerate: (callback) ->
-    callback(false, null)
-    return
+  enumEngines: (update = false) ->
+    return Promise.resolve(
+    ).then(=>
+      return unless update
+      return Board.updateCatalog(@constructor.name)
+    ).then(=>
+      return Preferences.get({"catalog.#{@constructor.name}": {}})
+    ).then((cat) =>
+      result = []
+      # cat.rubicVersion
+      result.push(e.id) for e in cat.engines
+      return result # Last PromiseValue
+    ) # return Promise.resolve().then()...
 
   ###*
+  @template
+  ###
+
+  ###*
+  @template
+  @method
+    Get list of pins
+  @return {Object}
+    Pin definition
+  @return {Object} return.left
+    Left side definition
+  @return {Object} return.right
+    Right side definition
+  @return {string[]/I18n[]} return.aliases
+    Name of alias groups
+  ###
+  getPinList: ->
+    return {}
+
+  ###*
+  @template
+  @method
+    Enumerate boards
+  @return {Promise}
+    Promise object
+  @return {Object[]} return.PromiseValue
+    Array of board information {friendlyName: "name for UI", path: "path"}
+  ###
+  enumerate: ->
+    return Promise.reject(Error("Pure method"))
+
+  ###*
+  @template
   @method
     Connect to board
   @param {string} path
-    Path of board to connect
-  @param {function(boolean):void} callback
-    Callback function with result
-  @return {void}
+    Path of the board
+  @param {Function} onDisconnected
+    Callback for disconnect detection
+  @return {Promise}
+    Promise object
+  @return {undefined} return.PromiseValue
   ###
-  connect: (@path, callback) ->
-    callback(false)
-    return
+  connect: (path, onDisconnected) ->
+    return Promise.reject(Error("Pure method"))
 
   ###*
-  @event
-    Register handler for disconnect event
-  @param {function(Board):void} handler
-    Event handler
-  ###
-  onDisconnect: (handler) ->
-    @_onDisconnect = handler
-    return
-
-  ###*
-  @protected
-  @method
-    Fire disconnect event
-  @return {void}
-  ###
-  fireDisconnect: ->
-    (handler = @_onDisconnect)?(this)
-    return
-
-  ###*
+  @template
   @method
     Disconnect from board
-  @param {function(boolean):void} callback
-    Callback function with result
-  @return {void}
+  @return {Promise}
+    Promise object
+  @return {undefined} return.PromiseValue
   ###
-  disconnect: (callback) ->
-    callback(false)
-    return
+  disconnect: ->
+    return Promise.reject(Error("Pure method"))
 
   ###*
+  @template
   @method
-    Reset board
-  @param {function(boolean):void} callback
-    Callback function with result
-  @return {void}
+    Request pseudo filesystem
+  @return {Promise}
+    Promise object
+  @return {AsyncFs} return.PromiseValue
+    File system object
   ###
-  reset: (callback) ->
-    callback(false)
-    return
+  requestFileSystem: ->
+    return Promise.reject(Error("Pure method"))
 
   ###*
+  @template
+  @method
+    Request console
+  @return {Promise}
+    Promise object
+  ###
+  requestConsole: ->
+    return Promise.reject(Error("Pure method"))
+
+  ###*
+  @template
   @method
     Start sketch
-  @param {function(boolean):void} callback
-    Callback function with result
-  @return {void}
+  @param {function(boolean):undefined} onFinished
+    Callback for finish with result
+  @return {Promise}
+    Promise object
   ###
-  startSketch: (callback) ->
-    callback(false)
-    return
+  startSketch: (onFinished) ->
+    return Promise.reject(Error("Pure method"))
 
   ###*
-  @event
-    Register handler for end of sketch
-  @param {function(Board):void} handler
-    Event handler
-  @return {void}
-  ###
-  onSketchEnd: (handler) ->
-    @_onSketchEnd = handler
-    return
-
-  ###*
-  @protected
-  @method
-    Fire end of sketch event
-  @return {void}
-  ###
-  fireSketchEnd: ->
-    (handler = @_onSketchEnd)?(this)
-    return
-
-  ###*
+  @template
   @method
     Stop sketch
-  @param {function(boolean):void} callback
-    Callback function with result
-  @return {void}
+  @return {Promise}
+    Promise object
   ###
-  stopSketch: (callback) ->
-    callback(false)
+  stopSketch: ->
+    return Promise.reject(Error("Pure method"))
+
+  #--------------------------------------------------------------------------------
+  # Protected methods
+  #
+
+  ###*
+  @method constructor
+    Constructor of Board class
+  @param {Object} obj
+    JSON object
+  ###
+  constructor: (obj) ->
+    super(obj)
+    @_connected = false
+    @_variation = obj?.variation
     return
 
   ###*
   @method
-    Request file system for sketch
-  @param {function(Object):void}  successCallback
-    Callback function with file system object for successful
-  @param {function(Error):void} errorCallback
-    Callback function for failure
-  @return {void}
+    Convert to JSON object
+  @return {Object}
   ###
-  requestFileSystem: (successCallback, errorCallback) ->
-    errorCallback(new Error("Not implemented"))
-    return
+  toJSON: ->
+    return super().extends({
+      friendlyName  : @constructor.friendlyName
+      rubicVersion  : @constructor.rubicVersion
+      variation     : @_variation
+    })
+
+  #--------------------------------------------------------------------------------
+  # Private methods
+  #
 
   ###*
+  @private
   @method
-    Request serial communication
-  @param {function(boolean,SerialComm):void}  successCallback
-    Callback function with result and serial comm instance
-  @return {void}
+    Merge board catalog into local cache
+  @param {Function} boardClass
+    Constructor of board subclass
+  @param {Object} src
+    Catalog info
+  @param {number} timestamp
+    Timestamp of receiving catalog info
+  @return {Promise}
+    Promise object
   ###
-  requestSerialComm: (callback) ->
-    callback(false, null)
-    return
+  @_mergeBoardCatalog: (boardClass, src, timestamp) ->
+    pname = "catalog.#{boardClass.name}"
+    return Promise.resolve(
+    ).then(=>
+      return Preferences.get(pname)
+    ).then((read) =>
+      dest = read or {}
+      return unless App.versionCheck(src.rubicVersion)
+      return if src.lastModified < (dest.lastFetched or 0)
+      return dest
+    ).then((dest) =>
+      return unless dest?
+      return dest if (e = src.engines) instanceof Array
+      return I18n.rejectPromise("") unless e.path?
+      repo = new GitHub().getRepo(e.owner or CAT_OWNER, e.repo or CAT_REPO)
+      return repo.getContents(e.ref or CAT_REF, e.path).then((response) =>
+        timestamp = Date.now()
+        src.engines = response.data
+        return dest
+      )
+    ).then((dest) =>
+      return unless dest?
+      dest = src
+      dest.lastFetched = timestamp
+      return Preferences.set({"#{pname}": dest}).then(=>
+        return
+      )
+    ) # return Promise.resolve().then()...
 
-  ###*
-  @method
-    Setup firmware
-  @param {Object} setup
-    Setup information
-  @param {boolean} force
-    Force entire setup
-  @param {function(boolean):void} callback
-    Callback function with result
-  @return {void}
-  ###
-  setupFirmware: (setup, force, callback) ->
-    callback(false)
-    return
-
+module.exports = Board

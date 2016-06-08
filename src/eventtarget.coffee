@@ -1,15 +1,23 @@
+# browserify ready
 ###*
-@class Rubic.EventTarget
+@class EventTarget
   Target which holds event listeners and dispatch event
   (This is NOT compatible with EventTarget class in WebAPI interface)
 ###
-class Rubic.EventTarget
+class EventTarget
+  null
+
   ###*
   @private
   @property {Function[]}
     Array of event listeners
   ###
   #_listeners: []
+
+  ###*
+  @method constructor
+    Constructor of EventTarget class
+  ###
   constructor: ->
     @_listeners = []
 
@@ -18,9 +26,9 @@ class Rubic.EventTarget
     Add an event listener
   @param {Function} listener
     An event listener to add
-  @param {Object/null}  thisObject
+  @param {Object} [thisObject]
     The object to use as this when executing listener
-  @return {void}
+  @return {undefined}
   ###
   addEventListener: (listener, thisObject) ->
     item = [listener, thisObject]
@@ -32,9 +40,9 @@ class Rubic.EventTarget
     Remove an event listener
   @param {Function} listener
     An event listener to remove
-  @param {Object/null}  thisObject
+  @param {Object} [thisObject]
     The object to use as this when executing listener
-  @return {void}
+  @return {undefined}
   ###
   removeEventListener: (listener, thisObject) ->
     item = [listener, thisObject]
@@ -45,7 +53,7 @@ class Rubic.EventTarget
   ###*
   @method
     Dispatch event and call listeners
-  @return {void}
+  @return {undefined}
   ###
   dispatchEvent: (args...) ->
     @_listeners.forEach((element) ->
@@ -53,3 +61,4 @@ class Rubic.EventTarget
     )
     return
 
+module.exports = EventTarget

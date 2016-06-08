@@ -1,124 +1,253 @@
+# Pre dependencies
+Board = require("./board")
+I18n = require("./i18n")
+
+AsyncFs = {}
+
 ###*
-@class Rubic.PeridotBoard
+@class PeridotBoard
   PERIDOT board (Model)
-@extends Rubic.Board
+@extends Board
 ###
-class Rubic.PeridotBoard extends Rubic.Board
-  DEBUG = Rubic.DEBUG or 0
-  Rubic.Board.addBoard(this)
+class PeridotBoard extends Board
+  Board.jsonable(this)
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
   @static
-  @cfg {string}
-    Name of board
+  @property {I18n}
+    Name of this board
   @readonly
   ###
-  @NAME: "Peridot board"
+  @friendlyName: new I18n(
+    "PERIDOT"
+  )
 
   ###*
   @static
-  @cfg {string}
-    Author of board
+  @property {I18n}
+    Author of this board
   @readonly
   ###
-  @AUTHOR: "Shun Osafune (@s_osafune)"
+  @author: new I18n(
+    "J-7SYSTEM WORKS"
+  )
 
   ###*
   @static
-  @cfg {string}
-    Website of board (if available)
+  @property {string}
+    Website URL of this board
   @readonly
   ###
-  @WEBSITE: "http://osafune.github.io/peridot.html"
+  @website: "https://osafune.github.io/peridot.html"
 
   ###*
   @static
-  @inheritdoc Board#enumerate
-  ###
-  @enumerate: (callback) ->
-    Canarium.enumerate(callback)
-    return
-
-  ###*
-  @property {Canarium}
-    Instance of canarium
+  @property {I18n}
+    Description of this board
   @readonly
   ###
-  @property("canarium", get: -> @_canarium)
+  @description: new I18n({
+    "en": "FPGA-based Arduino form-factor board with configurable hardware. This board supports many script engines such as mruby, Lua, Javascript, and so on."
+    "ja": "ハードウェア構成をカスタマイズできるFPGA搭載のArduino互換形状ボード。スクリプト言語エンジンにはmruby/Lua/JavaScriptなど様々な種類から選択できます。"
+  })
+
+  ###*
+  @static
+  @property {string[]}
+    List of images of this board (The first item is used as an icon)
+  @readonly
+  ###
+  @images: ["images/boards/peridot_64x64.png"]
+
+  ###*
+  @static
+  @property {string}
+    Rubic version
+  @readonly
+  ###
+  @rubicVersion: ">=1.0.0"
+
+  ###*
+  @static
+  @property {string[]}
+    List of board variations
+  @readonly
+  ###
+  @boardVariations: []
+
+  #--------------------------------------------------------------------------------
+  # Private constants
+  #
+
+  FPGAPIN = new I18n({en: "Pin name of FPGA", ja: "FPGAピン名"})
+
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
 
   ###*
   @method constructor
-    Constructor
+    Constructor of PeridotBoard class
+  @param {Object} obj
+    JSON object
   ###
-  constructor: ->
+  constructor: (obj) ->
+    super(obj)
     @_canarium = new Canarium()
     return
 
   ###*
+  @inheritdoc Board#getEngineList
+  ###
+  getEngineList: ->
+    return [
+      {
+        name: "mruby"
+        id: "mruby"
+        icon: "mruby"
+      }
+      {
+        name: "Duktape (JavaScript / CoffeeScript)"
+        id: "duktape"
+        icon: "javascript"
+        beta: true
+      }
+      {
+        name: "Lua"
+        id: "lua"
+        icon: "lua"
+        beta: true
+      }
+      {
+        name: "MicroPython"
+        id: "micropython"
+        icon: "python"
+        beta: true
+      }
+    ] # return []
+
+  ###*
+  @inheritdoc Board#getPinList
+  ###
+  getPinList: ->
+    return {
+      left: [
+        {}
+        {}
+        {}
+        {private: "NC"}
+        {private: "IOREF"}
+        {private: "RESET"}
+        {private: "3.3V"}
+        {private: "VBUS"}
+        {private: "GND"}
+        {private: "GND"}
+        {private: "NC"}
+        {}
+        {name: "D16", aliases: ["PIN_42"]}
+        {name: "D17", aliases: ["PIN_43"]}
+        {name: "D18", aliases: ["PIN_46"]}
+        {name: "D19", aliases: ["PIN_51"]}
+        {name: "D20", aliases: ["PIN_52"]}
+        {name: "D21", aliases: ["PIN_53"]}
+        {}
+        {name: "D22", aliases: ["PIN_54"]}
+        {name: "D23", aliases: ["PIN_55"]}
+        {name: "D24", aliases: ["PIN_64"]}
+        {name: "D25", aliases: ["PIN_65"]}
+        {name: "D26", aliases: ["PIN_77"]}
+        {name: "D27", aliases: ["PIN_80"]}
+      ]
+      right: [
+        {name: "D15", aliases: ["PIN_3"]}
+        {name: "D14", aliases: ["PIN_2"]}
+        {private: "NC"}
+        {private: "GND"}
+        {name: "D13", aliases: ["PIN_1"]}
+        {name: "D12", aliases: ["PIN_144"]}
+        {name: "D11", aliases: ["PIN_143"]}
+        {name: "D10", aliases: ["PIN_142"]}
+        {name: "D9",  aliases: ["PIN_141"]}
+        {name: "D8",  aliases: ["PIN_136"]}
+        {}
+        {name: "D7",  aliases: ["PIN_129"]}
+        {name: "D6",  aliases: ["PIN_128"]}
+        {name: "D5",  aliases: ["PIN_115"]}
+        {name: "D4",  aliases: ["PIN_87"]}
+        {name: "D3",  aliases: ["PIN_86"]}
+        {name: "D2",  aliases: ["PIN_85"]}
+        {name: "D1",  aliases: ["PIN_84"]}
+        {name: "D0",  aliases: ["PIN_83"]}
+      ]
+      aliases: [FPGAPIN]
+      image: {
+      }
+    } # return {}
+
+  ###*
+  @inheritdoc Board#enumerate
+  ###
+  enumerate: ->
+    return @_canarium.enumerate().then((boards) ->
+      return {friendlyName: b.name, path: b.path} for b in boards
+    )
+
+  ###*
   @inheritdoc Board#connect
   ###
-  connect: (path, callback) ->
-    @_canarium.open(path, callback)
-    return
+  connect: (path, onDisconnected) ->
+    return @_canarium.open(path).then(=>
+      @_canarium.onClosed = =>
+        @_canarium.onClosed = null
+        @_connected = false
+        onDisconnected()
+
+      @_connected = true
+      return
+    ) # return @_canarium.open().then()
 
   ###*
   @inheritdoc Board#disconnect
   ###
-  disconnect: (callback) ->
-    @_canarium.close(callback)
-    return
-
-  ###*
-  @inheritdoc Board#reset
-  ###
-  reset: (callback) ->
-    @_canarium.reset(callback)
-    return
-
-  ###*
-  @inheritdoc Board#startSketch
-  ###
-  startSketch: (callback) ->
-    @_sendRequest("start", callback)
-    return
-
-  ###*
-  @inheritdoc Board#stopSketch
-  ###
-  stopSketch: (callback) ->
-    @_sendRequest("stop", callback)
-    return
+  disconnect: ->
+    return @_canarium.close()
 
   ###*
   @inheritdoc Board#requestFileSystem
   ###
-  requestFileSystem: (successCallback, errorCallback) ->
-    # TODO
-    errorCallback(new Error("Not implemented"))
-    return
+  requestFileSystem: ->
+    return new PeridotFileSystem(@_canarium)
 
   ###*
-  @inheritdoc Board#requestSerialComm
+  @inheritdoc Board#requestConsole
   ###
-  requestSerialComm: (callback) ->
-    # TODO
-    callback(false, null)
-    return
+  requestConsole: ->
+    return @_canarium.requestSerial()
 
   ###*
-  @inheritdoc Board#setupFirmware
+  @inheritdoc Board#startSketch
   ###
-  setupFirmware: (setup, force, callback) ->
-    # TODO
-    callback(false)
+  startSketch: (onFinished) ->
+    # return @_canarium.
     return
 
-# ###*
-# @class
-#   Pseudo file system class for Peridot
-# @uses PeridotBoard
-# ###
-# class PeridotBoard.FileSystem
-#   DEBUG = if DEBUG? then DEBUG else 0
+  #--------------------------------------------------------------------------------
+  # Internal class
+  #
 
+  class PeridotFileSystem extends AsyncFs
+    null
 
+    constructor: (@_canarium) ->
+      return
+
+    readFile: (file, options, callback) ->
+      if typeof(options or= {}) == "function"
+        callback = options
+        options = {}
+
+module.exports = PeridotBoard

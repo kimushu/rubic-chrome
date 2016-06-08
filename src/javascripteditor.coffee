@@ -1,37 +1,58 @@
+# Dependencies
+TextEditor = require("./texteditor")
+
 ###*
 @class JavaScriptEditor
   Editor for JavaScript source (View)
 @extends TextEditor
 ###
 class JavaScriptEditor extends TextEditor
-  DEBUG = if DEBUG? then DEBUG else 0
-  Editor.addEditor(this)
+  TextEditor.register(this)
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
   @static
-  @cfg {string[]}
-    List of suffixes
-  ###
-  @SUFFIXES: ["js"]
-
-  ###*
-  @static
-  @cfg {boolean}
-    Editable or not
+  @inheritdoc Editor#editable
   @readonly
   ###
-  @EDITABLE: true
+  @editable: true
+
+  #--------------------------------------------------------------------------------
+  # Private constants
+  #
+
+  SUFFIX_RE = /\.js$/i
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
-  @method constructor
-    Constructor
-  @param {FileEntry} fileEntry
-    FileEntry for this document
+  @inheritdoc Editor#supports
   ###
-  constructor: (fileEntry) ->
-    super(fileEntry, "ace/mode/javascript")
+  @supports: (path) ->
+    return !!path.match(SUFFIX_RE)
+
+  #--------------------------------------------------------------------------------
+  # Protected properties
+  #
+
+  ###*
+  @protected
+  @method constructor
+    Constructor of JavaScriptEditor class
+  @param {jQuery} $
+    jQuery object
+  @param {Sketch} sketch
+    Sketch instance
+  @param {string} path
+    Path of target file
+  ###
+  constructor: ($, sketch, path) ->
+    super($, sketch, path, "ace/mode/javascript")
     return
 
-  ###* @property _mode @hide ###
-  ###* @property _aceSession @hide ###
-
+module.exports = JavaScriptEditor

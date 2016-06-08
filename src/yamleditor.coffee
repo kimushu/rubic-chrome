@@ -1,15 +1,58 @@
+# Dependencies
+TextEditor = require("./texteditor")
+
 ###*
-@class
-Editor for YAML text
+@class YAMLEditor
+  Editor for YAML text (View)
+@extends TextEditor
 ###
-class YamlEditor extends Editor
-  Editor.addEditor(this)
-  @suffix: ["yml", "yaml"]
-  @editable: true
+class YAMLEditor extends TextEditor
+  TextEditor.register(this)
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
 
   ###*
-  Constructor
+  @static
+  @inheritdoc Editor#editable
+  @readonly
   ###
-  constructor: (fileEntry) ->
-    super(fileEntry, "ace/mode/yaml")
+  @editable: true
 
+  #--------------------------------------------------------------------------------
+  # Private constants
+  #
+
+  SUFFIX_RE = /\.ya?ml$/i
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
+
+  ###*
+  @inheritdoc Editor#supports
+  ###
+  @supports: (path) ->
+    return !!path.match(SUFFIX_RE)
+
+  #--------------------------------------------------------------------------------
+  # Protected properties
+  #
+
+  ###*
+  @protected
+  @method constructor
+    Constructor of RubyEditor class
+  @param {jQuery} $
+    jQuery object
+  @param {Sketch} sketch
+    Sketch instance
+  @param {string} path
+    Path of target file
+  ###
+  constructor: ($, sketch, path) ->
+    super($, sketch, path, "ace/mode/yaml")
+    return
+
+module.exports = YAMLEditor

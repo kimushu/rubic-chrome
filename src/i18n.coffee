@@ -1,47 +1,124 @@
 ###*
-@class Rubic
+@class I18n
+  Internationalization helper class
 ###
-###*
-@method I18n
-  Get localized message from message ID
-@param {string} id
-  ID of message
-@param {string} [args]
-  List of string to substitute
-@return {string} Localized message
-###
-Rubic.I18n = (id, args...) ->
-  XESCAPE = {c: ":", d: "...", p: ".", q: "?", s: " ", x: "X"}
-  m = chrome.i18n.getMessage(id, [args...])
-  return m.escapeHtml() if m != ""
-  m = id
-  m = m.replace(/X([cdpqsx])/g, (n, p1) -> "#{XESCAPE[p1]}")
-  m = m.replace(/([.?])([A-Z])/g, (n, p1, p2) -> "#{p1} #{p2}")
-  m = m.replace(/([A-Za-z])([A-Z])/g, (n, p1, p2) -> "#{p1} #{p2.toLowerCase()}")
-  m = m.replace(/_/g, ' ')
-  return m.escapeHtml()
+class I18n
+  lang = chrome.i18n.getUILanguage()
 
-Rubic.I18nS = (dict) ->
-  return dict if typeof dict == "string"
-  return dict[chrome.i18n.getUILanguage()] or dict["en"]
+  ###*
+  @static
+  @property {string} lang
+    UI language name
+  @readonly
+  ###
+  Object.defineProperty(this, "lang", {value: lang})
 
-###*
-@method I18nT
-  Translate all elements in the window
-@param {Object} JQuery object to process
-@return {void}
-###
-Rubic.I18nT = ($) ->
-  pat = /__MSG_([A-Za-z0-9]+)__/
-  rep = (text, setter) ->
-    return unless text
-    newText = text.replace(pat, (m, p1) -> Rubic.I18n(p1))
-    setter(newText) if newText != text
-  $(".i18n").each((i, v) ->
-    e = $(v)
-    rep(e.attr?("title"), (t) -> e.attr("title", t))
-    rep(e.attr?("placeholder"), (t) -> e.attr("placeholder", t))
-    rep(e.html(), (t) -> e.html(t))
-  )
-  return
+  ###*
+  @method constructor
+    Constructor of multi-language text
+  ###
+  constructor: (@_obj) ->
+    return
 
+  ###*
+  @method
+    Get text of this multi-language text
+  @return {string}
+    Translated text
+  ###
+  toString: ->
+    return @_text if @_text?
+    do =>
+      @_text = @_obj
+      return if typeof(@_text) == "string"
+      @_text = @_obj[lang]
+      return if typeof(@_text) == "string"
+      @_text = @_obj["en"]
+      return if typeof(@_text) == "string"
+      @_text = "<translate error>"
+      console.warn("No translated text for object (#{@_obj})")
+    return @_text
+
+  ###*
+  @static
+  @method
+    Get translated message (using chrome.i18n)
+  @param {string} id
+    ID of message
+  @param {string[]} [subs]
+    Substitute text
+  @return {string}
+    Translated message
+  ###
+  @getMessage: (id, subs...) ->
+    r = chrome.i18n.getMessage(id, subs...)
+    if r == ""
+      console.warn("No translation for id='#{id}'")
+      r = id.replace(/_/g, " ")
+    return r
+
+  ESCAPE = {"<": "{", ">": "}"}
+
+  ###*
+  @static
+  @method
+    Make error object with translated message
+  @param {string} id
+    ID of message
+  @param {string[]} [subs]
+    Substitute text
+  @return {Error}
+    Error object
+  ###
+  @error: (id, subs...) ->
+    return Error(@getMessage(id, subs...))
+
+  ###*
+  @static
+  @method
+    Make Promise.reject object with translated message
+  @param {string} id
+    ID of message
+  @param {string[]} [subs]
+    Substitute text
+  @return {Promise}
+    Promise object
+  ###
+  @rejectPromise: (id, subs...) ->
+    return Promise.reject(@error(id, subs...))
+
+  ###*
+  @static
+  @method
+    Translate messages in text
+  @param {string} text
+    Input text
+  @return {string}
+    Output (translated) text
+  ###
+  @translateText: (text) ->
+    r = text
+    r = r.replace(/{(\w+)(\/?)}/g, (n, p1, p2) =>
+      m = @getMessage(p1)
+      m = m.replace(/\.+$/, "") if p2 == "/"
+      return m
+    )
+    r = r.replace(/{([<>])}/g, (n, p1) => ESCAPE[p1])
+    return r
+
+  CONVATTRS = ["innerHTML", "title"]
+
+  ###*
+  @static
+  @method
+    Translate elements in document
+  @param {Document} doc
+    Document
+  @return {undefined}
+  ###
+  @translateDocument: (doc) ->
+    for e in doc.getElementsByClassName("i18n")
+      e[a] = @translateText(e[a]) for a in CONVATTRS
+    return
+
+module.exports = I18n
