@@ -19,3 +19,9 @@
 [submodule "src/coffeescript"]
 	path = src/coffeescript
 	url = https://github.com/jashkenas/coffeescript.git
+[submodule "libs/mruby"]
+	path = libs/mruby
+	url = git@github.com:kimushu/mruby.git
+[submodule "libs/mrubyc"]
+	path = libs/mrubyc
+	url = git@github.com:kimushu/mrubyc.git
