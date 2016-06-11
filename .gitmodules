@@ -1,24 +1,3 @@
-[submodule "src/bootstrap"]
-	path = src/bootstrap
-	url = https://github.com/twbs/bootstrap.git
-[submodule "src/bootbox"]
-	path = src/bootbox
-	url = https://github.com/makeusabrew/bootbox.git
-[submodule "src/ace-builds"]
-	path = src/ace-builds
-	url = https://github.com/ajaxorg/ace-builds.git
-[submodule "src/mruby"]
-	path = src/mruby
-	url = https://github.com/kimushu/mruby.git
-[submodule "src/js-yaml"]
-	path = src/js-yaml
-	url = https://github.com/nodeca/js-yaml.git
-[submodule "src/bootstrap-notify"]
-	path = src/bootstrap-notify
-	url = https://github.com/mouse0270/bootstrap-notify.git
-[submodule "src/coffeescript"]
-	path = src/coffeescript
-	url = https://github.com/jashkenas/coffeescript.git
 [submodule "libs/mruby"]
 	path = libs/mruby
 	url = git@github.com:kimushu/mruby.git
