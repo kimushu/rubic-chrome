@@ -1,0 +1,156 @@
+Show_menu:
+    "Show menu"
+Hide_menu:
+    "Hide menu"
+Back_to_editor:
+    "Back to sketch editor"
+New:
+    "New"
+Open:
+    "Open"
+Save:
+    "Save"
+Build:
+    "Build"
+Run:
+    "Run"
+Debug:
+    "Debug"
+New_sketch:
+    "New sketch"
+Open_sketch:
+    "Open sketch"
+Open_from_local:
+    "Open from this PC..."
+Open_from_Google_Drive:
+    "Open from Google Drive..."
+Open_from_Dropbox:
+    "Open from Dropbox..."
+Open_from_OneDrive:
+    "Open from OneDrive..."
+Open_from_cloud:
+    "Open from cloud service..."
+Save_sketch:
+    "Save sketch"
+Save_overwrite:
+    "Overwrite"
+Save_to_local:
+    "Save to this PC..."
+Save_to_Google_Drive:
+    "Save to Google Drive..."
+Save_to_Dropbox:
+    "Save to Dropbox..."
+Save_to_OneDrive:
+    "Save to OneDrive..."
+Save_to_cloud:
+    "Save to cloud service..."
+Share_sketch:
+    "Share sketch"
+Build_sketch:
+    "Build sketch"
+Run_sketch:
+    "Run sketch"
+Preferences:
+    "Preferences"
+Tutorial:
+    "Tutorial"
+About_this_app:
+    "About this app"
+Select_hardware:
+    "Select hardware"
+Show_all_hardwares:
+    "Show all compositions"
+Edit_hardware:
+    "Edit current composition"
+Select_connection:
+    "Select connection"
+Scan_connections:
+    "Rescan connections"
+Guide_view:
+    "Guide view"
+Hardware_info:
+    "Hardware information"
+Library_manual:
+    "Manual of library"
+Output_window:
+    "Output window"
+Hide_all:
+    "Hide all windows"
+Cloud_service_auth:
+    "Connections to cloud services"
+Desc_of_cloud_services:
+    "You can open and save your sketches when you got authentication token for this app."
+See_privacy_policy:
+    "Click this link to see privacy policy."
+Privacy_policy:
+    "Privacy policy"
+Desc_of_cloud_auth:
+    "The authentication window will popup when you click \"Acquire access\" button."
+Google_Drive:
+    "Google Drive"
+Dropbox:
+    "Dropbox"
+OneDrive:
+    "OneDrive"
+Acquire_access:
+    "Acquire access"
+Revoke_access:
+    "Revoke access"
+Authed_by:
+    "Already authenticated by"
+For_Rubic_testers:
+    "For Rubic testers"
+Desc_of_for_testers:
+    "The items below are for testing of Rubic app." # TODO
+Show_tester_settings:
+    "Show settings for testers"
+Thanks_testers:
+    "Thank you for assisting Rubic development."
+Log_verbosity:
+    "Verbosity of log"
+No_log:
+    "No log output (Default)"
+Simple_logs:
+    "Simple log output"
+Detail_logs:
+    "Detailed log output (This may cause slow behavior of this app.)"
+
+
+UI_language:
+    "UI language"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Version:
+    "Version"
+Website:
+    "Website"
+Rubic_supported_by:
+    "Rubic is supported by open-source projects listed below:"
+Copyright_and_license:
+    "Copyright and license"
+License:
+    "License"
+Select_board:
+    "Select board"
+Select_features:
+    "Select features"
+Configure_io_pins:
+    "Configure I/O pins"
+Use_this_board:
+    "Use this board"
+Author:
+    "Author"
