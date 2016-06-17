@@ -30,20 +30,33 @@ class JSONable
   @return {undefined}
   ###
   @jsonable: (subclass) ->
-    (@subclasses or= []).push(subclass or @constructor)
+    (@subclasses or= []).push(subclass or @)
     return
 
   ###*
   @static
   @method
     Parse JSON and generate a new instance
+  @param {string/Object} obj
+    JSON string or JSON object
   @return {Object} new instance
   ###
   @parseJSON: (obj) ->
     obj = JSON.parse(obj) if typeof(obj) == "string"
-    return new @constructor(obj) unless c = obj.class?
-    return new s(obj) for s in (@subclasses or []) when s.name == c
+    c = obj.class
+    return s.generateFromJSON(obj) for s in (@subclasses or []) when s.name == c
     throw Error("Class #{obj.class} not found")
+
+  ###*
+  @static
+  @method
+    Generate a new instance from JSON
+  @param {Object} obj
+    JSON object
+  @return {Object} new instance
+  ###
+  @generateFromJSON: (obj) ->
+    return new @(obj)
 
   ###*
   @method

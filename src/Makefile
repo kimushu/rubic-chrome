@@ -6,21 +6,24 @@ jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQu
 
 uglifyjs_opts = -c warnings=false
 
-bkg_src = $(SRC_DIR)/background.coffee
-bkg_out = $(DIST_DIR)/background.js
-bkg_dep = $(SRC_DIR)/.$(notdir $(bkg_src)).dep
-bkg_min = $(DIST_DIR)/background.min.js
+bkg_src  = $(SRC_DIR)/background.coffee
+bkg_out  = $(DIST_DIR)/background.js
+bkg_dep  = $(SRC_DIR)/.$(notdir $(bkg_src)).dep
+bkg_min  = $(DIST_DIR)/background.min.js
 
-top_src = $(SRC_DIR)/top.coffee
-top_out = $(DIST_DIR)/window.js
-top_dep = $(SRC_DIR)/.$(notdir $(top_src)).dep
-top_min = $(DIST_DIR)/window.min.js
+top_src  = $(SRC_DIR)/top.coffee
+top_out  = $(DIST_DIR)/window.js
+top_dep  = $(SRC_DIR)/.$(notdir $(top_src)).dep
+top_min  = $(DIST_DIR)/window.min.js
 
-lib_src = $(SRC_DIR)/library.coffee
-lib_dep = $(SRC_DIR)/.$(notdir $(lib_src)).dep
-lib_min = $(DIST_DIR)/library.min.js
+lib_src  = $(SRC_DIR)/library.coffee
+lib_dep  = $(SRC_DIR)/.$(notdir $(lib_src)).dep
+lib_min  = $(DIST_DIR)/library.min.js
 
-all: $(bkg_min) $(top_min) $(lib_min)
+stub_src = $(SRC_DIR)/stubs.coffee
+stub_min = $(DIST_DIR)/stubs.min.js
+
+all: $(bkg_min) $(top_min) $(lib_min) $(stub_min)
 
 $(bkg_out): $(bkg_dep) $(BROWSERIFY)
 	$(call ECHO_W,"Compiling coffee scripts ($@)")
@@ -60,9 +63,13 @@ $(lib_dep): $(lib_src) $(BROWSERIFY)
 	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< 2>/dev/null | sed -e 's/$$/ \\/' >> $@ || (rm -f $@; false)
 	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $@
 
+$(stub_min): $(stub_src) $(COFFEE) $(UGLIFYJS)
+	$(call ECHO_W,"Generating stub scripts ($@)")
+	$(Q)cat $< | $(COFFEE) -c -s | $(UGLIFYJS) $(uglifyjs_opts) -o $@
+
 clean:
 	$(call ECHO_Y,"Cleaning files")
-	$(Q)rm -f $(top_dep) $(top_out)
+	$(Q)rm -f $(bkg_dep) $(bkg_out) $(top_dep) $(top_out) $(lib_dep) $(lib_min) $(stub_min)
 
 clobber: clean
 

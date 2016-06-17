@@ -204,3 +204,4 @@ class WakayamaRbBoard extends Board
     constructor: (@_serial) ->
       return
 
+module.exports = WakayamaRbBoard

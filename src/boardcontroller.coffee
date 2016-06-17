@@ -3,6 +3,8 @@ WindowController = require("./windowcontroller")
 Board = null
 Preferences = null
 
+AUTO_PAGE_TRANSITION = 500
+
 ###*
 @class BoardController
   Controller for board-catalog view (Controller, Singleton)
@@ -38,6 +40,7 @@ class BoardController extends WindowController
   ###
   constructor: (window) ->
     super(window)
+    @_board = null
     return
 
   #--------------------------------------------------------------------------------
@@ -66,12 +69,18 @@ class BoardController extends WindowController
     )
     @_refreshCatalog()
     @$(".board-use-this").click((event) =>
-      # name = @$(event.target).parents(".media")[0].id?.split?("-")[1]
-      media = @$(@$(event.target).parents(".media")[0])
-      media.siblings().removeClass("board-selected")
-      media.addClass("board-selected")
-      # return resolve(b) for b in @_list when b.name == name
-      # return reject(Rubic.I18n.error("No_board_named", name))
+      li = @$(event.target).parents(".media")
+      name = li[0].id?.split?("-")[1]
+      li.siblings().removeClass("board-selected")
+      li.addClass("board-selected")
+      for board in Board.subclasses
+        continue unless board.name == name
+        # overwrite confirmation
+        @_board = new board()
+        @_refreshFeatures()
+        if AUTO_PAGE_TRANSITION?
+          setTimeout((=> @$("li#board-features > a").click()), AUTO_PAGE_TRANSITION)
+        break
     )
     @$("body").addClass("controller-board")
     return
@@ -116,16 +125,39 @@ class BoardController extends WindowController
       @$(ph[1]).text(board.author)
       @$(ph[2]).attr("href", board.website)
       li.show()
+      li.addClass("board-selected") if @_board?.constructor.name == board.name
     return
 
   ###*
   @private
   @method
     Refresh features
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   _refreshFeatures: ->
-    @$("feature-script-engine")
+    return Promise.resolve() unless @_board?
+    return Promise.resolve(
+    ).then(=>
+      @$("#feature-board").text(@_board.constructor.friendlyName)
+      return @_board.getCatalog(true)
+    ).then((catalog) =>
+      tmpl = @$("#script-engine-tmpl")
+      tmpl.hide()
+      tmpl.siblings().remove()
+      for e in catalog.engines
+        id = "engine-#{e.id}"
+        (li = tmpl.clone()).appendTo(tmpl.parent())
+        li[0].id = id
+        li.find(".placeholder").text(e.name)
+        li.find(".label-danger").hide() unless e.obsolete
+        li.find(".label-warning").hide() unless e.beta
+        li.show()
+      tmpl.siblings.children("a").click((event) =>
+      )
+      tmpl = @$("#firmware-tmpl")
+      tmpl.hide()
+    )
     return
 
 module.exports = BoardController

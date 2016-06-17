@@ -17,11 +17,29 @@ class App
 
   ###*
   @static
+  @property {Sketch}
+    Current sketch
+  ###
+  @sketch: null
+
+  ###*
+  @static
   @property {string}
     Version string for Rubic
   @readonly
   ###
   @classProperty("version", value: chrome.runtime.getManifest?()["version"] or VER_EMULATION)
+
+  LOG = (type, verbosity, args) ->
+    return if window.log_verbosity < verbosity
+    return window.console[type](args[0])  # TODO sprintf
+
+  @log          = -> return LOG("log", 1, arguments)
+  @log.detail   = -> return LOG("log", 2, arguments)
+  @warn         = -> return LOG("warn", 1, arguments)
+  @warn.detail  = -> return LOG("warn", 2, arguments)
+  @error        = -> return LOG("error", 1, arguments)
+  @error.detail = -> return LOG("error", 2, arguments)
 
   ###*
   @static

@@ -1,8 +1,12 @@
+# Pre dependencies
+JSONable = require("./jsonable")
+
 ###*
 @class I18n
   Internationalization helper class
 ###
-class I18n
+class I18n extends JSONable
+  I18n.jsonable()
   lang = chrome.i18n.getUILanguage()
 
   ###*
@@ -120,5 +124,23 @@ class I18n
     for e in doc.getElementsByClassName("i18n")
       e[a] = @translateText(e[a]) for a in CONVATTRS
     return
+
+  #--------------------------------------------------------------------------------
+  # Protected methods
+  #
+
+  ###*
+  @inheritdoc JSONable#generateFromJSON
+  ###
+  @generateFromJSON: (obj) ->
+    return new @(obj.content)
+
+  ###*
+  @inheritdoc JSONable#toJSON
+  ###
+  toJSON: ->
+    return super().extends({
+      content: @_obj
+    })
 
 module.exports = I18n
