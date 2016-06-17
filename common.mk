@@ -8,12 +8,12 @@ VIEW_DIR   := $(ROOT_DIR)/view
 LOCALE_DIR := $(ROOT_DIR)/locale
 TEST_DIR   := $(ROOT_DIR)/test
 
-NPM_DIR    := $(shell npm bin)
+NPM_BIN    := $(shell npm bin)
 
-BROWSERIFY := $(NPM_DIR)/browserify
-COFFEE     := $(NPM_DIR)/coffee
-UGLIFYJS   := $(NPM_DIR)/uglifyjs
-LESSC      := $(NPM_DIR)/lessc
+BROWSERIFY := $(NPM_BIN)/browserify
+COFFEE     := $(NPM_BIN)/coffee
+UGLIFYJS   := $(NPM_BIN)/uglifyjs
+LESSC      := $(NPM_BIN)/lessc
 JSDUCK     := $(firstword $(shell which jsduck 2> /dev/null) .jsduck-required)
 
 ECHO_R     = @echo -e "\033[1;31m\# "$1"\033[0m"

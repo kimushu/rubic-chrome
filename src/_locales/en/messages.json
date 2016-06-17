@@ -1,8 +1,0 @@
-{
-  "ManiDesc": {"message": "Prototyping tool for embedded-boards with Ruby language"},
-  "SelfIntro": {"message": "Rubic is an IDE for prototyping on embedded-boards with Ruby language."},
-  "Sketch_saved": {"message": "Sketch has been saved."},
-  "Board_Connected": {"message": "Connected $1 on $2"},
-  "ProgramAndRun": {"message": "Program & Run"},
-  "xxx": {"message": "xxx"}
-}
