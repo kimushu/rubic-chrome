@@ -1,10 +1,11 @@
 # Pre dependencies
 UnJSONable = require("./unjsonable")
+Html5Fs = null
 
 ###*
 @class AsyncFs
   Asynchronous file system like fs module in Node.js
-@extends Rubic.UnJSONable
+@extends UnJSONable
 ###
 class AsyncFs extends UnJSONable
   null
@@ -18,6 +19,10 @@ class AsyncFs extends UnJSONable
       return
     )
     return
+
+  SEP         = "/"
+  SEP_RE      = /\/+/
+  SEP_LAST_RE = /\/+$/
 
   #--------------------------------------------------------------------------------
   # Node.js compatible methods
@@ -40,6 +45,7 @@ class AsyncFs extends UnJSONable
       callback = mode
       mode = 0o777
     return invokeCallback(callback, @mkdir(path, mode)) if callback?
+    path = path.split(SEP_RE).join(SEP).replace(SEP_LAST_RE, "")
     return @mkdirImpl(path, mode)
 
   ###*
@@ -59,8 +65,24 @@ class AsyncFs extends UnJSONable
       callback = options
       options = null
     return invokeCallback(callback, @readFile(file, options)) if callback?
+    file = file.split(SEP_RE).join(SEP)
     options = {encoding: options} if typeof(options) == "string"
     return @readFileImpl(file, options)
+
+  ###*
+  @method
+    Remove a directory
+  @param {string} path
+    Directory path
+  @param {function(Error/null):undefined} [callback]
+    Callback function when Promise is not used
+  @return {undefined/Promise}
+    Promise object when callback is omitted
+  ###
+  rmdir: (path, callback) ->
+    return invokeCallback(callback, @rmdir(path)) if callback?
+    path = path.split(SEP_RE).join(SEP).replace(SEP_LAST_RE, "")
+    return @rmdirImpl(path)
 
   ###*
   @method
@@ -79,12 +101,13 @@ class AsyncFs extends UnJSONable
       callback = options
       options = null
     return invokeCallback(callback, @writeFile(file, data, options)) if callback?
+    file = file.split(SEP_RE).join(SEP)
     options = {encoding: options} if typeof(options) == "string"
     return @writeFileImpl(file, data, options)
 
   ###*
   @method
-    Unlink file
+    Unlink a file
   @param {string} path
     File path
   @param {function(Error/null):undefined} [callback]
@@ -94,6 +117,7 @@ class AsyncFs extends UnJSONable
   ###
   unlink: (path, callback) ->
     return invokeCallback(callback, @unlink(path)) if callback?
+    path = path.split(SEP_RE).join(SEP)
     return @unlinkImpl(path)
 
   #--------------------------------------------------------------------------------
@@ -105,16 +129,39 @@ class AsyncFs extends UnJSONable
     Open directory as fs object
   @param {string} path
     File path
-  @param {function(Error/null,Rubic.AsyncFs):undefined} [callback]
+  @param {function(Error/null,AsyncFs):undefined} [callback]
     Callback function when Promise is not used
   @return {undefined/Promise}
     Promise object when callback is omitted
-  @return {Rubic.AsyncFs} return.PromiseValue
+  @return {AsyncFs} return.PromiseValue
     New fs object for directory
   ###
   opendirfs: (path, callback) ->
     return invokeCallback(callback, @opendirfs(path)) if callback?
+    path = path.split(SEP_RE).join(SEP)
     return @opendirfsImpl(path)
+
+  ###*
+  @static
+  @method
+    Open temporary directory as fs object
+  @param {function(Error/null,AsyncFs):undefined} [callback]
+    Callback function when Promise is not used
+  @return {undefined/Promise}
+    Promise object when callback is omitted
+  @return {AsyncFs} return.PromiseValue
+    New fs object for directory
+  ###
+  @opentmpfs: (callback) ->
+    Html5Fs or= require("./html5fs")
+    return new Promise((resolve, reject) =>
+      window.webkitRequestFileSystem(
+        window.TEMPORARY
+        5 * 1024 * 1024
+        (fs) => resolve(new Html5Fs(fs.root))
+        reject
+      )
+    )
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -138,7 +185,7 @@ class AsyncFs extends UnJSONable
   @protected
   @method
     Implement of readFile method
-  @param {string} file
+  @param {string} path
     File path
   @param {Object} options
     Options
@@ -147,14 +194,26 @@ class AsyncFs extends UnJSONable
   @return {Object} return.PromiseValue
     Read data
   ###
-  readFileImpl: (file, options) ->
+  readFileImpl: (path, options) ->
+    return Promise.reject(Error("Not supported"))
+
+  ###*
+  @protected
+  @method
+    Implement of rmdir method
+  @param {string} path
+    Directory path
+  @return {Promise}
+    Promise object
+  ###
+  rmdirImpl: (path) ->
     return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
   @method
     Implement of writeFile method
-  @param {string} file
+  @param {string} path
     File path
   @param {Object} data
     Write data
@@ -163,7 +222,7 @@ class AsyncFs extends UnJSONable
   @return {Promise}
     Promise object
   ###
-  writeFileImpl: (file, data, options) ->
+  writeFileImpl: (path, data, options) ->
     return Promise.reject(Error("Not supported"))
 
   ###*
@@ -186,7 +245,7 @@ class AsyncFs extends UnJSONable
     File path
   @return {Promise}
     Promise object
-  @return {Rubic.AsyncFs} return.PromiseValue
+  @return {AsyncFs} return.PromiseValue
     New fs object for directory
   ###
   opendirfsImpl: (path) ->
