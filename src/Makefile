@@ -150,14 +150,16 @@ DIST_FILES += spin.min.js jquery.spin.js
 
 DIST_INFO = $(DIST_DIR)/dist.txt
 
-DIST_VER = $(shell jq -r .version $(DIST_DIR)/manifest.json)
+DIST_VER = $(shell jq -r .version manifest.json)
+
+DIST_FORCE ?= false
 
 .PHONY: dist
 dist: $(DIST_FILES) $(firstword $(JQ) jq-is-missing)
 	@echo "[Packing distribution files]"
 	$(Q)test -z "$$(git status -uno --porcelain)" || \
 		(echo "**** You must commit all files before distribution."; \
-		 git status -uno; false)
+		 git status -uno; $(DIST_FORCE))
 	$(Q)mkdir -p $(DIST_DIR)
 	$(Q)rm -rf $(DIST_DIR)/*
 	$(Q)echo -n " " > $(DIST_INFO)
