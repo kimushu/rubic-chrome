@@ -167,7 +167,7 @@ class SerialPort extends Port
       if data.byteLength > 0
         @receivedLength += data.byteLength
         if @receivedLength > @receivedArray.byteLength
-          capacity = @receivedLength.byteLength
+          capacity = @receivedArray.byteLength
           capacity *= 2 while @receivedLength > capacity
           newArray = new Uint8Array(capacity)
           newArray.set(@receivedArray, 0)
