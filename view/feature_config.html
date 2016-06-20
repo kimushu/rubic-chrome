@@ -32,23 +32,26 @@
         </div>
       </div>
       <!--begin-->
-      <div class="main-inner config-body">
+      <div class="main-inner config-body board-features">
         <div class="row">
           <div class="col-md-12">
             <div class="panel panel-primary">
               <div class="panel-heading">
-                <h3 class="panel-title i18n">{Basic_settings}</h3>
+                <h3 class="panel-title i18n"><b>{Basic_settings}</b></h3>
               </div>
               <div class="panel-body">
                 <div class="form-horizontal">
-                  <div class="form-group" id="board-version">
+                  <div class="form-group">
                     <div class="col-sm-4">
-                      <label class="control-label i18n">{Board_version}</label>
+                      <label class="control-label i18n">{Selected_board}</label>
                     </div>
                     <div class="col-sm-8">
-                      <select class="form-control">
-                        <option>(Versions)</option>
-                      </select>
+                      <div class="input-group">
+                        <span class="form-control" id="feature-board"></span>
+                        <span class="input-group-btn">
+                          <button class="btn btn-default i18n">{Change}</button>
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div class="form-group" id="board-engine">
@@ -56,25 +59,41 @@
                       <label class="control-label i18n">{Script_engine}</label>
                     </div>
                     <div class="col-sm-8">
-                      <select class="form-control">
-                        <option>mruby</option>
-                        <option>Lua</option>
-                        <option>Duktape (JavaScript/CoffeeScript)</option>
-                      </select>
+                      <div class="dropdown">
+                        <button class="btn btn-default dropdown-toggle i18n" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                          <span class="placeholder">(Select one)</span>
+                          <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li id="feature-engine_tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger label-bigger i18n">{Obsolete}</span> <span class="label label-warning label-bigger i18n">{Beta}</span></a></li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
-                  <div class="form-group" id="board-engine-ver">
+                  <div class="form-group">
                     <div class="col-sm-4">
-                      <label class="control-label i18n">{Version_pre}
-                        <span class="placeholder">{Engine}</span>{Version_post}</label>
+                      <label class="control-label i18n">{Firmware}</label>
                     </div>
                     <div class="col-sm-8">
-                      <select class="form-control">
-                        <option>(Version)</option>
-                      </select>
+                      <div class="dropdown">
+                        <button class="btn btn-default dropdown-toggle i18n" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                          <span class="placeholder">(Select one)</span>
+                          <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li id="feature-fw_tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span><a class="glyphicon glyphicon-circle-arrow-down i18n" title="{Downloads_required}"></a><span class="label label-danger i18n">{Obsolete}</span><span class="label label-warning i18n">{Beta}</span></a></li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title i18n"><b>{Serial_communication}</b></h3>
+              </div>
+              <div class="panel-body">
               </div>
             </div>
           </div>

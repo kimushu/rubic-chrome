@@ -1,10 +1,12 @@
-# browserify ready
+# Pre dependencies
+UnJSONable = require("./unjsonable")
+
 ###*
 @class EventTarget
   Target which holds event listeners and dispatch event
   (This is NOT compatible with EventTarget class in WebAPI interface)
 ###
-class EventTarget
+class EventTarget extends UnJSONable
   null
 
   ###*
@@ -30,7 +32,7 @@ class EventTarget
     The object to use as this when executing listener
   @return {undefined}
   ###
-  addEventListener: (listener, thisObject) ->
+  addEventListener: (listener, thisObject = null) ->
     item = [listener, thisObject]
     @_listeners.push(item) unless @_listeners.includes(item)
     return
@@ -44,7 +46,7 @@ class EventTarget
     The object to use as this when executing listener
   @return {undefined}
   ###
-  removeEventListener: (listener, thisObject) ->
+  removeEventListener: (listener, thisObject = null) ->
     item = [listener, thisObject]
     index = @_listeners.indexOf(item)
     @_listeners.splice(index, 1) if index >= 0
@@ -56,7 +58,7 @@ class EventTarget
   @return {undefined}
   ###
   dispatchEvent: (args...) ->
-    @_listeners.forEach((element) ->
+    @_listeners.forEach((element) =>
       element[0].apply(element[1], args)
     )
     return

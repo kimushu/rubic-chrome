@@ -5,8 +5,9 @@ clean: clean-html
 clobber: clobber-html
 
 dwld_dir  = $(VIEW_DIR)/downloads
-modules   = jqy twbs fawe ace spin bbox
+modules   = jqy twbs fawe ace spin bbox cana jstr
 
+.PHONY: info
 info:
 	$(call ECHO_W,"Module versions")
 	@true $(foreach m,$(modules),&& printf "    %-12s : %s\n" "$($(m)_name)" "$($(m)_ver)")
@@ -31,11 +32,11 @@ clobber-jqy: clean-jqy
 	$(Q)rm -f $(jqy_src)
 
 $(jqy_out): $(jqy_src)
-	$(call ECHO_W,"Locating jQuery script ($@)")
+	$(call ECHO_W,"Locating $(jqy_name) script ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $< $@
 
 $(jqy_src):
-	$(call ECHO_C,"Downloading jQuery source ($(jqy_url))")
+	$(call ECHO_C,"Downloading $(jqy_name) source ($(jqy_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqy_url)"
 
 #--------------------------------------------------------------------------------
@@ -64,19 +65,19 @@ clobber-twbs: clean-twbs
 	$(Q)rm -f $(twbs_tgz)
 
 $(twbs_fout): $(twbs_key)
-	$(call ECHO_W,"Locating bootstrap font ($@)")
+	$(call ECHO_W,"Locating $(twbs_name) font ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(twbs_fsrc) $@
 
 $(twbs_jout): $(twbs_key)
-	$(call ECHO_W,"Locating bootstrap script ($@)")
+	$(call ECHO_W,"Locating $(twbs_name) script ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(twbs_jsrc) $@
 
 $(twbs_key): $(twbs_tgz)
-	$(call ECHO_W,"Unpacking bootstrap tarball ($<)")
+	$(call ECHO_W,"Unpacking $(twbs_name) tarball ($<)")
 	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(twbs_tgz):
-	$(call ECHO_C,"Downloading bootstrap tarball ($(twbs_url))")
+	$(call ECHO_C,"Downloading $(twbs_name) tarball ($(twbs_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(twbs_url)"
 
 #--------------------------------------------------------------------------------
@@ -105,19 +106,19 @@ clobber-fawe: clean-fawe
 	$(Q)rm -f $(fawe_tgz)
 
 $(fawe_cout): $(fawe_key)
-	$(call ECHO_W,"Locating font-awesome css ($@)")
+	$(call ECHO_W,"Locating $(fawe_name) css ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(fawe_csrc) $@
 
 $(fawe_fout): $(fawe_key)
-	$(call ECHO_W,"Locating font-awesome font ($@)")
+	$(call ECHO_W,"Locating $(fawe_name) font ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(fawe_fsrc) $@
 
 $(fawe_key): $(fawe_tgz)
-	$(call ECHO_W,"Unpacking font-awesome tarball ($<)")
+	$(call ECHO_W,"Unpacking $(fawe_name) tarball ($<)")
 	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(fawe_tgz):
-	$(call ECHO_C,"Downloading font-awesome tarball ($(fawe_url))")
+	$(call ECHO_C,"Downloading $(fawe_name) tarball ($(fawe_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(fawe_url)"
 
 #--------------------------------------------------------------------------------
@@ -144,15 +145,15 @@ clobber-ace: clean-ace
 	$(Q)rm -f $(ace_tgz)
 
 $(ace_out): $(ace_key)
-	$(call ECHO_W,"Locating Ace scripts ($@)")
+	$(call ECHO_W,"Locating $(ace_name) scripts ($@)")
 	$(Q)mkdir -p $(dir $@) && cp -r $(ace_src) $(ace_out)
 
 $(ace_key): $(ace_tgz)
-	$(call ECHO_W,"Unpacking Ace tarball ($<)")
+	$(call ECHO_W,"Unpacking $(ace_name) tarball ($<)")
 	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(ace_tgz):
-	$(call ECHO_C,"Downloading Ace tarball ($(ace_url))")
+	$(call ECHO_C,"Downloading $(ace_name) tarball ($(ace_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(ace_url)"
 
 #--------------------------------------------------------------------------------
@@ -179,15 +180,15 @@ clobber-spin: clean-spin
 	$(Q)rm -f $(spin_tgz)
 
 $(spin_out): $(spin_key)
-	$(call ECHO_W,"Locating spin.js script ($@)")
+	$(call ECHO_W,"Locating $(spin_name) script ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(spin_src) $@
 
 $(spin_key): $(spin_tgz)
-	$(call ECHO_W,"Unpacking spin.js tarball ($<)")
+	$(call ECHO_W,"Unpacking $(spin_name) tarball ($<)")
 	$(Q)tar -C $(dir $<) -xf $< && touch $@
 
 $(spin_tgz):
-	$(call ECHO_C,"Downloading spin.js tarball ($(spin_url))")
+	$(call ECHO_C,"Downloading $(spin_name) tarball ($(spin_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(spin_url)"
 
 #--------------------------------------------------------------------------------
@@ -210,12 +211,82 @@ clobber-bbox: clean-bbox
 	$(Q)rm -f $(bbox_src)
 
 $(bbox_out): $(bbox_src)
-	$(call ECHO_W,"Locating Bootbox script ($@)")
+	$(call ECHO_W,"Locating $(bbox_name) script ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $< $@
 
 $(bbox_src):
-	$(call ECHO_C,"Downloading Bootbox script ($(bbox_url))")
+	$(call ECHO_C,"Downloading $(bbox_name) script ($(bbox_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(bbox_url)"
+
+#--------------------------------------------------------------------------------
+# Canarium
+#
+
+cana_name = Canarium
+cana_ver  = 0.9.8
+cana_url  = https://github.com/kimushu/canarium/archive/v$(cana_ver).tar.gz
+cana_dir  = $(dwld_dir)/canarium-$(cana_ver)
+cana_tgz  = $(cana_dir).tar.gz
+cana_key  = $(cana_dir)/.unpacked
+cana_src  = $(cana_dir)/js/canarium.min.js
+cana_out  = $(DIST_DIR)/$(notdir $(cana_src))
+
+.PHONY: cana clean-cana clobber-cana
+cana: $(cana_out)
+
+clean-cana:
+	$(Q)rm -f $(cana_out)
+
+clobber-cana: clean-cana
+	$(Q)rm -rf $(cana_dir)
+	$(Q)rm -f $(cana_tgz)
+
+$(cana_out): $(cana_key)
+	$(call ECHO_W,"Locating $(cana_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(cana_src) $@
+
+$(cana_key): $(cana_tgz)
+	$(call ECHO_W,"Unpacking $(cana_name) tarball ($<)")
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
+
+$(cana_tgz):
+	$(call ECHO_C,"Downloading $(cana_name) tarball ($(cana_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(cana_url)"
+
+#--------------------------------------------------------------------------------
+# jsTree
+#
+
+jstr_name = jsTree
+jstr_ver  = 3.3.1
+jstr_url  = https://github.com/vakata/jstree/archive/$(jstr_ver).tar.gz
+jstr_dir  = $(dwld_dir)/jstree-$(jstr_ver)
+jstr_tgz  = $(jstr_dir).tar.gz
+jstr_key  = $(jstr_dir)/.unpacked
+jstr_src  = $(jstr_dir)/dist/jstree.min.js
+jstr_out  = $(DIST_DIR)/$(notdir $(jstr_src))
+
+.PHONY: jstr clean-jstr clobber-jstr
+jstr: $(jstr_out)
+
+clean-jstr:
+	$(Q)rm -f $(jstr_out)
+
+clobber-jstr: clean-jstr
+	$(Q)rm -rf $(jstr_dir)
+	$(Q)rm -f $(jstr_tgz)
+
+$(jstr_out): $(jstr_key)
+	$(call ECHO_W,"Locating $(jstr_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(jstr_src) $@
+
+$(jstr_key): $(jstr_tgz)
+	$(call ECHO_W,"Unpacking $(jstr_name) tarball ($<)")
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
+
+$(jstr_tgz):
+	$(call ECHO_C,"Downloading $(jstr_name) tarball ($(jstr_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jstr_url)"
 
 #--------------------------------------------------------------------------------
 # CSS generation (from less)
@@ -260,6 +331,14 @@ img_files = \
 	rubic_cube2x2_128.png \
 	rubic_text_24.png \
 	rubic_text_48.png \
+	boards/no_image_48.png \
+	boards/peridot_64x64.png \
+	boards/wrbb_64x64.png \
+	boards/grcitrus_64x64.png \
+	icons/mruby_16.png \
+	icons/javascript_16.png \
+	icons/lua_16.png \
+	icons/python_16.png
 
 img_out   = $(addprefix $(img_ddir)/,$(img_files))
 

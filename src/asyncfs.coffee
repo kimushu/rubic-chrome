@@ -1,5 +1,6 @@
 # Pre dependencies
 UnJSONable = require("./unjsonable")
+I18n = require("./i18n")
 Html5Fs = null
 
 ###*
@@ -23,6 +24,19 @@ class AsyncFs extends UnJSONable
   SEP         = "/"
   SEP_RE      = /\/+/
   SEP_LAST_RE = /\/+$/
+
+  window.AsyncFs = AsyncFs  # For debugging
+
+  #--------------------------------------------------------------------------------
+  # Original properties
+  #
+
+  ###*
+  @property {string} name
+    The name of directory
+  @readonly
+  ###
+  @property("name", get: -> @getNameImpl())
 
   #--------------------------------------------------------------------------------
   # Node.js compatible methods
@@ -154,6 +168,7 @@ class AsyncFs extends UnJSONable
   ###
   @opentmpfs: (callback) ->
     Html5Fs or= require("./html5fs")
+    return invokeCallback(callback, @opentmpfs()) if callback?
     return new Promise((resolve, reject) =>
       window.webkitRequestFileSystem(
         window.TEMPORARY
@@ -161,11 +176,43 @@ class AsyncFs extends UnJSONable
         (fs) => resolve(new Html5Fs(fs.root))
         reject
       )
-    )
+    ) # return new Promise()
+
+  ###*
+  @static
+  @method
+    Choose directory from local
+  @param {function(Error/null,AsyncFs):undefined} [callback]
+    Callback function when Promise is not used
+  @return {undefined/Promise}
+    Promise object when callback is omitted
+  @return {AsyncFs} return.PromiseValue
+    New fs object for chosen directory
+  ###
+  @chooseDirectory: (callback) ->
+    return invokeCallback(callback, @chooseDirectory()) if callback?
+    return new Promise((resolve, reject) =>
+      chrome.fileSystem.chooseEntry(
+        {type: "openDirectory"}
+        (entry) =>
+          return reject(Error(chrome.runtime.lastError)) unless entry?
+          return resolve(entry)
+      )
+    ) # return new Promise()
 
   #--------------------------------------------------------------------------------
   # Protected methods
   #
+
+  ###*
+  @protected
+  @method
+    Implement of getter for name property
+  @return {string}
+    The name of this directory
+  ###
+  getNameImpl: ->
+    return I18n.rejectPromise("Not_supported")
 
   ###*
   @protected
@@ -179,7 +226,7 @@ class AsyncFs extends UnJSONable
     Promise object
   ###
   mkdirImpl: (path, mode) ->
-    return Promise.reject(Error("Not supported"))
+    return I18n.rejectPromise("Not_supported")
 
   ###*
   @protected
@@ -195,7 +242,7 @@ class AsyncFs extends UnJSONable
     Read data
   ###
   readFileImpl: (path, options) ->
-    return Promise.reject(Error("Not supported"))
+    return I18n.rejectPromise("Not_supported")
 
   ###*
   @protected
@@ -207,7 +254,7 @@ class AsyncFs extends UnJSONable
     Promise object
   ###
   rmdirImpl: (path) ->
-    return Promise.reject(Error("Not supported"))
+    return I18n.rejectPromise("Not_supported")
 
   ###*
   @protected
@@ -223,7 +270,7 @@ class AsyncFs extends UnJSONable
     Promise object
   ###
   writeFileImpl: (path, data, options) ->
-    return Promise.reject(Error("Not supported"))
+    return I18n.rejectPromise("Not_supported")
 
   ###*
   @protected
@@ -235,7 +282,7 @@ class AsyncFs extends UnJSONable
     Promise object
   ###
   unlinkImpl: (path) ->
-    return Promise.reject(Error("Not supported"))
+    return I18n.rejectPromise("Not_supported")
 
   ###*
   @protected
@@ -249,6 +296,6 @@ class AsyncFs extends UnJSONable
     New fs object for directory
   ###
   opendirfsImpl: (path) ->
-    return Promise.reject(Error("Not supported"))
+    return I18n.rejectPromise("Not_supported")
 
 module.exports = AsyncFs

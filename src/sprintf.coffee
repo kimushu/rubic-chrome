@@ -1,4 +1,3 @@
-# browserify ready
 RE = /%([#0 +-]*)(\*|\d*)((?:\.\d+)?)([diuoxXeEfFgGcs%])/g
 RP = (values, match, flags, width, prec, type) ->
   for c in flags.split("")

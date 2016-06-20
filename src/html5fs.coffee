@@ -29,11 +29,19 @@ class Html5Fs extends AsyncFs
   ###*
   @protected
   @method
+  @inheritdoc AsyncFs#getNameImpl
+  ###
+  getNameImpl: ->
+    return @_dirEntry.name
+
+  ###*
+  @protected
+  @method
   @inheritdoc AsyncFs#mkdirImpl
   ###
   mkdirImpl: (path, mode) ->
     return new Promise((resolve, reject) =>
-      @_dirEntry.getDirectory(path, {create: true}, resolve, reject)
+      @_dirEntry.getDirectory(path, {create: true, exclusive: true}, resolve, reject)
     )
 
   ###*

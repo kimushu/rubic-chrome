@@ -25,6 +25,18 @@ body {
   margin-top: -2px;
 }
 
+.fold-header:not(.fold-opened) + .fold-target {
+  display: none;
+}
+
+.fold-marker:before {
+  content: "\e250";
+}
+
+.fold-opened .fold-marker:before {
+  content: "\e252";
+}
+
 .about-supporter {
   text-align: center;
   vertical-align: center;
@@ -98,7 +110,8 @@ body.left-hidden .hide-left {
   transition-duration: 0.2s;
 }
 
-.main-outer:not(.when-main) {
+.main-outer:not(.when-main),
+.main-outer:not(.when-board) {
   overflow-y: scroll;
 }
 
@@ -195,6 +208,10 @@ body.left-hidden .hide-left {
   padding-left: 16px;
 }
 
+.list-icon {
+  margin-right: 8px;
+}
+
 .form-horizontal {
   margin-bottom: -15px !important;
 }
@@ -211,13 +228,14 @@ body.controller-board .when-not-board, body:not(.controller-board) .when-board,
 body.controller-pref .when-not-pref, body:not(.controller-pref) .when-pref,
 body.controller-tutorial .when-not-tutorial, body:not(.controller-tutorial) .when-tutorial,
 body.controller-about .when-not-about, body:not(.controller-about) .when-about,
+body.controller-board .when-not-board, body:not(.controller-board) .when-board,
 body.cloud-googledrive .when-not-googledrive, body:not(.cloud-googledrive) .when-googledrive,
 body.cloud-dropbox .when-not-dropbox, body:not(.cloud-dropbox) .when-dropbox,
 body.cloud-onedrive .when-not-onedrive, body:not(.cloud-onedrive) .when-onedrive,
 body.cloud-googledrive .when-no-cloud,
 body.cloud-dropbox .when-no-cloud,
 body.cloud-onedrive .when-no-cloud {
-  display: none !important;
+  display: none /*!important*/;
 }
 
 .only-testers {
@@ -226,6 +244,18 @@ body.cloud-onedrive .when-no-cloud {
 
 .show-testers .only-testers {
   display: inherit;
+}
+
+.media.board-selected {
+  margin: 11px -4px -4px -4px;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: #d9edf7;
+  transition: background-color 0.2s ease;
+}
+
+.media:not(.board-selected) .board-when-selected {
+  display: none;
 }
 
 .iopin-left {
@@ -260,6 +290,11 @@ body.cloud-onedrive .when-no-cloud {
   padding: 1px;
 }
 
+.label.label-bigger {
+  font-size: 85%;
+  padding-bottom: 0.2em;
+}
+
 //
 // Variables
 // --------------------------------------------------
@@ -289,6 +324,7 @@ body.cloud-onedrive .when-no-cloud {
 @body-bg : white;
 //** Global text color on `<body>`.
 @text-color : black;
+@text-inverse : white;
 //** Global textual link color.
 @link-color : @brand-primary;
 //** Link hover color set via `darken()` function.
@@ -869,10 +905,7 @@ monospace;
 @panel-default-text : @gray-dark;
 @panel-default-border : #ddd;
 @panel-default-heading-bg : #f5f5f5;
-@panel-primary-text : contrast(@brand-primary,
-@text-color,
-@text-inverse,
-43%);
+@panel-primary-text : @text-inverse;
 @panel-primary-border : @brand-primary;
 @panel-primary-heading-bg : @brand-primary;
 @panel-success-text : @state-success-text;

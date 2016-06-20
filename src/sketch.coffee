@@ -1,6 +1,9 @@
-# Dependencies
+# Pre dependencies
 JSONable = require("./jsonable")
 I18n = require("./i18n")
+AsyncFs = require("./asyncfs")
+strftime = require("./strftime")
+App = null
 
 ###*
 @class Sketch
@@ -8,7 +11,7 @@ I18n = require("./i18n")
 @extends JSONable
 ###
 class Sketch extends JSONable
-  null
+  Sketch.jsonable()
 
   #--------------------------------------------------------------------------------
   # Public properties
@@ -27,6 +30,13 @@ class Sketch extends JSONable
   @readonly
   ###
   @property("modified", get: -> @_modified)
+
+  ###*
+  @property {boolean} temporary
+    Is sketch temporary
+  @readonly
+  ###
+  @property("temporary", get: -> @_temporary)
 
   ###*
   @property {AsyncFs} dirFs
@@ -53,6 +63,7 @@ class Sketch extends JSONable
   #
 
   SKETCH_FILE = "sketch.json"
+  SKETCH_ENCODING = "utf8"
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -62,22 +73,33 @@ class Sketch extends JSONable
   @static
   @method
     Create empty sketch on temporary storage
+  @param {string} [name]
+    Name of new sketch
   @return {Promise}
     Promise object
   @return {Sketch} return.PromiseValue
     The instance of sketch
   ###
-  @createNew: ->
-    fs = null
-    return AsyncFs.requestTemporary().then((result) =>
-      fs = result
-      return 1
+  @createNew: (name) ->
+    name or= strftime("sketch_%Y%m%d_%H%M%S")
+    sketch = null
+    return AsyncFs.opentmpfs((fs) =>
+      return fs.opendirfs(name).catch(=>
+        return fs.mkdir(name).then(=>
+          return fs.opendirfs(name)
+        )
+      )
+    ).then((dirFs) =>
+      sketch = new Sketch()
+      return sketch.save(dirFs)
+    ).then(=>
+      return sketch
     )
 
   ###*
   @static
   @method
-    Open sketch
+    Open a sketch
   @param {AsyncFs} dirFs
     File system object at the sketch directory
   @return {Promise}
@@ -86,11 +108,13 @@ class Sketch extends JSONable
     The instance of sketch
   ###
   @open: (dirFs) ->
-    dirFs.readFile(SKETCH_FILE).then((data) =>
-      sketch = JSONable.parseJSON(data)
-      return Promise.reject(I18n("Invalid_sketch_json")) unless sketch instanceof Sketch
+    dirFs.readFile(SKETCH_FILE, SKETCH_ENCODING).then((data) =>
+      return Sketch.parseJSON(data)
+    ).then((sketch) =>
       sketch._dirFs = dirFs
       return sketch
+    ).catch(=>
+      return I18n.rejectPromise("Invalid_sketch")
     )
 
   ###*
@@ -102,6 +126,7 @@ class Sketch extends JSONable
     Promise object
   ###
   save: (newDirFs) ->
+    App or= require("./app")
     if newDirFs?
       # Update properties
       oldDirFs = @_dirFs
@@ -118,8 +143,8 @@ class Sketch extends JSONable
       Promise.resolve()
     ).then(=>
       # Save sketch settings
-      @_rubicVersion = chrome.runtime.getManifest().version
-      return newDirFs.writeFile(SKETCH_FILE, @toJSON())
+      @_rubicVersion = App.version
+      return newDirFs.writeFile(SKETCH_FILE, @toJSON(), SKETCH_ENCODING)
     ).then(=>
       # Successfully saved
       @_modified = false
@@ -132,11 +157,11 @@ class Sketch extends JSONable
 
   ###*
   @method
-    Get files in sketch (except for SKETCH_FILE)
+    Get path of files in sketch (except for SKETCH_FILE)
   @return {string[]}
     Array of path of files
   ###
-  getFiles: ->
+  getFilePaths: ->
     return (file.path for file in @_files)
 
   ###*

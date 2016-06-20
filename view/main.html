@@ -1,10 +1,13 @@
 <html><head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="stubs.min.js"></script>
     <script type="text/javascript" src="jquery-2.2.4.min.js"></script>
     <script type="text/javascript" src="bootstrap.min.js"></script>
     <script type="text/javascript" src="spin.min.js"></script>
     <script type="text/javascript" src="bootbox.min.js"></script>
+    <script type="text/javascript" src="canarium.min.js"></script>
+    <script type="text/javascript" src="library.min.js"></script>
     <script type="text/javascript" src="locale.js"></script>
     <script type="text/javascript" src="window.js"></script>
     <!--end-->
@@ -192,7 +195,7 @@
     </div>
     <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse">
       <div class="container">
-        <div class="btn-group btn-group-xs btn-group-lg dropup">
+        <div class="btn-group btn-group-xs btn-group-lg dropup when-main">
           <a class="btn btn-default dropdown-toggle i18n" data-toggle="dropdown">{Select_hardware} <span class="fa fa-caret-up"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li>
@@ -203,11 +206,11 @@
             </li>
             <li class="divider"></li>
             <li>
-              <a href="#" class="btn-xs i18n">{Edit_hardware}</a>
+              <a href="#" class="btn-xs i18n activate-board">{Edit_hardware}</a>
             </li>
           </ul>
         </div>
-        <div class="btn-group btn-group-xs btn-group-lg dropup">
+        <div class="btn-group btn-group-xs btn-group-lg dropup when-main">
           <a class="btn btn-default dropdown-toggle i18n" data-toggle="dropdown">{Select_connection} <span class="fa fa-caret-up"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li>
