@@ -137,15 +137,18 @@ class EmscriptenRunner
   ###*
   @method
     Execute
+  @param {function(number):undefined} callback
   @param {string[]} options
   @return {void}
   ###
-  execute: (args...) ->
+  execute: (callback, args...) ->
     @_module.arguments = Array.prototype.concat.apply([], args)
     @_stdout("(emscripten) #{@_lib} #{args.join(" ")}\n") if @_printCommandLine
+    @_module.postRun = =>
+      @_stdout("(emscripten) [exitstatus: #{@exitstatus}]\n") if @_printCommandLine
+      @_outputChar(0)
+      callback(@exitstatus)
     Lib[@_lib](@_module)
-    @_stdout("(emscripten) [exitstatus: #{@exitstatus}]\n") if @_printCommandLine
-    @_outputChar(0)
     return
 
   ###*

@@ -34,22 +34,26 @@ class MRubyBuilder extends Builder
         dest_data = null
         runner = new EmscriptenRunner("mrbc")
         runner.addFile(src_path, src_data, {encoding: "utf8"})
-        runner.execute("-o#{dest_path}", @options.flags or [], src_path)
-        if runner.exitstatus != 0
-          App.lastError = "Build failed (exitstatus=#{runner.exitstatus})"
-          return callback?(false)
+        runner.execute(
+          ((exitstatus) =>
+            if exitstatus != 0
+              App.lastError = "Build failed (exitstatus=#{exitstatus})"
+              return callback?(false)
 
-        dest_data = runner.getFileAsArrayBuffer(dest_path)
-        unless dest_data
-          App.lastError = "Build failed"
-          return callback?(false)
+            dest_data = runner.getFileAsArrayBuffer(dest_path)
+            unless dest_data
+              App.lastError = "Build failed"
+              return callback?(false)
 
-        FileUtil.writeArrayBuf(
-          [@dirEntry, dest_path.slice(1)]
-          dest_data
-          (result) ->
-            return callback?(false) unless result
-            callback?(true, dest_data.byteLength)
-        ) # FileUtil.writeArrayBuf
+            FileUtil.writeArrayBuf(
+              [@dirEntry, dest_path.slice(1)]
+              dest_data
+              (result) ->
+                return callback?(false) unless result
+                callback?(true, dest_data.byteLength)
+            ) # FileUtil.writeArrayBuf
+          ),
+          "-o#{dest_path}", @options.flags or [], src_path
+        )
     ) # FileUtil.readText
 

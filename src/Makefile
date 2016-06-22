@@ -166,6 +166,7 @@ dist: $(DIST_FILES) $(firstword $(JQ) jq-is-missing)
 	$(Q)git log -1 --pretty=oneline >> $(DIST_INFO)
 	$(Q)git submodule >> $(DIST_INFO)
 	$(Q)cp --parent $(DIST_FILES) $(DIST_DIR)
+	$(Q)cp $(addsuffix .mem,$(LIB_SOURCES)) $(DIST_DIR)
 	$(Q)rm -f $(DIST_DIR)/../rubic.zip
 	$(Q)F=rubic-$(DIST_VER).zip; cd $(DIST_DIR)/.. && rm -f $$F && zip -r $$F $(notdir $(DIST_DIR)) && \
 		echo "[Package name]" && echo " $$F"
