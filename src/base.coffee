@@ -210,6 +210,8 @@ window.show = (args...) ->
 
 window.Rubic = {}
 
+console.log("Rubic/#{chrome.runtime.getManifest().version} #{navigator.userAgent}")
+
 $("#menu").click(->
   Editor.focus()
   $("#wrapper").toggleClass("s-toggled")
