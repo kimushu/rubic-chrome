@@ -1,6 +1,6 @@
 include ../common.mk
 
-browserify_opts = --transform=coffeeify --extension=coffee --debug
+browserify_opts = --transform=coffeeify --extension=coffee --debug --external=canarium
 
 jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQuery
 
@@ -23,17 +23,31 @@ lib_min  = $(DIST_DIR)/library.min.js
 stub_src = $(SRC_DIR)/stubs.coffee
 stub_min = $(DIST_DIR)/stubs.min.js
 
+define update_dependency
+	$(call ECHO_W,"Updating dependencies ($<)")
+	$(Q)touch $@ && mv $@ $@~
+	$(Q)echo "$@: \\" > $@
+	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< 2>/dev/null | sed -e 's/$$/ \\/' | sort >> $@ || (rm -f $@; false)
+	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $@
+	$(Q)diff -U 1 $@~ $@; rm $@~
+endef
+
 all: $(bkg_min) $(top_min) $(lib_min) $(stub_min)
+
+clean:
+	$(Q)rm -f $(bkg_dep) $(bkg_dep)~ $(bkg_out)
+	$(Q)rm -f $(top_dep) $(top_dep)~ $(top_out)
+	$(Q)rm -f $(lib_dep) $(lib_dep)~ $(lib_min)
+	$(Q)rm -f $(stub_min)
+
+clobber: clean
 
 $(bkg_out): $(bkg_dep) $(BROWSERIFY)
 	$(call ECHO_W,"Compiling coffee scripts ($@)")
 	$(Q)$(BROWSERIFY) $(browserify_opts) --outfile $@ $(bkg_src) || (rm -f $@ $(bkg_dep); false)
 
 $(bkg_dep): $(bkg_src) $(BROWSERIFY)
-	$(call ECHO_W,"Updating dependencies ($<)")
-	$(Q)echo "$@: \\" > $@
-	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< 2>/dev/null | sed -e 's/$$/ \\/' >> $@ || (rm -f $@; false)
-	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $@
+	$(update_dependency)
 
 $(bkg_min): $(bkg_out) $(UGLIFYJS)
 	$(call ECHO_W,"Minimizing script ($@)")
@@ -44,10 +58,7 @@ $(top_out): $(top_dep) $(BROWSERIFY)
 	$(Q)$(BROWSERIFY) $(browserify_opts) --outfile $@ $(top_src) || (rm -f $@ $(top_dep); false)
 
 $(top_dep): $(top_src) $(BROWSERIFY)
-	$(call ECHO_W,"Updating dependencies ($<)")
-	$(Q)echo "$@: \\" > $@
-	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< 2>/dev/null | sed -e 's/$$/ \\/' >> $@ || (rm -f $@; false)
-	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $@
+	$(update_dependency)
 
 $(top_min): $(top_out) $(UGLIFYJS)
 	$(call ECHO_W,"Minimizing script ($@)")
@@ -58,20 +69,16 @@ $(lib_min): $(lib_dep) $(BROWSERIFY) $(ROOT_DIR)/package.json
 	$(Q)$(BROWSERIFY) $(browserify_opts) $(lib_src) | $(UGLIFYJS) $(uglifyjs_opts) -o $@
 
 $(lib_dep): $(lib_src) $(BROWSERIFY)
-	$(call ECHO_W,"Updating dependencies ($<)")
-	$(Q)echo "$@: \\" > $@
-	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< 2>/dev/null | sed -e 's/$$/ \\/' >> $@ || (rm -f $@; false)
-	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $@
+	$(update_dependency)
 
 $(stub_min): $(stub_src) $(COFFEE) $(UGLIFYJS)
 	$(call ECHO_W,"Generating stub scripts ($@)")
 	$(Q)cat $< | $(COFFEE) -c -s | $(UGLIFYJS) $(uglifyjs_opts) -o $@
 
-clean:
-	$(call ECHO_Y,"Cleaning files")
-	$(Q)rm -f $(bkg_dep) $(bkg_out) $(top_dep) $(top_out) $(lib_dep) $(lib_min) $(stub_min)
-
-clobber: clean
+.PHONY: doc
+doc: $(top_out) $(JSDUCK)
+	$(call ECHO_W,"Generating document ($@)")
+	$(Q)$(JSDUCK) $(jsduck_opts) -o $@ $<
 
 -include $(bkg_dep)
 
