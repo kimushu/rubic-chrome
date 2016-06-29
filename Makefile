@@ -30,6 +30,7 @@ clobber: recursive-clobber
 
 recursive-%:
 	$(Q)$(MAKE) -C $(SRC_DIR) $*
+	$(Q)$(MAKE) -C $(LIBS_DIR) $*
 	$(Q)$(MAKE) -C $(LOCALE_DIR) $*
 	$(Q)$(MAKE) -C $(VIEW_DIR) $*
 
