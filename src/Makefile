@@ -1,6 +1,6 @@
 include ../common.mk
 
-browserify_opts = --transform=coffeeify --extension=coffee --debug --external=canarium
+browserify_opts = --transform=coffeeify --extension=coffee --debug
 
 jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQuery
 
@@ -29,7 +29,7 @@ define update_dependency
 	$(Q)echo "$@: \\" > $@
 	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< 2>/dev/null | sed -e 's/$$/ \\/' | sort >> $@ || (rm -f $@; false)
 	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $@
-	$(Q)diff -U 1 $@~ $@; rm $@~
+	$(Q)diff -u $@~ $@; rm $@~
 endef
 
 all: $(bkg_min) $(top_min) $(lib_min) $(stub_min)
@@ -81,6 +81,6 @@ doc: $(top_out) $(JSDUCK)
 	$(Q)$(JSDUCK) $(jsduck_opts) -o $@ $<
 
 -include $(bkg_dep)
-
 -include $(top_dep)
+-include $(lib_dep)
 
