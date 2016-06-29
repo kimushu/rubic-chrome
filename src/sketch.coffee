@@ -1,5 +1,6 @@
 # Pre dependencies
 JSONable = require("./jsonable")
+EventTarget = require("./eventtarget")
 I18n = require("./i18n")
 AsyncFs = require("./asyncfs")
 strftime = require("./strftime")
@@ -27,9 +28,11 @@ class Sketch extends JSONable
   ###*
   @property {boolean} modified
     Is sketch modified
-  @readonly
   ###
-  @property("modified", get: -> @_modified)
+  @property("modified",
+    get: -> @_modified
+    set: (v) -> @_setModified() if !!v
+  )
 
   ###*
   @property {boolean} temporary
@@ -45,6 +48,27 @@ class Sketch extends JSONable
   ###
   @property("dirFs", get: -> @_dirFs)
 
+  ###*
+  @property {SketchItem[]} items
+    Array of items in sketch
+  @readonly
+  ###
+  @property("items", get: -> (item for item in @_items))
+
+  ###*
+  @property {Board} board
+    Board instance
+  ###
+  @property("board",
+    get: -> @_board
+    set: (v) ->
+      return if @_board == v
+      @_board?.onChange?.removeListener?(@_setModifiedCaller)
+      @_board = v
+      @_board?.onChange?.addListener?(@_setModifiedCaller)
+      @_setModified()
+  )
+
   #--------------------------------------------------------------------------------
   # Event listeners
   #
@@ -52,9 +76,6 @@ class Sketch extends JSONable
   ###*
   @event onChange
     Changed event target
-  @param {Sketch} sketch
-    The instance of sketch
-  @return {void}
   ###
   @property("onChange", get: -> @_onChange)
 
@@ -62,7 +83,7 @@ class Sketch extends JSONable
   # Private constants
   #
 
-  SKETCH_FILE = "sketch.json"
+  SKETCH_CONFIG   = "sketch.json"
   SKETCH_ENCODING = "utf8"
 
   #--------------------------------------------------------------------------------
@@ -108,8 +129,9 @@ class Sketch extends JSONable
     The instance of sketch
   ###
   @open: (dirFs) ->
-    dirFs.readFile(SKETCH_FILE, SKETCH_ENCODING).then((data) =>
-      return Sketch.parseJSON(data)
+    dirFs.readFile(SKETCH_CONFIG, SKETCH_ENCODING).then((data) =>
+      obj = @_migrateAtOpen(JSON.parse(data))
+      return Sketch.parseJSON(obj)
     ).then((sketch) =>
       sketch._dirFs = dirFs
       return sketch
@@ -131,20 +153,20 @@ class Sketch extends JSONable
       # Update properties
       oldDirFs = @_dirFs
       @_dirFs = newDirFs
-    return @_files.reduce(
+    return @_items.reduce(
       # Save all files in sketch
-      (promise, file) =>
-        return file.editor.save() if file.editor?
+      (promise, item) =>
+        return item.editor.save() if item.editor?
         return unless newDirFs?
         # Relocate file
-        return oldDirFs.readFile(f.path).then((data) =>
-          return newDirFs.writeFile(file.path, data)
+        return oldDirFs.readFile(item.path).then((data) =>
+          return newDirFs.writeFile(item.path, data)
         )
       Promise.resolve()
     ).then(=>
       # Save sketch settings
       @_rubicVersion = App.version
-      return newDirFs.writeFile(SKETCH_FILE, @toJSON(), SKETCH_ENCODING)
+      return newDirFs.writeFile(SKETCH_CONFIG, JSON.stringify(this), SKETCH_ENCODING)
     ).then(=>
       # Successfully saved
       @_modified = false
@@ -153,46 +175,65 @@ class Sketch extends JSONable
       # Revert properties
       @_dirFs = oldDirFs if newDirFs?
       return Promise.reject(error)
-    ) # return @_files.reduce().then()...
+    ) # return @_items.reduce().then()...
 
   ###*
   @method
-    Get path of files in sketch (except for SKETCH_FILE)
-  @return {string[]}
-    Array of path of files
-  ###
-  getFilePaths: ->
-    return (file.path for file in @_files)
-
-  ###*
-  @method
-    Open (or activate) an editor for file
+    Get item in sketch
   @param {string} path
-    Path of file
-  @param {jQuery} $
-    jQuery object
-  @param {Function} [editorClass]
-    Constructor of editor class (auto detect if omitted)
-  @return {Promise}
-    Promise object
-  @return {Editor} return.PromiseValue
-    The instance of new editor
+    Path of item
+  @return {SketchItem/null}
+    Item
   ###
-  openEditor: (path, $, editorClass) ->
-    file = @_files.find((f) -> f.path == path)
-    return Promise.reject(Error("No_such_file_in_project")) unless file?
-    return Promise.resolve(
-    ).then(=>
-      if file.editor?
-        return if file.editor.constructor == editorClass
-        return Promise.reject(Error("Close_existing_editor_before_open_new_editor"))
-      editorClass or= Editor.findEditor(path)
-      return Promise.reject(Error("Suitable_editor_not_found")) unless editorClass?
-      file.editor = new editorClass($, this, path)
-    ).then(=>
-      file.editor.activate()
-      return file.editor
-    )
+  getItem: (path) ->
+    return item for item in @_items when item.path == path
+    return null
+
+  ###*
+  @method
+    Add item to sketch
+  @param {SketchItem} item
+    Item to add
+  @return {boolean}
+    Result (true=success, false=already_exists)
+  ###
+  addItem: (item) ->
+    return false if @getItem(item.path)?
+    @_items.push(item)
+    @_setModified()
+    return true
+
+  ###*
+  @method
+    Remove item from sketch
+  @param {SketchItem/string} item
+    Item or path to remove
+  @return {boolean}
+    Result (true=success, false=not_fond)
+  ###
+  removeItem: (item) ->
+    item = item.path unless typeof(item) == "string"
+    for value, index in @_items
+      if value.path == item
+        @_items.splice(index, 1)
+        @_setModified()
+        return true
+    return false
+
+  ###*
+  @method
+    Setup items
+  @return {undefined}
+  ###
+  setupItems: ->
+    index = 0
+    while index < @_items.length
+      item = @_items[index++]
+      sources = item.generatedFrom
+      if sources.length > 0
+        exists = 0
+        ++exists for src in sources when @_items.find((i) -> i.path == src)?
+        @_items.splice(--index, 1) if exists == 0
     return
 
   #--------------------------------------------------------------------------------
@@ -208,7 +249,68 @@ class Sketch extends JSONable
   ###
   constructor: (obj) ->
     super(obj)
-    @_rubicVersion = obj.rubicVersion
+    @_rubicVersion = "#{obj.rubicVersion || ""}"
+    @_items = (SketchItem.parseJSON(item) for item in obj.items)
+    @_bootItem = "#{obj.bootItem || ""}"
+    @_board = Board.parseJSON(obj.board)
+    @_onChange = new EventTarget()
+    @_setModifiedCaller = (=> @_setModified)
     return
+
+  ###*
+  @protected
+  @inheritdoc JSONable#toJSON
+  ###
+  toJSON: ->
+    return super().extends({
+      rubicVersion: @_rubicVersion
+      items: @_items
+      bootItem: @_bootItem
+      board: @_board
+    })
+
+  #--------------------------------------------------------------------------------
+  # Private methods
+  #
+
+  ###*
+  @private
+  @method
+    Set modified flag
+  @return {undefined}
+  ###
+  _setModified: ->
+    return if @_modified
+    @_modified = true
+    @_onChange.dispatchEvent(this)
+    return
+
+  ###*
+  @private
+  @method
+    Execute version migration
+  @param {Object} src
+    Source JSON object
+  @return {Object}
+    Migrated JSON object
+  ###
+  @_migrateAtOpen: (src) ->
+    switch src.rubicVersion
+      when undefined
+        # Migration from 0.2.x
+        return {
+          rubicVersion: src.sketch.rubicVersion
+          items: [
+            new SketchItem({path: "main.rb", transfer: false})
+            new SketchItem({path: "main.mrb", generatedFrom: ["main.rb"], transfer: true})
+          ]
+          bootItem: "main.mrb"
+          board: {
+            __class__: src.sketch.board.class
+          }
+        }
+      else
+        # No migration needed from >= 0.9.x
+        return src
 
 module.exports = Sketch

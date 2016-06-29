@@ -6,7 +6,7 @@ App = require("./app")
 Board = null
 
 # (From library.min.js)
-# GitHub
+GitHub = window.Libs.GitHub
 
 CAT_OWNER = "kimushu"
 CAT_REPO  = "rubic-catalog"
@@ -32,8 +32,6 @@ class Catalog extends JSONable
   @property("rubicVersion", get: -> @_rubicVersion)
   @property("engines", get: -> @_engines)
 
-  window.Catalog = Catalog
-
   #--------------------------------------------------------------------------------
   # Public methods
   #
@@ -56,7 +54,7 @@ class Catalog extends JSONable
     ).then((value) =>
       diff = Date.now() - value[key]
       if (diff < AUTO_UPDATE_PERIOD) and (not forceUpdate)
-        console.log("Update catalog has been skipped")  # TODO
+        App.log("Update catalog has been skipped")
         return  # Last PromiseValue
 
       repo = new GitHub().getRepo(CAT_OWNER, CAT_REPO)
@@ -131,28 +129,29 @@ class Catalog extends JSONable
     JSON object
   ###
   constructor: (src) ->
-    @_lastModified = src.lastModified
-    @_lastFetched  = src.lastFetched
-    @_rubicVersion = src.rubicVersion
+    @_lastModified = parseInt(src.lastModified) || 0
+    @_lastFetched  = parseInt(src.lastFetched) || 0
+    @_rubicVersion = "#{src.rubicVersion || ""}"
     @_engines      = []
     for esrc in (src.engines or [])
       edest = {}
       edest.name      = I18n.parseJSON(esrc.name)
-      edest.className = esrc.className
-      edest.id        = esrc.id
+      edest.className = "#{esrc.className || ""}"
+      edest.id        = "#{esrc.id || ""}"
       edest.beta      = !!esrc.beta
       edest.obsolete  = !!esrc.obsolete
-      edest.replaced  = esrc.replaced
+      edest.replaced  = "#{esrc.replaced || ""}"
       edest.firmwares = []
       for fsrc in (esrc.firmwares or [])
         fdest = {}
         fdest.name         = I18n.parseJSON(fsrc.name)
-        fdest.id           = fsrc.id
-        fdest.assets       = fsrc.assets
-        fdest.rubicVersion = fsrc.rubicVersion
+        fdest.id           = "#{fsrc.id || ""}"
+        fdest.assets       = {}
+        (fdest.assets[akey] = "#{avalue || ""}") for akey, avalue of fsrc.assets
+        fdest.rubicVersion = "#{fsrc.rubicVersion || ""}"
         fdest.beta         = !!fsrc.beta
         fdest.obsolete     = !!fsrc.obsolete
-        fdest.replaced     = fsrc.replaced
+        fdest.replaced     = "#{fsrc.replaced || ""}"
         edest.firmwares.push(fdest)
       @_engines.push(edest)
     return

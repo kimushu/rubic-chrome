@@ -1,6 +1,8 @@
-# browserify ready
+# Pre dependencies
+# (none)
+
 ###*
-@class Rubic.JSONable
+@class JSONable
   Serializable class to JSON
 ###
 class JSONable
@@ -39,7 +41,7 @@ class JSONable
     Parse JSON and generate a new instance
   @param {string/Object} obj
     JSON string or JSON object
-  @param {Object[]} [args...]
+  @param {Object[]} args
     Class-specific arguments
   @return {Object} new instance
   ###
@@ -56,7 +58,7 @@ class JSONable
     Generate a new instance from JSON
   @param {Object} obj
     JSON object
-  @param {Object[]} [args...]
+  @param {Object[]} args
     Class-specific arguments
   @return {Object} new instance
   ###

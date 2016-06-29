@@ -1,6 +1,8 @@
 # Pre dependencies
 JSONable = require("./jsonable")
+EventTarget = require("./eventtarget")
 I18n = require("./i18n")
+NamedLink = require("./namedlink")
 Catalog = null
 # From library.min.js
 # JSZip
@@ -23,24 +25,39 @@ class Board extends JSONable
   @property("connected", get: -> @_connected)
 
   ###*
-  @property {string} engineId
-    The ID of engine
+  @property {NamedLink} engineLink
+    The link to Engine object
+  @readonly
   ###
-  @property("engineId",
-    get: -> @_engineId
-    set: (v) -> @_engineId = v
-  )
+  @property("engineLink", get: -> @_engineLink)
 
   ###*
-  @property {string} firmwareId
-    The ID of firmware
+  @property {NamedLink} firmwareLink
+    The link to Firmware object
   ###
-  @property("firmwareId",
-    get: -> @_firmwareId
-    set: (v) -> @_firmwareId = v
-  )
+  @property("firmwareLink", get: -> @_firmwareLink)
 
-  window.Board = Board  # For debugging
+  #--------------------------------------------------------------------------------
+  # Event listeners
+  #
+
+  ###*
+  @event onChange
+    Changed event target
+  ###
+  @property("onChange", get: -> @_onChange)
+
+  ###*
+  @event onConnected
+    Connected event target
+  ###
+  @property("onConnected", get: -> @_onConnected)
+
+  ###*
+  @event onDisconnected
+    Disconnected event target
+  ###
+  @property("onDisconnected", get: -> @_onDisconnected)
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -188,8 +205,10 @@ class Board extends JSONable
   ###
   constructor: (obj) ->
     super(obj)
-    @_connected = false
-    @_variation = obj?.variation
+    @_engineLink    = NamedLink.parseJSON(obj.engineLink)
+    @_firmwareLink  = NamedLink.parseJSON(obj.firmwareLink)
+    @_connected     = false
+    @_onChange      = new EventTarget()
     return
 
   ###*
@@ -201,11 +220,8 @@ class Board extends JSONable
     return super().extends({
       friendlyName  : @constructor.friendlyName
       rubicVersion  : @constructor.rubicVersion
-      variation     : @_variation
+      engineLink    : @_engineLink
+      firmwareLink  : @_firmwareLink
     })
-
-  #--------------------------------------------------------------------------------
-  # Private methods
-  #
 
 module.exports = Board

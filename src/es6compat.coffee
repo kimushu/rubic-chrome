@@ -10,6 +10,18 @@ unless Array::find
       return value if predicate.call(thisArg, value, i, list)
     return undefined
 
+# https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
+unless Array::findIndex
+  Array::findIndex = (predicate, thisArg) ->
+    if this == null
+      throw new TypeError("Array.prototype.findIndex called on null or undefined")
+    if typeof(predicate) != "function"
+      throw new TypeError("predicate must be a function")
+    list = Object(this)
+    for value, i in list
+      return i if predicate.call(thisArg, value, i, list)
+    return -1
+
 # https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
 unless String::endsWith
   String::endsWith = (searchString, position) ->

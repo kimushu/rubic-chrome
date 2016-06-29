@@ -14,4 +14,5 @@ MainController.instance.activate()
 require("./peridotboard")
 require("./wakayamarbboard")
 require("./grcitrusboard")
+require("./sketch")
 

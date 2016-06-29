@@ -1,4 +1,5 @@
 # Pre dependencies
+sprintf = require("./sprintf")
 
 ###*
 @class App
@@ -32,7 +33,7 @@ class App
 
   LOG = (type, verbosity, args) ->
     return if window.log_verbosity < verbosity
-    return window.console[type](args[0])  # TODO sprintf
+    return window.console[type](sprintf(args...))
 
   @log          = -> return LOG("log", 1, arguments)
   @log.detail   = -> return LOG("log", 2, arguments)
@@ -40,6 +41,8 @@ class App
   @warn.detail  = -> return LOG("warn", 2, arguments)
   @error        = -> return LOG("error", 1, arguments)
   @error.detail = -> return LOG("error", 2, arguments)
+
+  @log("Rubic/%s %s", @version, window.navigator.userAgent)
 
   ###*
   @static

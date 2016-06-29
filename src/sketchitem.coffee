@@ -1,5 +1,6 @@
 # Pre dependencies
 JSONable = require("./jsonable")
+EventTarget = require("./eventtarget")
 
 ###*
 @class SketchItem
@@ -35,21 +36,11 @@ class SketchItem extends JSONable
   @property("name", get: -> return @_path.split("/").pop())
 
   ###*
-  @property {boolean} modified
-    Is this item modified
+  @property {string[]} generatedFrom
+    The list of sources of this item
   @readonly
   ###
-  @property("modified", get: -> @_modified)
-
-  ###*
-  @property {boolean} output
-    The source of this item
-  @readonly
-  ###
-  @property("output",
-    get: -> @_output,
-    set: (v) -> @_output = !!v; @_setModified()
-  )
+  @property("generatedFrom", get: -> (v for v in @_generatedFrom))
 
   ###*
   @property {boolean} transfer
@@ -58,6 +49,15 @@ class SketchItem extends JSONable
   @property("transfer",
     get: -> @_transfer,
     set: (v) -> @_transfer = !!v; @_setModified()
+  )
+
+  ###*
+  @property {string} compilerOptions
+    The options for compiler
+  ###
+  @property("compilerOptions",
+    get: -> @_compilerOptions
+    set: (v) -> @_compilerOptions = "#{v || ""}"; @_setModified()
   )
 
   ###*
@@ -82,10 +82,10 @@ class SketchItem extends JSONable
     Owner sketch
   ###
   constructor: (obj, @_sketch) ->
-    @_path = "#{obj.path}"
-    @_modified = false
-    @_output = !!obj.output
-    @_transfer = !!obj.transfer
+    @_path = "#{obj?.path}"
+    @_generatedFrom = obj?.generatedFrom?.map?((v) -> "#{v}") || []
+    @_transfer = !!obj?.transfer
+    @_compilerOptions = "#{obj?.compilerOptions || ""}"
     @_editor = null
     return
 
@@ -93,11 +93,30 @@ class SketchItem extends JSONable
   # Protected methods
   #
 
+  ###*
+  @protected
+  @inheritdoc JSONable#toJSON
+  ###
   toJSON: ->
     return super().extends({
       path: @_path
-      output: !!@_output
-      transfer: !!@_transfer
+      generatedFrom: @_generatedFrom
+      transfer: @_transfer
+      compilerOptions: @_compilerOptions
     })
+
+  #--------------------------------------------------------------------------------
+  # Private methods
+  #
+
+  ###*
+  @private
+  @method
+    Set modified flag
+  @return {undefined}
+  ###
+  _setModified: ->
+    @_sketch?.modified = true
+    return
 
 module.exports = SketchItem

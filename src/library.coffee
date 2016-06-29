@@ -1,5 +1,8 @@
 do ->
-  global.JSZip = require("jszip")
+  global.Libs or= {}
+  global.Libs.JsZip = require("jszip")
+  global.Libs.CoffeeScript = require("coffee-script")
+  global.Libs.Canarium = require("canarium")
 
 do ->
   API_TEST = "http://#{window.location.host}/api"  # FOR DEBUGGING
@@ -10,6 +13,6 @@ do ->
       github.apply(this, args)
       @__apiBase = API_TEST
     GitHub_Dummy:: = github::
-    global.GitHub = GitHub_Dummy
+    global.Libs.github = GitHub_Dummy
   else
-    global.GitHub = github
+    global.Libs.github = github
