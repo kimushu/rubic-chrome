@@ -48,7 +48,7 @@ if global.bootbox?.dialog?
       for name, btn of (arg.buttons or {})
         btn2 = {}
         (btn2[k2] = v2) for k2, v2 of btn
-        btn2.callback = -> resolve(name)
+        do (name) -> btn2.callback = -> resolve(name)
         opt.buttons[name] = btn2
       global.bootbox.dialog(opt)
     )

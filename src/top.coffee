@@ -6,6 +6,7 @@ Function::classProperty = (prop, desc) ->
 
 require("./es6compat")
 require("./es7compat")
+require("./bootbox-promise")
 
 MainController = require("./maincontroller")
 MainController.instance.activate()
@@ -14,5 +15,12 @@ MainController.instance.activate()
 require("./peridotboard")
 require("./wakayamarbboard")
 require("./grcitrusboard")
+
+# List of engines
+require("./mrubyengine")
+require("./duktapeengine")
+require("./luaengine")
+require("./micropythonengine")
+
 require("./sketch")
 

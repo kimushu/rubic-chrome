@@ -5,6 +5,7 @@ I18n = require("./i18n")
 AsyncFs = require("./asyncfs")
 strftime = require("./strftime")
 App = null
+Board = null
 
 ###*
 @class Sketch
@@ -104,7 +105,7 @@ class Sketch extends JSONable
   @createNew: (name) ->
     name or= strftime("sketch_%Y%m%d_%H%M%S")
     sketch = null
-    return AsyncFs.opentmpfs((fs) =>
+    return AsyncFs.opentmpfs().then((fs) =>
       return fs.opendirfs(name).catch(=>
         return fs.mkdir(name).then(=>
           return fs.opendirfs(name)
@@ -114,6 +115,7 @@ class Sketch extends JSONable
       sketch = new Sketch()
       return sketch.save(dirFs)
     ).then(=>
+      sketch._temporary = true
       return sketch
     )
 
@@ -248,11 +250,12 @@ class Sketch extends JSONable
     JSON object
   ###
   constructor: (obj) ->
+    Board or= require("./board")
     super(obj)
-    @_rubicVersion = "#{obj.rubicVersion || ""}"
-    @_items = (SketchItem.parseJSON(item) for item in obj.items)
-    @_bootItem = "#{obj.bootItem || ""}"
-    @_board = Board.parseJSON(obj.board)
+    @_rubicVersion = "#{obj?.rubicVersion || ""}"
+    @_items = (SketchItem.parseJSON(item) for item in (obj?.items or []))
+    @_bootItem = "#{obj?.bootItem || ""}"
+    @_board = Board.parseJSON(obj.board) if obj?.board?
     @_onChange = new EventTarget()
     @_setModifiedCaller = (=> @_setModified)
     return

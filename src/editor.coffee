@@ -24,6 +24,13 @@ class Editor extends UnJSONable
   @editable: false
 
   ###*
+  @property {SketchItem} sketchItem
+    Sketch item for this editor
+  @readonly
+  ###
+  @property("sketchItem", get: -> @_sketchItem)
+
+  ###*
   @property {Sketch} sketch
     Sketch instance
   @readonly

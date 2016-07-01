@@ -4,8 +4,6 @@ EventTarget = require("./eventtarget")
 I18n = require("./i18n")
 NamedLink = require("./namedlink")
 Catalog = null
-# From library.min.js
-# JSZip
 
 ###*
 @class Board

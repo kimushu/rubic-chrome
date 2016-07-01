@@ -1,5 +1,10 @@
 # Pre dependencies
 WindowController = require("./windowcontroller")
+I18n = require("./i18n")
+Preferences = require("./preferences")
+App = null
+Sketch = null
+AsyncFs = null
 
 ###*
 @class MainController
@@ -7,7 +12,6 @@ WindowController = require("./windowcontroller")
 @extends Controller
 ###
 class MainController extends WindowController
-  null
   instance = null
 
   #--------------------------------------------------------------------------------
@@ -25,6 +29,12 @@ class MainController extends WindowController
   )
 
   #--------------------------------------------------------------------------------
+  # Private constants
+  #
+
+  PLACES = ["local", "googledrive", "dropbox", "onedrive"]
+
+  #--------------------------------------------------------------------------------
   # Protected methods
   #
 
@@ -35,6 +45,10 @@ class MainController extends WindowController
   onActivated: ->
     super
     @$("body").addClass("controller-main")
+    @$(".sketch-new").click(=> @_newSketch())
+    @$(".open-latest").click(=> @_openSketch())
+    for p in PLACES
+      do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
     return
 
   ###*
@@ -43,6 +57,9 @@ class MainController extends WindowController
   ###
   onDeactivated: ->
     @$("body").removeClass("controller-main")
+    @$(".sketch-new").unbind("click")
+    @$(".open-latest").unbind("click")
+    @$(".open-#{p}").unbind("click") for p in PLACES
     super
     return
 
@@ -59,7 +76,98 @@ class MainController extends WindowController
   ###
   constructor: (window) ->
     super(window)
+    App or= require("./app")
+    Sketch or= require("./sketch")
+    AsyncFs or= require("./asyncfs")
     return
+
+  ###*
+  @private
+  @method
+    Open new sketch
+  @return {Promise}
+    Promise object
+  ###
+  _newSketch: ->
+    return @_closeSketch(
+    ).then(=>
+      return Sketch.createNew()
+    ).then((sketch) =>
+      App.sketch = sketch
+      return
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Close current sketch
+  @param {boolean} dryrun
+    Do not close sketch actually
+  @param {boolean} force
+    Close sketch without confirmation
+  @return {Promise}
+    Promise object
+  ###
+  _closeSketch: (dryrun, force) ->
+    return Promise.resolve(
+    ).then(=>
+      return "ok" unless App.sketch?.modified
+      return "ok" if force
+      return global.bootbox.dialog_p({
+        title: I18n.getMessage("Current_sketch_has_been_modified")
+        message: I18n.getMessage("Are_you_sure_to_discard_modifications")
+        closeButton: false
+        buttons: {
+          ok: {
+            label: I18n.getMessage("Yes_discard_them")
+            className: "btn-danger"
+          }
+          cancel: {
+            label: I18n.getMessage("No_cancel_the_operation")
+            className: "btn-success"
+          }
+        }
+      })
+    ).then((result) =>
+      return Promise.reject(Error("Cancelled")) unless result == "ok"
+      return if dryrun
+      # TODO: close all editors
+      App.sketch = null
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Open sketch
+  @return {Promise}
+    Promise object
+  ###
+  _openSketch: (place) ->
+    key = "default_place"
+    return Promise.resolve(
+    ).then(=>
+      return {"#{key}": place} if place? and place != "latest"
+      return Preferences.get({"#{key}": "local"})
+    ).then((value) =>
+      place = value[key]
+      return @_closeSketch(true)
+    ).then(=>
+      switch(place)
+        when "local"
+          return AsyncFs.chooseDirectory().catch(=> return)
+      return Promise.reject(Error("Unknown place: `#{place}'"))
+    ).then((fs) =>
+      return unless fs?
+      return Sketch.open(fs).then((sketch) =>
+        App.sketch = sketch
+        return  # Last PromiseValue
+      ).catch((error) =>
+        return global.bootbox.alert_p({
+          title: I18n.getMessage("Failed_to_open_sketch")
+          message: error.toString()
+        })
+      )
+    ) # return Promise.resolve().then()...
 
 #  #--------------------------------------------------------------------------------
 #  #--------------------------------------------------------------------------------
