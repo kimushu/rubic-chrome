@@ -1,6 +1,5 @@
 # Pre dependencies
 Engine = require("./engine")
-SketchItem = null
 
 ###*
 @class JavaScriptEngine
@@ -23,6 +22,8 @@ class JavaScriptEngine extends Engine
   @inheritdoc Engine#suffixes
   ###
   @classProperty("suffixes", get: -> ["js", "coffee"])
+  # {js: new I18n({en: "JavaScript"}),
+  #  coffee: new I18n({en: "Coffee script", ja: "Coffee スクリプト"})}
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -48,7 +49,6 @@ class JavaScriptEngine extends Engine
       return Promise.resolve()
 
     # coffee->js compile
-    SketchItem or= require("./sketchitem")
     js = new SketchItem({path: js_path})
     js.generatedFrom = [src_path]
     js.transfered = true
@@ -77,3 +77,6 @@ class JavaScriptEngine extends Engine
     ) # return Promise.resolve().then()...
 
 module.exports = JavaScriptEngine
+
+# Post dependencies
+SketchItem = require("./sketchitem")

@@ -1,7 +1,5 @@
 # Pre dependencies
 JSONable = require("./jsonable")
-I18n = require("./i18n")
-EventTarget = require("./eventtarget")
 
 ###*
 @class NamedLink
@@ -90,3 +88,8 @@ class NamedLink extends JSONable
       id            : @_id
     })
 
+module.exports = NamedLink
+
+# Post dependencies
+I18n = require("./i18n")
+EventTarget = require("./eventtarget")

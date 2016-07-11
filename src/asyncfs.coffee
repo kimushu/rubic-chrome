@@ -1,7 +1,5 @@
 # Pre dependencies
 UnJSONable = require("./unjsonable")
-I18n = require("./i18n")
-Html5Fs = null
 
 ###*
 @class AsyncFs
@@ -167,7 +165,6 @@ class AsyncFs extends UnJSONable
     New fs object for directory
   ###
   @opentmpfs: (callback) ->
-    Html5Fs or= require("./html5fs")
     return invokeCallback(callback, @opentmpfs()) if callback?
     return new Promise((resolve, reject) =>
       window.webkitRequestFileSystem(
@@ -212,7 +209,7 @@ class AsyncFs extends UnJSONable
     The name of this directory
   ###
   getNameImpl: ->
-    return I18n.rejectPromise("Not_supported")
+    return I18n.getMessage("Not_supported")
 
   ###*
   @protected
@@ -299,3 +296,7 @@ class AsyncFs extends UnJSONable
     return I18n.rejectPromise("Not_supported")
 
 module.exports = AsyncFs
+
+# Post dependencies
+I18n = require("./i18n")
+Html5Fs = require("./html5fs")

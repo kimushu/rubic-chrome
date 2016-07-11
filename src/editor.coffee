@@ -24,6 +24,13 @@ class Editor extends UnJSONable
   @editable: false
 
   ###*
+  @property {string} title
+    Title of this editor
+  @readonly
+  ###
+  @property("title", get: -> @_item?.path)
+
+  ###*
   @property {SketchItem} sketchItem
     Sketch item for this editor
   @readonly
@@ -38,11 +45,11 @@ class Editor extends UnJSONable
   @property("sketch", get: -> @_sketch)
 
   ###*
-  @property {string} path
-    Path of file
+  @property {SketchItem} item
+    SketchItem instance
   @readonly
   ###
-  @property("path", get: -> @_path)
+  @property("item", get: -> @_item)
 
   ###*
   @property {Element} element
@@ -52,12 +59,45 @@ class Editor extends UnJSONable
   @property("element", get: -> @_element)
 
   ###*
+  @property {string} uniqueId
+    Unique ID for editor management
+  @readonly
+  ###
+  @property("uniqueId", get: -> @_uniqueId)
+
+  #--------------------------------------------------------------------------------
+  # Event listeners
+  #
+
+  ###*
+  @event onActivated
+    Event target triggered when editor activated
+  @param {Editor} editor
+    An editor instance
+  ###
+  @property("onActivated", get: -> @_onActivated or= new EventTarget())
+
+  ###*
+  @event onDeactivated
+    Event target triggered when editor deactivated
+  @param {Editor} editor
+    An editor instance
+  ###
+  @property("onDeactivated", get: -> @_onDeactivated or= new EventTarget())
+
+  ###*
   @event onClose
     Event target triggered when editor closed
   @param {Editor} editor
     An editor instance
   ###
   @property("onClosed", get: -> @_onClosed or= new EventTarget())
+
+  #--------------------------------------------------------------------------------
+  # Private variables
+  #
+
+  nextUniqueId = 1
 
   #--------------------------------------------------------------------------------
   # Protected properties
@@ -84,24 +124,24 @@ class Editor extends UnJSONable
   @inheritable
   @method
     Check if the editor supports the file or not
-  @param {string} path
-    File path
+  @param {SketchItem} item
+    SketchItem instance
   @return {boolean}
   ###
-  @supports: (path) ->
+  @supports: (item) ->
     return false
 
   ###*
   @static
   @method
     Find suitable editor
-  @param {string} path
-    File path
+  @param {SketchItem} Item
+    SketchItem instance
   @return {Function}
     Constructor of suitable editor class (if not found, returns undefined)
   ###
-  @findEditor: (path) ->
-    return c if c.supports(path) for c in @subclasses
+  @findEditor: (item) ->
+    return c for c in @subclasses when c.supports(item)
     return
 
   ###*
@@ -132,6 +172,7 @@ class Editor extends UnJSONable
   ###
   activate: ->
     @$(@element).show() if @element?
+    @onActivated.dispatchEvent(this)
     return
 
   ###*
@@ -142,6 +183,7 @@ class Editor extends UnJSONable
   ###
   deactivate: ->
     @$(@element).hide() if @element?
+    @onDeactivated.dispatchEvent(this)
     return
 
   ###*
@@ -174,12 +216,13 @@ class Editor extends UnJSONable
     jQuery object
   @param {Sketch} _sketch
     Sketch instance
-  @param {string} _path
-    Path of target file
+  @param {SketchItem} _item
+    SketchItem instance
   @param {Element} _element
     Element for this editor
   ###
-  constructor: (@$, @_sketch, @_path, @_element) ->
+  constructor: (@$, @_sketch, @_item, @_element) ->
+    @_uniqueId = "Editor_ID_#{nextUniqueId++}"
     return
 
 module.exports = Editor

@@ -1,6 +1,6 @@
 include ../common.mk
 
-browserify_opts = --transform=coffeeify --extension=coffee --debug
+browserify_opts = --transform=coffeeify --extension=coffee --debug --full-paths
 
 jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQuery
 

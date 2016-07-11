@@ -1,6 +1,5 @@
 # Pre dependencies
 Engine = require("./engine")
-SketchItem = null
 
 ###*
 @class MrubyEngine
@@ -28,14 +27,12 @@ class MrubyEngine extends Engine
   @inheritdoc Engine#suffixes
   ###
   @classProperty("suffixes", get: -> ["rb"])
+  # {rb: new I18n({en: "Ruby script", ja: "Ruby スクリプト"})}
 
   #--------------------------------------------------------------------------------
   # Private constants
   #
 
-  RUBY_SUFFIX_RE  = /\.rb$/i
-  MRB_SUFFIX      = ".mrb"
-  DUMP_SUFFIX     = ".dump"
   RUBY_ENCODING   = "utf8"
 
   #--------------------------------------------------------------------------------
@@ -46,25 +43,22 @@ class MrubyEngine extends Engine
   @inheritdoc Engine#setup
   ###
   setup: (sketch, item) ->
-    src_path = item.path
-    mrb_path = src_path.replace(RUBY_SUFFIX_RE, MRB_SUFFIX)
-    if mrb_path == src_path
-      # No compilation needed
-      item.transfered = true
+    paths = @_parseName(item.path)
+    unless paths.rb
+      # Not rb file
+      item.transfered = true if paths.mrb
       return Promise.resolve()
 
     # rb->mrb compile
-    dump_path = src_path.replace(RUBY_SUFFIX_RE, DUMP_SUFFIX)
-    SketchItem or= require("./sketchitem")
     items = []
-    mrb = new SketchItem({path: mrb_path})
-    mrb.generatedFrom = [src_path]
+    mrb = new SketchItem({path: paths.mrb})
+    mrb.generatedFrom = [paths.rb]
     mrb.transfered = true
     items.push(mrb)
     if item.compilerOptions.split(" ").includes("-v")
       # rb->mrb compile with dump
-      dump = new SketchItem({path: dump_path})
-      dump.generatedFrom = [src_path]
+      dump = new SketchItem({path: path.dump})
+      dump.generatedFrom = [paths.rb]
       dump.transfered = false
       items.push(dump)
     return Promise.resolve(items)
@@ -74,43 +68,77 @@ class MrubyEngine extends Engine
   ###
   build: (sketch, item) ->
     mrbc = new global.Libs.mrbc()
-    src_path = item.path
-    mrb_path = src_path.replace(RUBY_SUFFIX_RE, MRB_SUFFIX)
-    if mrb_path == src_path
-      # No compilation needed
+    paths = @_parseName(item.path)
+    unless paths.rb
       return Promise.resolve()
 
     # rb->mrb compile
-    dump_path = src_path.replace(RUBY_SUFFIX_RE, DUMP_SUFFIX)
     src_data = null
     return Promise.resolve(
     ).then(=>
-      return sketch.dirFs.readFile(src_path, RUBY_ENCODING)
+      return sketch.dirFs.readFile(paths.rb, RUBY_ENCODING)
     ).then((data) =>
       src_data = data
       return mrbc.setup()
     ).then(=>
-      return mrbc.writeFile("/#{src_path}", src_data, RUBY_ENCODING)
+      return mrbc.writeFile("/#{paths.rb}", paths.rb, RUBY_ENCODING)
     ).then(=>
-      return mrbc.run("-o/#{mrb_path}", "-g", (item.flags or [])...)
+      return mrbc.run("-o/#{paths.mrb}", "-g", (item.flags or [])...)
     ).then((status) =>
       unless status == 0
         e = @_convertError(String.fromCharCode.apply(null, mrbc.readStderr()))
         return Promise.reject(e)
-      return mrbc.readFile("/#{mrb_path}")
+      return mrbc.readFile("/#{paths.mrb}")
     ).then((data) =>
-      return sketch.dirFs.writeFile(mrb_path, data)
+      return sketch.dirFs.writeFile(paths.mrb, data)
     ).then(=>
       return unless item.compilerOptions.split(" ").includes("-v")
       # rb->mrb compile with dump
-      return sketch.dirFs.writeFile(dump_path, mrbc.readStdout())
+      return sketch.dirFs.writeFile(paths.dump, mrbc.readStdout())
     ).then(=>
       return  # Last PromiseValue
     ) # return Promise.resolve().then()
 
+  ###*
+  @method constructor
+    Constructor of MrubyEngine class
+  @param {Object} obj
+  ###
+  constructor: (obj) ->
+    super(obj)
+    return
+
   #--------------------------------------------------------------------------------
   # Private methods
   #
+
+  ###*
+  @private
+  @method
+    Parse file name
+  @param {string} path
+    File path
+  @return {Object}
+    Parsed paths
+  @return {string} return.rb
+    rb file path
+  @return {string} return.mrb
+    mrb file path
+  @return {string} return.dump
+    dump file path
+  ###
+  _parseName: (path) =>
+    result = {path: path}
+    base = path.replace(/\.rb$/i, =>
+      result.rb = path
+      return ""
+    )
+    if result.rb?
+      result.mrb = base + ".mrb"
+      result.dump = base + ".dump"
+    else if path.match(/\.mrb$/i)
+      result.mrb = path
+    return result
 
   ###*
   @private
@@ -137,3 +165,6 @@ class MrubyEngine extends Engine
     return e or new Error(text)
 
 module.exports = MrubyEngine
+
+# Post dependencies
+SketchItem = require("./sketchitem")

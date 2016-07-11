@@ -35,6 +35,11 @@ unless String::endsWith
     lastIndex = subjectString.indexOf(searchString, position)
     return lastIndex != -1 and lastIndex == position
 
+# https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/includes
+unless String::includes
+  String::includes = (searchString, position) ->
+    return (String::indexOf.call(this, searchString, position) != -1)
+
 # https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
 unless String::startsWith
   String::startsWith = (searchString, position) ->

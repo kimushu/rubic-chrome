@@ -1,4 +1,6 @@
-# browserify ready
+# Pre dependencies
+# (none)
+
 ###*
 @class UnJSONable
   Unserializable class to JSON
@@ -19,3 +21,6 @@ class UnJSONable
     return
 
 module.exports = UnJSONable
+
+# Post dependencies
+# (none)

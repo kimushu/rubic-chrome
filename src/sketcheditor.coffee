@@ -1,46 +1,48 @@
+# Pre dependencies
+Editor = require("./editor")
+
 ###*
-@class Rubic.SketchEditor
+@class SketchEditor
   Editor for sketch configuration (View)
-@extends Rubic.Editor
+@extends Editor
 ###
-class Rubic.SketchEditor extends Rubic.Editor
-  DEBUG = Rubic.DEBUG or 0
-  Rubic.Editor.addEditor(this)
+class SketchEditor extends Editor
+  Editor.register(this)
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
+
+  ###*
+  @property {string} title
+    Title of this editor
+  @readonly
+  ###
+  @property("title", get: -> @sketch.friendlyName)
+
+  #--------------------------------------------------------------------------------
+  # Private variables
+  #
+
+  domElement = null
+
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
 
   ###*
   @method constructor
     Constructor
-  @param {Rubic.WindowController} controller
-    Controller for this view
-  @param {Rubic.Sketch} sketch
-    Sketch for this view
+  @param {jQuery} $
+    jQuery object
+  @param {Sketch} _sketch
+    Sketch instance
   ###
-  constructor: (controller, @_sketch) ->
-    super(controller)
-    @name = "[Sketch] #{@_sketch.name}"
+  constructor: ($, sketch) ->
+    super($, sketch, null, (domElement or= $("#sketch-editor")[0]))
     return
 
-  ###*
-  @inheritdoc Rubic.Editor#load
-  ###
-  load: (callback) ->
-    callback(true)  # TODO
-    return
+module.exports = SketchEditor
 
-  ###*
-  @inheritdoc Rubic.Editor#save
-  ###
-  save: (callback) ->
-    callback(true)  # TODO
-    return
-
-  ###*
-  @inheritdoc Rubic.Editor#close
-  ###
-  close: (callback) ->
-    super((result) =>
-      @_sketch = null if result
-      callback(result)
-    )
-    return
-
+# Post dependencies
+# (none)

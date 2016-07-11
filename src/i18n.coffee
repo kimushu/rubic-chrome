@@ -144,3 +144,6 @@ class I18n extends JSONable
     })
 
 module.exports = I18n
+
+# Post dependencies
+# (none)

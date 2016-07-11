@@ -1,6 +1,5 @@
 # Pre dependencies
 WindowController = require("./windowcontroller")
-Preferences = null
 
 ###*
 @class TutorialController
@@ -63,3 +62,4 @@ module.exports = TutorialController
 
 # Post dependencies
 I18n = require("./i18n")
+Preferences = require("./preferences")

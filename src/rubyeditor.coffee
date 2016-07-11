@@ -1,4 +1,4 @@
-# Dependencies
+# Pre dependencies
 TextEditor = require("./texteditor")
 
 ###*
@@ -21,7 +21,7 @@ class RubyEditor extends TextEditor
   @editable: true
 
   #--------------------------------------------------------------------------------
-  # Private constants
+  # Private variables
   #
 
   SUFFIX_RE = /\.rb$/i
@@ -33,8 +33,8 @@ class RubyEditor extends TextEditor
   ###*
   @inheritdoc Editor#supports
   ###
-  @supports: (path) ->
-    return !!path.match(SUFFIX_RE)
+  @supports: (item) ->
+    return !!item.path.match(SUFFIX_RE)
 
   #--------------------------------------------------------------------------------
   # Protected properties
@@ -48,11 +48,14 @@ class RubyEditor extends TextEditor
     jQuery object
   @param {Sketch} sketch
     Sketch instance
-  @param {string} path
-    Path of target file
+  @param {SketchItem} item
+    Sketch item
   ###
-  constructor: ($, sketch, path) ->
-    super($, sketch, path, "ace/mode/ruby")
+  constructor: ($, sketch, item) ->
+    super($, sketch, item, "ace/mode/ruby")
     return
 
 module.exports = RubyEditor
+
+# Post dependencies
+# (none)

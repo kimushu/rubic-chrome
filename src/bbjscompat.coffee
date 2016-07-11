@@ -18,3 +18,35 @@ unless Promise::finally
 unless Promise::lastly
   Promise::lastly = Promise::finally
 
+# http://bluebirdjs.com/docs/api/spread.html
+unless Promise::spread
+  Promise::spread = (fulfilledHandler) ->
+    return @then((promiseArray) ->
+      return Promise.all(promiseArray...)
+    ).then((valueArray) ->
+      return fulfilledHandler(valueArray...)
+    )
+
+# http://bluebirdjs.com/docs/api/timeout.html
+unless Promise.TimeoutError
+  class TimeoutError
+    constructor: (message) ->
+      return new TimeoutError(message) unless this instanceof TimeoutError
+      message = "timeout error" unless typeof(message) == "string"
+      Object.defineProperty(this, "message", value: message)
+      Object.defineProperty(this, "name", value: "TimeoutError")
+      if Error.captureStackTrace?
+        Error.captureStackTrace(this, @constructor)
+      else
+        Error.call(this)
+      return
+  Promise.TimeoutError = TimeoutError
+
+# http://bluebirdjs.com/docs/api/timeout.html
+unless Promise::timeout
+  Promise::timeout = (ms, error) ->
+    error = new Promise.TimeoutError(error) unless error instanceof Error
+    return Promise.race([this, new Promise((resolve, reject) ->
+      window.setTimeout((-> reject(error)), ms)
+    )])
+

@@ -1,8 +1,9 @@
 # Dependencies
 Board = require("./board")
 I18n = require("./i18n")
-
-AsyncFs = {}
+AsyncFs = require("./asyncfs")
+ab2str = require("./ab2str")
+str2ab = require("./str2ab")
 
 ###*
 @class WakayamaRbBoard
@@ -54,7 +55,7 @@ class WakayamaRbBoard extends Board
   @description: new I18n({
     # TODO
     "en": "Compact RX63N microcontroller board with Ruby language support and Arduino-like methods."
-    "ja": "Arduinoに似たメソッドを持ちつつ、Ruby言語でプログラミングができるコンパクトなRX63N搭載マイコンボード。"
+    "ja": "Arduinoに似たメソッドを持ち、Ruby言語でプログラミングができるコンパクトなRX63Nマイコンボード。"
   })
 
   ###*
@@ -73,14 +74,190 @@ class WakayamaRbBoard extends Board
   ###
   @rubicVersion: ">= 1.0.0"
 
-  ###*
-  @static
-  @property {Object[]}
-    List of board variations
-  @readonly
-  ###
-  @board: []
+  #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
 
+  CMD_TIMEOUT_MS      = 200
+  READ1K_TIMEOUT_MS   = 500
+  WRITE1K_TIMEOUT_MS  = 2000
+  DELETE_TIMEOUT_MS   = 1000
+
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
+
+  ###*
+  @inheritdoc Board#enumerate
+  ###
+  enumerate: ->
+    return Promise.resolve(
+    )
+
+  ###*
+  @inheritdoc Board#connect
+  ###
+  connect: (path) ->
+    return Promise.resolve(
+    )
+
+  ###*
+  @inheritdoc Board#disconnect
+  ###
+  disconnect: ->
+    return Promise.resolve(
+    )
+
+  getStorages: ->
+    return Promise.resolve(["internal"])
+
+  ###*
+  @inheritdoc Board#requestFileSystem
+  ###
+  requestFileSystem: (storage) ->
+    return
+
+  #--------------------------------------------------------------------------------
+  # Private methods
+  #
+
+  _lock: (obj) ->
+    return
+
+  _unlock: (obj) ->
+    return
+
+  _send: (data) ->
+    return
+
+  _wait: (expect) ->
+    return
+
+  #--------------------------------------------------------------------------------
+  # Internal class
+  #
+
+  ###*
+  @class WrbbFileSystemV1
+    Pseudo filesystem for WakayamaRbBoard (V1 firmware)
+  ###
+  class WrbbFileSystemV1 extends AsyncFs
+    null
+
+    HEX2BIN = []
+    HEX2BIN[i+0x30] = i for i in [0...10] by 1
+    HEX2BIN[i+0x37] = i for i in [10...16] by 1
+
+    ###*
+    @inheritdoc AsyncFs#getNameImpl
+    ###
+    getNameImpl: ->
+      return @_dir
+
+    ###*
+    @inheritdoc AsyncFs#readFileImpl
+    ###
+    readFileImpl: (path, options) ->
+      result = null
+      lock = {}
+      return Promise.resolve(
+      ).then(=>
+        return @_wrbb._lock(lock)
+      ).then(=>
+        return @_wrbb._send("F #{@dir}#{path}\r")
+      ).then(=>
+        return @_wrbb._wait("\rWaiting").timeout(CMD_TIMEOUT_MS)
+      ).then(=>
+        return @_wrbb._send("\r")
+      ).then(=>
+        return @_wrbb._wait("\rWaiting").timeout(CMD_TIMEOUT_MS)
+      ).then((readdata) =>
+        text = String.fromCharCode.apply(null, new Uint8Array(readdata))
+        text.match(/\r(\d+)\rWaiting/, (match, sizeLine) =>
+          result = new Uint8Array(parseInt(sizeLine))
+        )
+        return @_wrbb._send("\r")
+      ).then(=>
+        return @_wrbb._wait("\r").timeout(CMD_TIMEOUT_MS)
+      ).then(=>
+        return @_wrbb._wait("\r").timeout(READ1K_TIMEOUT_MS * ((length + 1024) / 1024))
+      ).then((readdata) =>
+        src = new Uint8Array(readdata)
+        for i in [0...result.byteLength] by 1
+          byte = (HEX2BIN[src[i*2+0]] << 4) + (HEX2BIN[src[i*2+1]])
+          return Promise.reject("Receive data error at byte ##{i}") if isNaN(byte)
+          result[i] = byte
+        return result.buffer unless options.encoding?   # Last PromiseValue (ArrayBuffer)
+        return ab2str(result.buffer, options.encoding)  # Last PromiseValue (string)
+      ).finally(=>
+        return @_wrbb._unlock(lock)
+      ) # return Promise.resolve().then()...
+
+    ###*
+    @inheritdoc AsyncFs#writeFileImpl
+    ###
+    writeFileImpl: (path, data, options) ->
+      src = null
+      lock = {}
+      return Promise.resolve(
+      ).then(=>
+        return @_wrbb._lock(lock)
+      ).then(=>
+        return data unless options.encoding?
+        return str2ab(data, options.encoding)
+      ).then((buffer) =>
+        src = new Uint8Array(buffer)
+        return @_wrbb._send("U #{@_dir}#{path} #{src.byteLength * 2}\r")
+      ).then(=>
+        return @_wrbb._wait("\rWaiting").timeout(CMD_TIMEOUT_MS)
+      ).then(=>
+        dump = ""
+        for i in [0...src.byteLength] by 1
+          dump += "0#{i.toString(16).toUpperCase()}".substr(-2)
+        return @_wrbb._send(dump)
+      ).then(=>
+        return @_wrbb._wait("Saving").timeout(CMD_TIMEOUT_MS)
+      ).then(=>
+        return @_wrbb._wait("\r\r").timeout(
+          WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024)
+        )
+      ).then(=>
+        return  # Last PromiseValue
+      ).finally(=>
+        return @_wrbb._unlock(lock)
+      ) # return Promise.resolve().then()...
+
+    ###*
+    @inheritdoc AsyncFs#unlinkImpl
+    ###
+    unlinkImpl: (path) ->
+      lock = {}
+      return Promise.resolve(
+      ).then(=>
+        return @_wrbb._lock(lock)
+      ).then(=>
+        return @_wrbb._send("D #{@_dir}#{path}\r")
+      ).then(=>
+        return @_wrbb._wait("\r\r").timeout(DELETE_TIMEOUT_MS)
+      ).then(=>
+        return  # Last PromiseValue
+      ).finally(=>
+        return @_wrbb._unlock(lock)
+      ) # return Promise.resolve().then()...
+
+    ###*
+    @inheritdoc AsyncFs#opendirfsImpl
+    ###
+    opendirfsImpl: (path) ->
+      path = path.replace(/\/\+/g, '/').replace(/\/$/, '')
+      return Promise.reject(Error("invalid path")) if path == "" or path.includes(" ")
+      return Promise.resolve(new @constructor(@_wrbb, "#{@_dir}#{path}/"))
+
+  #--------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------
+  #--------------------------------------------------------------------------------
   #--------------------------------------------------------------------------------
   # Private constants
   #
@@ -182,26 +359,7 @@ class WakayamaRbBoard extends Board
       return
     )
 
-  ###*
-  @inheritdoc Board#requestFileSystem
-  ###
-  requestFileSystem: ->
-    return new WrbbFileSystem(@_serial)
-
-  ###*
-  @inheritdoc Board#requestConsole
-  ###
-  requestConsole: ->
-    return # FIXME
-
-  #--------------------------------------------------------------------------------
-  # Internal class
-  #
-
-  class WrbbFileSystem extends AsyncFs
-    null
-
-    constructor: (@_serial) ->
-      return
-
 module.exports = WakayamaRbBoard
+
+# Post dependencies
+# (none)

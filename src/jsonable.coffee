@@ -80,3 +80,6 @@ class JSONable
     }
 
 module.exports = JSONable
+
+# Post dependencies
+# (none)

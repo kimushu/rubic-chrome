@@ -1,4 +1,5 @@
 # Pre dependencies
+# (none)
 
 class Preferences
   unless (CHROME_STORAGE = chrome.storage?.local)?
@@ -183,3 +184,4 @@ class Preferences
 module.exports = Preferences
 
 # Post dependencies
+# (none)

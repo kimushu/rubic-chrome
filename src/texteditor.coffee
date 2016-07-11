@@ -1,6 +1,5 @@
-# Dependencies
+# Pre dependencies
 Editor = require("./editor")
-I18n = require("./i18n")
 
 ###*
 @class TextEditor
@@ -15,7 +14,7 @@ class TextEditor extends Editor
   #
 
   #--------------------------------------------------------------------------------
-  # Private properties
+  # Private variables
   #
 
   Ace = null
@@ -31,7 +30,7 @@ class TextEditor extends Editor
   @inheritdoc Editor#load
   ###
   load: ->
-    return @sketch.dirFs.readFile(@path).then((rawdata) =>
+    return @sketch.dirFs.readFile(@item.path).then((rawdata) =>
       return @convertForReading(rawdata)
     ).then((text) =>
       @_quiet(=>
@@ -45,9 +44,10 @@ class TextEditor extends Editor
   @inheritdoc Editor#save
   ###
   save: ->
+    return Promise.resolve() unless @constructor.editable
     text = @_aceSession.getValue()
     return @convertForWriting(text).then((rawdata) =>
-      return @sketch.dirFs.writeFile(@path, rawdata)
+      return @sketch.dirFs.writeFile(@item.path, rawdata)
     ).then(=>
       @modified = false
       return  # Last PromiseValue
@@ -90,6 +90,14 @@ class TextEditor extends Editor
   #
 
   ###*
+  @static
+  @protected
+  @inheritdoc Editor#register
+  ###
+  @register: (subclass) ->
+    return Editor.register(subclass)
+
+  ###*
   @protected
   @method constructor
     Constructor of TextEditor class
@@ -97,13 +105,13 @@ class TextEditor extends Editor
     jQuery object
   @param {Sketch} sketch
     Sketch instance
-  @param {string} path
-    Path of target file
+  @param {SketchItem} item
+    SketchItem instance
   @param {string} _aceMode
     Ace mode name
   ###
-  constructor: ($, sketch, path, @_aceMode) ->
-    super($, sketch, path, (domElement or= $("#text-editor")[0]))
+  constructor: ($, sketch, item, @_aceMode) ->
+    super($, sketch, item, (domElement or= $("#text-editor")[0]))
     Ace or= window.ace
     unless aceEditor
       aceEditor = Ace.edit(domElement)
@@ -139,7 +147,7 @@ class TextEditor extends Editor
     return new Promise((resolve, reject) =>
       reader = new FileReader()
       reader.onloadend = => resolve(reader.result)
-      reader.onerror = => reject(I18n("Conversion_failed"))
+      reader.onerror = => reject(I18n.error("Conversion_failed"))
       reader.readAsText(new Blob([rawdata]))
     ) # return new Promise()
 
@@ -159,8 +167,11 @@ class TextEditor extends Editor
     return new Promise((resolve, reject) =>
       reader = new FileReader()
       reader.onloadend = => resolve(reader.result)
-      reader.onerror = => reject(I18n("Conversion_failed"))
+      reader.onerror = => reject(I18n.error("Conversion_failed"))
       reader.readAsArrayBuffer(new Blob([text]))
     ) # return new Promise()
 
 module.exports = TextEditor
+
+# Post dependencies
+I18n = require("./i18n")

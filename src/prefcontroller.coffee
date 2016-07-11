@@ -1,6 +1,5 @@
 # Pre dependencies
 WindowController = require("./windowcontroller")
-Preferences = null
 
 ###*
 @class PrefController
@@ -39,7 +38,6 @@ class PrefController extends WindowController
       state = @$(event.target).prop("checked")
       @$("body")[if state then "addClass" else "removeClass"]("show-testers")
     )
-    Preferences or= require("./preferences")
     Preferences.get({
       beta_firmware: false
       log_verbosity: 0
@@ -94,3 +92,4 @@ module.exports = PrefController
 
 # Post dependencies
 I18n = require("./i18n")
+Preferences = require("./preferences")

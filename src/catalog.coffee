@@ -1,12 +1,5 @@
 # Pre dependencies
 JSONable = require("./jsonable")
-I18n = require("./i18n")
-Preferences = require("./preferences")
-App = require("./app")
-Board = null
-
-# (From library.min.js)
-GitHub = window.Libs.GitHub
 
 CAT_OWNER = "kimushu"
 CAT_REPO  = "rubic-catalog"
@@ -46,7 +39,6 @@ class Catalog extends JSONable
     Promise object
   ###
   @update: (forceUpdate = false) ->
-    Board or= require("./board")
     key = "catalog.lastFetched"
     return Promise.resolve(
     ).then(=>
@@ -132,28 +124,7 @@ class Catalog extends JSONable
     @_lastModified = parseInt(src.lastModified) || 0
     @_lastFetched  = parseInt(src.lastFetched) || 0
     @_rubicVersion = "#{src.rubicVersion || ""}"
-    @_engines      = []
-    for esrc in (src.engines or [])
-      edest = {}
-      edest.name      = I18n.parseJSON(esrc.name)
-      edest.className = "#{esrc.className || ""}"
-      edest.id        = "#{esrc.id || ""}"
-      edest.beta      = !!esrc.beta
-      edest.obsolete  = !!esrc.obsolete
-      edest.replaced  = "#{esrc.replaced || ""}"
-      edest.firmwares = []
-      for fsrc in (esrc.firmwares or [])
-        fdest = {}
-        fdest.name         = I18n.parseJSON(fsrc.name)
-        fdest.id           = "#{fsrc.id || ""}"
-        fdest.assets       = {}
-        (fdest.assets[akey] = "#{avalue || ""}") for akey, avalue of fsrc.assets
-        fdest.rubicVersion = "#{fsrc.rubicVersion || ""}"
-        fdest.beta         = !!fsrc.beta
-        fdest.obsolete     = !!fsrc.obsolete
-        fdest.replaced     = "#{fsrc.replaced || ""}"
-        edest.firmwares.push(fdest)
-      @_engines.push(edest)
+    @_engines = (Engine.parseJSON(esrc) for e in (src.engines or []))
     return
 
   ###*
@@ -199,3 +170,11 @@ class Catalog extends JSONable
     ) # return Promise.resolve().then()...
 
 module.exports = Catalog
+
+# Post dependencies
+I18n = require("./i18n")
+Preferences = require("./preferences")
+App = require("./app")
+Board = require("./board")
+Engine = require("./engine")
+GitHub = window.Libs.GitHub

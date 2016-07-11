@@ -12,36 +12,11 @@
   },
   "permissions": [
     "serial",
+    "storage",
     "unlimitedStorage",
     {"fileSystem": ["directory", "write"]}
   ],
   "app": {
-    "background": {
-      "scripts": [
-        "canarium.js",
-        "coffeescript/extras/coffee-script.js",
-        "js-yaml/dist/js-yaml.min.js",
-        "js/launcher.js",
-        "js/common.js",
-        "js/eventtarget.js",
-        "js/i18n.js",
-        "js/app.js",
-        "js/windowcontroller.js",
-        "js/maincontroller.js",
-        "js/catalogcontroller.js",
-        "js/sketch.js",
-        "js/fileutil.js",
-        "js/editor.js",
-        "js/sketcheditor.js",
-        "js/texteditor.js",
-        "js/rubyeditor.js",
-        "js/coffeescripteditor.js",
-        "js/emscriptenrunner.js",
-        "js/builder.js",
-        "js/mrubybuilder.js",
-        "js/coffeescriptbuilder.js",
-        "lib.js"
-      ]
-    }
+    "background": {"scripts": ["background.min.js"]}
   }
 }

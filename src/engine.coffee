@@ -1,6 +1,5 @@
 # Pre dependencies
 JSONable = require("./jsonable")
-I18n = require("./i18n")
 
 ###*
 @class Engine
@@ -75,6 +74,13 @@ class Engine extends JSONable
   ###
   @property("obsolete", get: -> @_obsolete)
 
+  ###*
+  @property {Firmware[]} firmware
+    Array of firmwares
+  @readonly
+  ###
+  @property("firmwares", get: -> f for f in @_firmwares)
+
   #--------------------------------------------------------------------------------
   # Public methods
   #
@@ -115,15 +121,16 @@ class Engine extends JSONable
 
   ###*
   @method constructor
-    Constructor of this class
+    Constructor of Engine class
   @param {Object} obj
   ###
   constructor: (obj) ->
-    @_id = "#{obj.id || ""}"
-    @_rubicVersion = "#{obj.rubicVersion || ""}"
-    @_friendlyName = I18n.parseJSON(obj.friendlyName)
-    @_beta = !!obj.beta
-    @_obsolete = !!obj.obsolete
+    @_id            = "#{obj.id || ""}"
+    @_rubicVersion  = "#{obj.rubicVersion || ""}"
+    @_friendlyName  = I18n.parseJSON(obj.friendlyName)
+    @_beta          = !!obj.beta
+    @_obsolete      = !!obj.obsolete
+    @_firmwares     = (Firmware.parseJSON(f) for f in (obj.firmwares or []))
     return
 
   ###*
@@ -133,11 +140,16 @@ class Engine extends JSONable
   ###
   toJSON: ->
     return super().extends({
-      id: @_id
-      rubicVersion: @_rubicVersion
-      friendlyName: @_friendlyName
-      beta: @_beta
-      obsolete: @_obsolete
+      id            : @_id
+      rubicVersion  : @_rubicVersion
+      friendlyName  : @_friendlyName
+      beta          : @_beta
+      obsolete      : @_obsolete
+      firmwares     : @_firmwares
     })
 
 module.exports = Engine
+
+# Post dependencies
+I18n = require("./i18n")
+Firmware = require("./firmware")

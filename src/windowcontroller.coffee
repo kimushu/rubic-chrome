@@ -1,10 +1,5 @@
 # Pre dependencies
 Controller = require("./controller")
-MainController = null
-PrefController = null
-TutorialController = null
-AboutController = null
-BoardController = null
 
 ###*
 @class WindowController
@@ -33,11 +28,6 @@ class WindowController extends Controller
   ###
   onActivated: ->
     super
-    MainController or= require("./maincontroller")
-    PrefController or= require("./prefcontroller")
-    TutorialController or= require("./tutorialcontroller")
-    AboutController or= require("./aboutcontroller")
-    BoardController or= require("./boardcontroller")
     @$(".show-left").click(=> @$("body").removeClass("left-hidden"))
     @$(".hide-left").click(=> @$("body").addClass("left-hidden"))
     @$(".activate-main").click(=> MainController.instance.activate())
@@ -65,3 +55,11 @@ class WindowController extends Controller
     return
 
 module.exports = WindowController
+
+# Post dependencies
+# (none)
+MainController = require("./maincontroller")
+PrefController = require("./prefcontroller")
+TutorialController = require("./tutorialcontroller")
+AboutController = require("./aboutcontroller")
+BoardController = require("./boardcontroller")

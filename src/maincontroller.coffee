@@ -1,10 +1,5 @@
 # Pre dependencies
 WindowController = require("./windowcontroller")
-I18n = require("./i18n")
-Preferences = require("./preferences")
-App = null
-Sketch = null
-AsyncFs = null
 
 ###*
 @class MainController
@@ -29,10 +24,12 @@ class MainController extends WindowController
   )
 
   #--------------------------------------------------------------------------------
-  # Private constants
+  # Private variables
   #
 
   PLACES = ["local", "googledrive", "dropbox", "onedrive"]
+  tabSet = null
+  tabNextId = 1
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -44,11 +41,23 @@ class MainController extends WindowController
   ###
   onActivated: ->
     super
+    @$(".editor-body").hide()
     @$("body").addClass("controller-main")
     @$(".sketch-new").click(=> @_newSketch())
     @$(".open-latest").click(=> @_openSketch())
     for p in PLACES
       do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
+    @$(".sketch-build").click(=> @_buildSketch())
+    @$(".sketch-run").click(=> @_runSketch())
+    tabCallback = (e) => @_tabClick(e)
+    tabSet or= @$("#editor-tabs").scrollTabs({
+      left_arrow_size: 18
+      right_arrow_size: 18
+      click_callback: -> tabCallback(this)
+    })
+    App.log.detail({"MainController#tabSet": tabSet})
+    @_newSketch() unless App.sketch?
+    @_activeEditor?.activate()
     return
 
   ###*
@@ -60,6 +69,7 @@ class MainController extends WindowController
     @$(".sketch-new").unbind("click")
     @$(".open-latest").unbind("click")
     @$(".open-#{p}").unbind("click") for p in PLACES
+    @$(".sketch-run").unbind("click")
     super
     return
 
@@ -76,9 +86,8 @@ class MainController extends WindowController
   ###
   constructor: (window) ->
     super(window)
-    App or= require("./app")
-    Sketch or= require("./sketch")
-    AsyncFs or= require("./asyncfs")
+    @_editors = {}
+    @_activeEditor = null
     return
 
   ###*
@@ -89,11 +98,17 @@ class MainController extends WindowController
     Promise object
   ###
   _newSketch: ->
-    return @_closeSketch(
+    return Promise.resolve(
+    ).then(=>
+      return @_closeSketch()
     ).then(=>
       return Sketch.createNew()
     ).then((sketch) =>
       App.sketch = sketch
+      @_addEditor(new SketchEditor(@$, sketch), true)
+      for item in sketch.items
+        ec = Editor.findEditor(item) if item.path != ""
+        @_addEditor(new ec(@$, sketch, item)) if ec?
       return
     ) # return Promise.resolve().then()...
 
@@ -131,7 +146,14 @@ class MainController extends WindowController
     ).then((result) =>
       return Promise.reject(Error("Cancelled")) unless result == "ok"
       return if dryrun
-      # TODO: close all editors
+      for e in @_editors
+        try
+          e.deactivate()
+          e.close()
+        catch e
+          null
+      @_editors = []
+      @$("#editor-tabs").empty()
       App.sketch = null
     ) # return Promise.resolve().then()...
 
@@ -155,7 +177,7 @@ class MainController extends WindowController
       switch(place)
         when "local"
           return AsyncFs.chooseDirectory().catch(=> return)
-      return Promise.reject(Error("Unknown place: `#{place}'"))
+      return Promise.reject(Error("Unsupported place: `#{place}'"))
     ).then((fs) =>
       return unless fs?
       return Sketch.open(fs).then((sketch) =>
@@ -169,583 +191,124 @@ class MainController extends WindowController
       )
     ) # return Promise.resolve().then()...
 
-#  #--------------------------------------------------------------------------------
-#  #--------------------------------------------------------------------------------
-#  #--------------------------------------------------------------------------------
-#  # TODO old contents
-#  #
-#  ###*
-#  @property {Sketch} sketch
-#    Instance of current sketch
-#  @readonly
-#  ###
-#  @property("sketch", get: -> @_sketch)
-#
-#  ###*
-#  @method constructor
-#    Constructor of MainController
-#  ###
-#  constructor: ->
-#    super
-#    @_sketch = null
-#    @_editors = []
-#    @_locked = false
-#
-#  ###*
-#  @method
-#    Start controller
-#  @return {void}
-#  ###
-#  start: ->
-#    super(
-#      "win_main.html"
-#      {
-#        innerBounds: {
-#          width: 640
-#          height: 480
-#          minWidth: 480
-#        }
-#      }
-#      =>
-#        @window.app.main = this
-#        @appWindow.onClosed.addListener(=> @window.app.main = undefined)
-#    )
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Acquire lock
-#  @return {boolean}
-#    - true: success
-#    - false: already locked
-#  ###
-#  _lock: ->
-#    return false if @_locked
-#    return (@_locked = true)
-#
-#  ###*
-#  @private
-#  @method
-#    Release lock
-#  @return {void}
-#  ###
-#  _unlock: ->
-#    @_locked = false
-#    return
-#
-#  ###*
-#  @protected
-#  @method
-#    Event handler on document.onload
-#  @return {void}
-#  ###
-#  onLoad: ->
-#    super()
-#
-#    # Register handlers for buttons
-#    @$(".act-toggle-menu"   ).click(=> @_toggleMenu())
-#    @$(".act-new-sketch"    ).click(=> @_newSketch())
-#    @$(".act-open-sketch"   ).click(=> @_openSketch())
-#    @$(".act-save-sketch"   ).click(=> @_saveSketch())
-#    @$(".act-save-sketch-as").click(=> @_saveSketchAs())
-#    @$(".act-build-sketch"  ).click(=> @_buildSketch())
-#    @$(".act-run-sketch"    ).click(=> @_runSketch())
-#    @$(".act-debug-sketch"  ).click(=> @_debugSketch())
-#    @$(".act-open-catalog"  ).click(=> @_openCatalog())
-#
-#    # Bind shortcut keys
-#    @bindKey("Ctrl+N",        => @_newSketch())
-#    @bindKey("Ctrl+O",        => @_openSketch())
-#    @bindKey("Ctrl+S",        => @_saveSketch())
-#    @bindKey("Ctrl+Shift+S",  => @_saveSketchAs())
-#    @bindKey("Ctrl+B",        => @_buildSketch())
-#    @bindKey("Ctrl+R",        => @_runSketch())
-#
-#    # Setup output area
-#    @window.ace.Range or= @window.ace.require("ace/range").Range
-#    @_output = @window.ace.edit(@$("#output")[0])
-#    @_output.renderer.setShowGutter(false)
-#    @_output.setTheme("ace/theme/twilight")
-#    @_output.setShowPrintMargin(false)
-#    @_output.setReadOnly(true)
-#    @clearOutput()
-#    return
-#
-#  ###*
-#  @protected
-#  @method
-#    Event handler on appWindow.onClosed
-#  @return {void}
-#  ###
-#  onClosed: ->
-#    @window.app.catalog?.close()
-#    @window.app.main = undefined
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Print text to output window
-#  @param {string} text
-#    Text to print
-#  @param {string/undefined} [marker=undefined]
-#    Class name to mark up
-#  @return {void}
-#  ###
-#  _printOutput: (text, marker) ->
-#    sess = @_output.getSession()
-#    range = new @window.ace.Range()
-#    range.start = {row: sess.getLength()}
-#    range.start.column = sess.getLine(range.start.row).length
-#    range.end = sess.insert(range.start, text)
-#    sess.addMarker(range, marker, "text") if marker
-#    return
-#
-#  ###*
-#  @method
-#    Print text to output window as stdout
-#  @param {string} text
-#    Text to print
-#  @return {void}
-#  ###
-#  stdout: (text) ->
-#    @_printOutput(text, "marker-stdout")
-#    return
-#
-#  ###*
-#  @method
-#    Print text to output window as stderr
-#  @param {string} text
-#    Text to print
-#  @return {void}
-#  ###
-#  stderr: (text) ->
-#    @_printOutput(text, "marker-stderr")
-#    return
-#
-#  ###*
-#  @method
-#    Clear output window
-#  @return {void}
-#  ###
-#  clearOutput: ->
-#    session = @window.ace.createEditSession("", "ace/mode/text")
-#    session.setUseWrapMode(true)
-#    @_output.setSession(session)
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Show dialog box (bootbox.dialog)
-#  @param {Object} options
-#    Options passed to bootbox.dialog
-#  @return {void}
-#  ###
-#  _dialog: (options) ->
-#    @window.bootbox.dialog(options)
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Generate popup notify message (bootstrap-notify)
-#  @param {"success"/"info"/"warning"/"danger"}  type
-#    Type of message
-#  @param {string} message
-#    Message text
-#  @param {Object} options
-#    Other options to bootstrap-notify
-#  @return {void}
-#  ###
-#  _notify: (type, message, options) ->
-#    @$.notify(message, @$.extend({
-#      type: type
-#      allow_dismiss: true
-#      placement: {from: "bottom", align: "center"}
-#      delay: 2000
-#      newest_on_top: true
-#      offset: 52
-#    }, options))
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Toggle menubar
-#  @return {void}
-#  ###
-#  _toggleMenu: ->
-#    @$("#wrapper").toggleClass("toggled")
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Confirm discarding current sketch
-#  @param {function(boolean):void} callback
-#    Callback function
-#  @param {boolean} callback.discard
-#    Yes to discard
-#  @return {void}
-#  ###
-#  _confirmDiscardSketch: (callback) ->
-#    @_dialog({
-#      title: I18n("CurrentSketchHasBeenModified")
-#      message: I18n("AreYouWantToDiscardModificationsXq")
-#      buttons: {
-#        yes: {
-#          label: I18n("YesXpIDiscardThemXp")
-#          className: "btn-danger"
-#          callback: ->
-#            callback(true)
-#        }
-#        no: {
-#          label: I18n("NoXpIWantToCancelXp")
-#          className: "btn-success"
-#          callback: =>
-#            @_notify("info", I18n("Cancelled"))
-#            callback(false)
-#        }
-#      }
-#    })
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Confirm overwriting non-empty directory
-#  @param {function(boolean):void} callback
-#    Callback function
-#  @param {boolean} callback.overwrite
-#    Yes to discard
-#  @return {void}
-#  ###
-#  _confirmOverwriteDirectory: (callback) ->
-#    @_dialog({
-#      title: I18n("SelectedFolderIsNotEmpty")
-#      message: I18n("WouldYouLikeToOverwriteExistingFilesXq")
-#      buttons: {
-#        yes: {
-#          label: I18n("YesXpOverwriteThemXp")
-#          className: "btn-danger"
-#          callback: ->
-#            callback(true)
-#        }
-#        no: {
-#          label: I18n("NoXpIWantToCancelXp")
-#          className: "btn-success"
-#          callback: =>
-#            @_notify("info", I18n("Cancelled"))
-#            callback(false)
-#        }
-#      }
-#    })
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Create new sketch
-#  @return {void}
-#  ###
-#  _newSketch: ->
-#    return unless @_lock()
-#    # @sketch = {modified: true}
-#    new Function.Sequence(
-#      (seq) =>
-#        return seq.next() unless @sketch?.modified
-#        @_confirmDiscardSketch((discard) =>
-#          return seq.next(discard)
-#        )
-#      (seq) =>
-#        Sketch.create((result, sketch) =>
-#          return seq.abort() unless result
-#          @_setSketch(sketch, (result) ->
-#            return seq.next(result)
-#          )
-#        )
-#    ).final(
-#      (seq) =>
-#        @_unlock()
-#    ).start()
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Open another sketch
-#  @return {void}
-#  ###
-#  _openSketch: ->
-#    return unless @_lock()
-#    entry = null
-#    new Function.Sequence(
-#      (seq) =>
-#        return seq.next() unless @sketch?.modified
-#        @_confirmDiscardSketch((discard) =>
-#          return seq.next(discard)
-#        )
-#      (seq) =>
-#        @window.chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
-#          unless dirEntry
-#            # cancelled by user
-#            @window.chrome.runtime.lastError
-#            @_notify("info", I18n("Cancelled"))
-#            return seq.abort()
-#          entry = dirEntry
-#          return seq.next()
-#        )
-#      (seq) =>
-#        Sketch.open(entry, (result, sketch) =>
-#          return seq.abort() unless result
-#          @_setSketch(sketch, (result) ->
-#            return seq.next(result)
-#          )
-#        )
-#    ).final(
-#      (seq) =>
-#        @_unlock()
-#    ).start()
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Set current sketch
-#  @param {Sketch} sketch
-#    Sketch instance to set
-#  @param {function(boolean):void} callback
-#    Callback function with result
-#  @return {void}
-#  ###
-#  _setSketch: (sketch, callback) ->
-#    new Function.Sequence(
-#      (seq) =>
-#        return seq.next() unless @_editors.length > 0
-#        editor = @_editors[0]
-#        @_removeEditor(editor)
-#        editor.close((result) ->
-#          return seq.abort() unless result
-#          return seq.redo()
-#        )
-#      (seq) =>
-#        return seq.next() unless @sketch
-#        @sketch.close((result) ->
-#          return seq.next(result)
-#        )
-#      (seq) =>
-#        editor = new SketchEditor(this, sketch)
-#        @_addEditor(editor)
-#        editor.load((result) =>
-#          unless result
-#            @_notify("warning", I18n("CannotLoadSketchEditor"))
-#          return seq.next()
-#        )
-#      (seq) =>
-#        name = sketch.bootFile or ""
-#        return seq.next() unless name != ""
-#        unless sketch.getFiles().includes(name)
-#          @_notify("warning", "#{I18n("BootScriptIsNotRegisteredInThisSketchXc")}#{name}")
-#          return seq.next()
-#        sketch.dirEntry.getFile(
-#          name
-#          {}
-#          (fileEntry) =>
-#            editor = Editor.createEditor(this, fileEntry)
-#            unless editor
-#              @_notify("warning", "#{I18n("CannotGuessEditorForXc")}#{name}")
-#              return seq.next()
-#            @_addEditor(editor)
-#            editor.load((result) =>
-#              unless result
-#                @_notify("warning", "#{I18n("CannotLoadEditorForXc")}#{name}")
-#              return seq.next()
-#            )
-#          =>
-#            @_notify("warning", "#{I18n("CannotOpenFileXc")}#{name}")
-#            return seq.next()
-#        )
-#      (seq) =>
-#        @_sketch = sketch
-#        app.log({info: "Sketch loaded", data: sketch})
-#        return seq.next()
-#      (seq) =>
-#        @_editors[@_editors.length - 1].activate((result) ->
-#          return seq.next()
-#        )
-#    ).final(
-#      (seq) ->
-#        callback(seq.finished)
-#    ).start()
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Select an editor
-#  @param {Editor} editor
-#    The instance of editor to select
-#  @return {void}
-#  ###
-#  _selectEditor: (editor) ->
-#    editor.activate((result) ->
-#      unless result
-#        @_notify("danger", "#{I18n("CannotActivateEditorForFileXc")}#{editor.name}")
-#    )
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Add an editor
-#  @param {Editor} editor
-#    The instance of editor to add
-#  @return {void}
-#  ###
-#  _addEditor: (editor) ->
-#    editor.onSelectRequest.addEventListener(@_selectEditor, this)
-#    @_editors.push(editor)
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Remove an editor
-#  @param {Editor} editor
-#    The instance of editor to remove
-#  @return {void}
-#  ###
-#  _removeEditor: (editor) ->
-#    index = @_editors.indexOf(editor)
-#    @_editors.splice(index, 1) if index >= 0
-#    editor.onSelectRequest.removeEventListener(@_selectEditor, this)
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Save sketch (overwrite)
-#  @param {function(boolean):void} [callback]
-#    Callback function with result
-#  @return {void}
-#  ###
-#  _saveSketch: (callback) ->
-#    return unless @_lock()
-#    index = 0
-#    new Function.Sequence(
-#      (seq) =>
-#        return seq.next() unless index < @_editors.length
-#        editor = @_editors[index++]
-#        return seq.redo() unless editor.modified
-#        editor.save((result) =>
-#          return seq.redo() if result
-#          @_notify("danger", "#{I18n("CannotSaveXc")}#{editor.name}")
-#          return seq.abort()
-#        )
-#      (seq) =>
-#        @sketch.save((result) =>
-#          return seq.next() if result
-#          @_notify("danger", "#{I18n("FailedToSaveSketch")}")
-#          return seq.abort()
-#        )
-#    ).final(
-#      (seq) =>
-#        if seq.finished
-#          @_notify("success", I18n("TheSketchHasBeenSavedXp"))
-#        @_unlock()
-#        callback?(seq.finished)
-#    ).start()
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Save sketch as (another place)
-#  @return {void}
-#  ###
-#  _saveSketchAs: ->
-#    return unless @_lock()
-#    newDirEntry = null
-#    index = 0
-#    new Function.Sequence(
-#      (seq) =>
-#        @window.chrome.fileSystem.chooseEntry({type: "openDirectory"}, (dirEntry) =>
-#          unless dirEntry
-#            # cancelled by user
-#            @window.chrome.runtime.lastError
-#            @_notify("info", I18n("Cancelled"))
-#            return seq.abort()
-#          newDirEntry = dirEntry
-#          return seq.next()
-#        ) # @window.chrome.fileSystem.chooseEntry
-#      (seq) =>
-#        FileUtil.readEntries(
-#          newDirEntry
-#          (entries) =>
-#            return seq.next() if entries.length == 0
-#            @_confirmOverwriteDirectory((overwrite) ->
-#              return seq.next(overwrite)
-#            )
-#          =>
-#            @_notify("danger", "#{I18n("CannotReadDirectoryXc")}#{dirEntry.name}")
-#            return seq.abort()
-#        ) # FileUtil.readEntries
-#      (seq) =>
-#        @sketch.saveAs(newDirEntry, (result) =>
-#          unless result
-#            @_notify("danger", "#{I18n("FailedToSaveSketch")}")
-#            return seq.abort()
-#          return seq.next()
-#        )
-#      (seq) =>
-#        return seq.next() unless index < @_editors.length
-#        editor = @_editors[index++]
-#        editor.save((result) =>
-#          unless result
-#            @_notify("danger", "#{I18n("CannotSaveXc")}#{editor.name}")
-#            return seq.abort()
-#          return seq.redo()
-#        )
-#    ).final(
-#      (seq) =>
-#        if seq.finished
-#          @_notify("success", I18n("TheSketchHasBeenSavedXp"))
-#        @_unlock()
-#    ).start()
-#    return
-#
-#  ###*
-#  @private
-#  @method
-#    Build current sketch (Automatically save before build)
-#  @return {void}
-#  ###
-#  _buildSketch: ->
-#    @_saveSketch((res_save) =>
-#      return unless res_save
-#      @clearOutput()
-#      @stdout("#{I18n("StartBuildingSketchXd")}\n")
-#      @_sketch.build((res_build) =>
-#        unless res_build
-#          @_notify("danger", I18n("FailedToBuildSketch"))
-#          return
-#        @_notify("success", I18n("BuildComplete"))
-#        @stdout("#{I18n("BuildComplete")}\n")
-#      )
-#    )
-#    return
-#
-#  ###*
-#  ###
-#  _openCatalog: ->
-#    if app.catalog
-#      app.catalog.activate()
-#    else
-#      new CatalogController().start()
+  ###*
+  @private
+  @method
+    Save sketch (overwrite)
+  @return {Promise}
+    Promise object
+  ###
+  _saveSketch: ->
+    return Promise.reject(Error("No sketch to save")) unless (sketch = App.sketch)?
+    spin = @modalSpin().text(I18n.getMessage("Saving_sketch")).show()
+    return sketch.save().finally(=>
+      spin.hide()
+    )
+
+  ###*
+  @private
+  @method
+    Build sketch
+  @param {boolean/MouseEvent/KeyboardEvent} [force]
+    Force all build (If event is specified, judged by SHIFT key)
+  @return {Promise}
+    Promise object
+  ###
+  _buildSketch: (force) ->
+    force = force.shiftKey if typeof(force) == "object"
+    force = !!force
+    return Promise.reject(Error("No sketch to build")) unless (sketch = App.sketch)?
+    return Promise.reject(Error("No board")) unless (board = sketch.board)?
+    return Promise.reject(Error("No engine")) unless (engine = board?.engine)?
+    return Promise.resolve(
+    ).then(=>
+      return @_saveSketch()
+    ).then(=>
+      spin = @modalSpin()
+      return sketch.items.reduce(
+        (promise, item) =>
+          spin.text(I18n.getMessage("Building_1", item.path)).show()
+          return promise.then(=> return engine.build(sketch, item))
+        Promise.resolve()
+      ).finally(=>
+        spin.hide()
+      )
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Run sketch
+  @param {boolean/MouseEvent/KeyboardEvent} [force]
+    Force all build (If event is specified, judged by SHIFT key)
+  @return {Promise}
+    Promise object
+  ###
+  _runSketch: (force) ->
+    force = force.shiftKey if typeof(force) == "object"
+    force = !!force
+    return Promise.reject(Error("No sketch to run")) unless (sketch = App.sketch)?
+    return Promise.reject(Error("No board")) unless (board = sketch.board)?
+    items = (i for i in sketch.items when i.transfered)
+    return Promise.resolve(
+    ).then(=>
+      return @_buildSketch(force)
+    ).then(=>
+      spin = @modalSpin()
+      cnt = 0
+      max = items.length
+      return items.reduce(
+        (promise, item) =>
+          spin.text("#{I18n.getMessage("Transferring_1", item.path)} (#{++cnt}/#{max})").show()
+          return promise.then(=> return board.transfer(sketch, item))
+        Promise.resolve()
+      ).finally(=>
+        spin.hide()
+      )
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Add an editor tab
+  @return {undefined}
+  ###
+  _addEditor: (editor, activate = false) ->
+    id = editor.uniqueId
+    unless @_editors[id]?
+      @_editors[id] = editor
+      tabSet.addTab("""
+      <li id="#{id}">#{editor.title}</li>
+      """)
+    if activate and @_activeEditor != editor
+      @_activeEditor?.deactivate()
+      (@_activeEditor = editor).activate()
+      @$("##{editor.uniqueId}").click()
+
+    return
+
+  ###*
+  @private
+  @method
+    Tab click callback
+  @param {DOMElement} element
+  @return {undefined}
+  ###
+  _tabClick: (element) ->
+    editor = @_editors[element.id]
+    return unless editor?
+    return if editor == @_activeEditor
+    @_activeEditor?.deactivate()
+    (@_activeEditor = editor).activate()
+    return
 
 module.exports = MainController
 
 # Post dependencies
 I18n = require("./i18n")
+Preferences = require("./preferences")
+App = require("./app")
+Sketch = require("./sketch")
+AsyncFs = require("./asyncfs")
+SketchEditor = require("./sketcheditor")
+Editor = require("./editor")

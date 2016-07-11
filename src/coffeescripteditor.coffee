@@ -1,4 +1,4 @@
-# Dependencies
+# Pre dependencies
 TextEditor = require("./texteditor")
 
 ###*
@@ -56,3 +56,6 @@ class CoffeeScriptEditor extends TextEditor
     return
 
 module.exports = CoffeeScriptEditor
+
+# Post dependencies
+# (none)

@@ -1,6 +1,5 @@
 # Pre dependencies
 JSONable = require("./jsonable")
-EventTarget = require("./eventtarget")
 
 ###*
 @class SketchItem
@@ -89,6 +88,16 @@ class SketchItem extends JSONable
     @_editor = null
     return
 
+  ###*
+  @method
+    Update sketch relationship
+  @param {Sketch} _sketch
+    Owner sketch
+  @return {undefined}
+  ###
+  setSketch: (@_sketch) ->
+    return
+
   #--------------------------------------------------------------------------------
   # Protected methods
   #
@@ -120,3 +129,6 @@ class SketchItem extends JSONable
     return
 
 module.exports = SketchItem
+
+# Post dependencies
+EventTarget = require("./eventtarget")

@@ -1,11 +1,6 @@
 # Pre dependencies
 JSONable = require("./jsonable")
-EventTarget = require("./eventtarget")
-I18n = require("./i18n")
-AsyncFs = require("./asyncfs")
 strftime = require("./strftime")
-App = null
-Board = null
 
 ###*
 @class Sketch
@@ -57,6 +52,24 @@ class Sketch extends JSONable
   @property("items", get: -> (item for item in @_items))
 
   ###*
+  @property {string} bootItem
+    Path of boot item
+  ###
+  @property("bootItem",
+    get: -> @_bootItem
+    set: (v) ->
+      found = null
+      for item in @_items
+        if item.path == v
+          found = item
+          break
+      throw Error("No item `#{v}'") unless found?
+      return if @_bootItem == v
+      @_bootItem = v
+      return
+  )
+
+  ###*
   @property {Board} board
     Board instance
   ###
@@ -78,7 +91,7 @@ class Sketch extends JSONable
   @event onChange
     Changed event target
   ###
-  @property("onChange", get: -> @_onChange)
+  @property("onChange", get: -> @_onChange or= new EventTarget())
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -115,9 +128,16 @@ class Sketch extends JSONable
       sketch = new Sketch()
       return sketch.save(dirFs)
     ).then(=>
+      # FIXME>>>
+      sketch.addItem(i = new SketchItem({path: "main.rb"}))
+      sketch.bootItem = "main.rb"
+    #   sketch.board = new Board()
+    #   return i.setup()
+    # ).then(=>
+      # <<<FIXME
       sketch._temporary = true
       return sketch
-    )
+    ) # return AsyncFs.opentmpfs().then()...
 
   ###*
   @static
@@ -150,7 +170,6 @@ class Sketch extends JSONable
     Promise object
   ###
   save: (newDirFs) ->
-    App or= require("./app")
     if newDirFs?
       # Update properties
       oldDirFs = @_dirFs
@@ -172,11 +191,12 @@ class Sketch extends JSONable
     ).then(=>
       # Successfully saved
       @_modified = false
+      newDirFs = null
       return  # Last PromiseValue
-    ).catch((error) =>
-      # Revert properties
+    ).finally(=>
+      # Revert properties if failed
       @_dirFs = oldDirFs if newDirFs?
-      return Promise.reject(error)
+      return
     ) # return @_items.reduce().then()...
 
   ###*
@@ -201,6 +221,7 @@ class Sketch extends JSONable
   ###
   addItem: (item) ->
     return false if @getItem(item.path)?
+    item.setSketch(this)
     @_items.push(item)
     @_setModified()
     return true
@@ -250,13 +271,11 @@ class Sketch extends JSONable
     JSON object
   ###
   constructor: (obj) ->
-    Board or= require("./board")
     super(obj)
     @_rubicVersion = "#{obj?.rubicVersion || ""}"
     @_items = (SketchItem.parseJSON(item) for item in (obj?.items or []))
     @_bootItem = "#{obj?.bootItem || ""}"
     @_board = Board.parseJSON(obj.board) if obj?.board?
-    @_onChange = new EventTarget()
     @_setModifiedCaller = (=> @_setModified)
     return
 
@@ -285,7 +304,7 @@ class Sketch extends JSONable
   _setModified: ->
     return if @_modified
     @_modified = true
-    @_onChange.dispatchEvent(this)
+    @onChange.dispatchEvent(this)
     return
 
   ###*
@@ -317,3 +336,11 @@ class Sketch extends JSONable
         return src
 
 module.exports = Sketch
+
+# Post dependencies
+EventTarget = require("./eventtarget")
+I18n = require("./i18n")
+AsyncFs = require("./asyncfs")
+App = require("./app")
+Board = require("./board")
+SketchItem = require("./sketchitem")

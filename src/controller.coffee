@@ -1,5 +1,7 @@
 # Pre dependencies
+App = require("./app")
 UnJSONable = require("./unjsonable")
+I18n = null
 
 ###*
 @class Controller
@@ -47,6 +49,7 @@ class Controller extends UnJSONable
     return if @window.controller == this
     @window.controller?.deactivate()
     @window.controller = this
+    App.info({"Controller#activate": this})
     if @window.loaded?
       Promise.resolve().then(=>
         @onActivated(args...)
@@ -64,6 +67,7 @@ class Controller extends UnJSONable
   @return {undefined}
   ###
   deactivate: ->
+    App.info.detail({"Controller#deactivate": this})
     @onDeactivated()
     @window.controller = null
     return
@@ -80,7 +84,6 @@ class Controller extends UnJSONable
     window object
   ###
   constructor: (@_window) ->
-    console.log(this)
     return
 
   ###*
@@ -92,6 +95,7 @@ class Controller extends UnJSONable
   ###
   onActivated: ->
     unless (doc = @window.document).translated
+      I18n or= require("./i18n")
       doc.translated = true
       console.log("Translating document (#{I18n.lang})")
       I18n.translateDocument(doc)
@@ -107,7 +111,40 @@ class Controller extends UnJSONable
   onDeactivated: ->
     return
 
-module.exports = Controller
+  ###*
+  @protected
+  @method
+    Create modal spinner
+  @param {Object} opts
+    Options passed to Spinner
+  @return {Object}
+    Spinner class
+  ###
+  modalSpin: (opts) ->
+    jq = @$
+    return @_window._modalSpinner or= {
+      _spinElement: jq("#modal-spin").spin({color: "#fff"})
+      _textElement: jq("#modal-spin .spin-text")
+      _depth: 0
+      html: (value) ->
+        @_textElement.html(value)
+        return this
+      text: (value) ->
+        @_textElement.text(value)
+        return this
+      show: (opts) ->
+        if ++@_depth == 1
+          @_spinElement.modal(jq.extend({
+            show: true
+            backdrop: "static"
+            keyboard: false
+          }, opts))
+        return this
+      hide: ->
+        if (@_depth = Math.max(@_depth - 1, 0)) == 0
+          @_spinElement.modal("hide")
+        @_textElement.html("")
+        return this
+    }
 
-# Post dependencies
-I18n = require("./i18n")
+module.exports = Controller

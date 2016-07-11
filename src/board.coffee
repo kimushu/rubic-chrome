@@ -1,9 +1,5 @@
 # Pre dependencies
 JSONable = require("./jsonable")
-EventTarget = require("./eventtarget")
-I18n = require("./i18n")
-NamedLink = require("./namedlink")
-Catalog = null
 
 ###*
 @class Board
@@ -43,19 +39,19 @@ class Board extends JSONable
   @event onChange
     Changed event target
   ###
-  @property("onChange", get: -> @_onChange)
+  @property("onChange", get: -> @_onChange or= new EventTarget())
 
   ###*
   @event onConnected
     Connected event target
   ###
-  @property("onConnected", get: -> @_onConnected)
+  @property("onConnected", get: -> @_onConnected or= new EventTarget())
 
   ###*
   @event onDisconnected
     Disconnected event target
   ###
-  @property("onDisconnected", get: -> @_onDisconnected)
+  @property("onDisconnected", get: -> @_onDisconnected or= new EventTarget())
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -72,7 +68,6 @@ class Board extends JSONable
     Catalog data
   ###
   getCatalog: (tryUpdate = false) ->
-    Catalog or= require("./catalog")
     return Promise.resolve(
     ).then(=>
       return Catalog.load(@constructor.name, true) if tryUpdate
@@ -107,8 +102,7 @@ class Board extends JSONable
   @return {Object[]} return.PromiseValue
     Array of board information {friendlyName: "name for UI", path: "path"}
   ###
-  enumerate: ->
-    return Promise.reject(Error("Pure method"))
+  enumerate: null # pure virtual
 
   ###*
   @template
@@ -116,14 +110,11 @@ class Board extends JSONable
     Connect to board
   @param {string} path
     Path of the board
-  @param {Function} onDisconnected
-    Callback for disconnect detection
   @return {Promise}
     Promise object
   @return {undefined} return.PromiseValue
   ###
-  connect: (path, onDisconnected) ->
-    return Promise.reject(Error("Pure method"))
+  connect: null # pure virtual
 
   ###*
   @template
@@ -133,8 +124,7 @@ class Board extends JSONable
     Promise object
   @return {undefined} return.PromiseValue
   ###
-  disconnect: ->
-    return Promise.reject(Error("Pure method"))
+  disconnect: null # pure virtual
 
   ###*
   @template
@@ -144,20 +134,20 @@ class Board extends JSONable
     Promise object
   @return {string[]} return.PromiseValue
   ###
-  getStorages: ->
-    return Promise.reject(Error("Pure method"))
+  getStorages: null # pure virtual
 
   ###*
   @template
   @method
     Request pseudo filesystem
+  @param {string} storage
+    Name of storage
   @return {Promise}
     Promise object
   @return {AsyncFs} return.PromiseValue
     File system object
   ###
-  requestFileSystem: ->
-    return Promise.reject(Error("Pure method"))
+  requestFileSystem: null # pure virtual
 
   ###*
   @template
@@ -206,7 +196,6 @@ class Board extends JSONable
     @_engineLink    = NamedLink.parseJSON(obj.engineLink)
     @_firmwareLink  = NamedLink.parseJSON(obj.firmwareLink)
     @_connected     = false
-    @_onChange      = new EventTarget()
     return
 
   ###*
@@ -222,4 +211,16 @@ class Board extends JSONable
       firmwareLink  : @_firmwareLink
     })
 
+  ###*
+  @protected
+  @method
+    Set connected state
+  ###
+
 module.exports = Board
+
+# Post dependencies
+EventTarget = require("./eventtarget")
+I18n = require("./i18n")
+NamedLink = require("./namedlink")
+Catalog = require("./catalog")

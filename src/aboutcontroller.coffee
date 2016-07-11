@@ -1,6 +1,5 @@
 # Pre dependencies
 WindowController = require("./windowcontroller")
-App = require("./app")
 
 ###*
 @class AboutController
@@ -128,4 +127,5 @@ class AboutController extends WindowController
 module.exports = AboutController
 
 # Post dependencies
+App = require("./app")
 I18n = require("./i18n")
