@@ -33,10 +33,14 @@ class App
 
   LOG = (type, verbosity, args) ->
     return if window.log_verbosity < verbosity
-    return window.console[type](sprintf(args...))
+    fn = window.console[type].bind(window.console)
+    return fn(sprintf(args...)) if typeof(args[0]) == "string"
+    return fn(args...)
 
   @log          = -> return LOG("log", 1, arguments)
   @log.detail   = -> return LOG("log", 2, arguments)
+  @info         = -> return LOG("info", 1, arguments)
+  @info.detail  = -> return LOG("info", 2, arguments)
   @warn         = -> return LOG("warn", 1, arguments)
   @warn.detail  = -> return LOG("warn", 2, arguments)
   @error        = -> return LOG("error", 1, arguments)
@@ -73,3 +77,6 @@ class App
     return false
 
 module.exports = App
+
+# Post dependencies
+# (none)
