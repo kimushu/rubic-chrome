@@ -25,3 +25,18 @@ Uint32Array::includes       ||= Array::includes
 Float32Array::includes      ||= Array::includes
 Float64Array::includes      ||= Array::includes
 
+# https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/transfer
+# FIXME: Currently this method does *not* detach oldBuffer
+unless ArrayBuffer.transfer
+  ArrayBuffer.transfer = (oldBuffer, newByteLength) ->
+    unless oldBuffer instanceof ArrayBuffer
+      throw new TypeError("oldBuffer must be an ArrayBuffer")
+    oldByteLength = oldBuffer.byteLength
+    newByteLength = oldbyteLength unless newByteLength?
+    unless typeof(newByteLength) == "number"
+      throw new TypeError("newByteLength must be a number")
+    newBuffer = new ArrayBuffer(newByteLength)
+    copyByteLength = Math.min(oldByteLength, newByteLength)
+    new Uint8Array(newBuffer).set(new Uint8Array(oldBuffer, 0, copyByteLength))
+    return newBuffer
+
