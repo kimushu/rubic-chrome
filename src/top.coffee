@@ -24,6 +24,7 @@ require("./es6compat")
 require("./es7compat")
 require("./bbjscompat")
 require("./bootbox-promise")
+require("./windowcontroller")
 
 MainController = require("./maincontroller")
 MainController.instance.activate()

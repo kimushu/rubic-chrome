@@ -129,6 +129,25 @@ class Board extends JSONable
   ###*
   @template
   @method
+    Get board information
+  @return {Promise}
+    Promise object
+  @return {Object} return.PromiseValue
+    Board information
+  @return {string} return.PromiseValue.path
+    Path of device
+  @return {string} return.PromiseValue.boardVersion
+    Board version string
+  @return {string} return.PromiseValue.firmwareVersion
+    Firmware version string
+  @return {string/undefined} return.PromiseValue.serialNumber
+    Serial number
+  ###
+  getBoardInfo: null # pure virtual
+
+  ###*
+  @template
+  @method
     Get list of storages
   @return {Promise}
     Promise object
@@ -152,24 +171,17 @@ class Board extends JSONable
   ###*
   @template
   @method
-    Request console
-  @return {Promise}
-    Promise object
-  ###
-  requestConsole: ->
-    return Promise.reject(Error("Pure method"))
-
-  ###*
-  @template
-  @method
     Start sketch
+  @param {string} target
+    Target file name
   @param {function(boolean):undefined} onFinished
     Callback for finish with result
   @return {Promise}
     Promise object
+  @return {BoardConsole} return.PromiseValue
+    Console object
   ###
-  startSketch: (onFinished) ->
-    return Promise.reject(Error("Pure method"))
+  startSketch: null # pure virtual
 
   ###*
   @template
@@ -178,8 +190,7 @@ class Board extends JSONable
   @return {Promise}
     Promise object
   ###
-  stopSketch: ->
-    return Promise.reject(Error("Pure method"))
+  stopSketch: null # pure virtual
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -193,8 +204,8 @@ class Board extends JSONable
   ###
   constructor: (obj) ->
     super(obj)
-    @_engineLink    = NamedLink.parseJSON(obj.engineLink)
-    @_firmwareLink  = NamedLink.parseJSON(obj.firmwareLink)
+    @_engineLink    = NamedLink.parseJSON(obj?.engineLink)
+    @_firmwareLink  = NamedLink.parseJSON(obj?.firmwareLink)
     @_connected     = false
     return
 
@@ -214,6 +225,26 @@ class Board extends JSONable
   ###*
   @protected
   @method
+    Raise error on already connected
+  @return {Promise}
+    Promise object (rejection)
+  ###
+  errorConnected: ->
+    return I18n.rejectPromise("Already_connected")
+
+  ###*
+  @protected
+  @method
+    Raise error on not connected
+  @return {Promise}
+    Promise object (rejection)
+  ###
+  errorNotConnected: ->
+    return I18n.rejectPromise("Not_connected")
+
+  ###*
+  @protected
+  @method
     Set connected state
   ###
 
@@ -224,3 +255,4 @@ EventTarget = require("./eventtarget")
 I18n = require("./i18n")
 NamedLink = require("./namedlink")
 Catalog = require("./catalog")
+Preferences = require("./preferences")

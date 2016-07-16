@@ -1,4 +1,4 @@
-# Dependencies
+# Pre dependencies
 Board = require("./board")
 I18n = require("./i18n")
 AsyncFs = require("./asyncfs")
@@ -72,7 +72,7 @@ class WakayamaRbBoard extends Board
     Rubic version
   @readonly
   ###
-  @rubicVersion: ">= 1.0.0"
+  @rubicVersion: ">= 0.9.0"
 
   #--------------------------------------------------------------------------------
   # Private variables / constants
@@ -83,31 +83,145 @@ class WakayamaRbBoard extends Board
   WRITE1K_TIMEOUT_MS  = 2000
   DELETE_TIMEOUT_MS   = 1000
 
+  VID_PID_LIST = [
+    # VID)PID)
+    0x21290531  # Tokuden driver
+    0x045b0234  # Renesas driver
+  ]
+
+  TOL5V = new I18n({en: "5V tolerant", ja: "5Vトレラント"})
+  ADPIN = new I18n({en: "With analog input", ja: "アナログ入力対応"})
+  DAPIN = new I18n({en: "With analog output", ja: "アナログ出力対応"})
+  RXPIN = new I18n({en: "Pin number of RX63N", ja: "RX63Nピン番号"})
+  ANPIN = new I18n({en: "Analog pins", ja: "アナログピン名称"})
+
   #--------------------------------------------------------------------------------
   # Public methods
   #
 
   ###*
+  @method constructor
+    Constructor of WakayamaRbBoard class
+  @param {Object} obj
+    JSON object
+  ###
+  constructor: (obj) ->
+    super(obj)
+    return
+
+  ###*
+  @inheritdoc Board#getPinList
+  ###
+  getPinList: ->
+    return {
+      left: [
+        {name: "0",   aliases: ["P20"], specials: [TOL5V]}
+        {name: "1",   aliases: ["P21"], specials: [TOL5V]}
+        {name: "18",  aliases: ["PC0"], specials: [TOL5V]}
+        {name: "19",  aliases: ["PC1"], specials: [TOL5V]}
+        {name: "2",   aliases: ["PC2"], specials: [TOL5V]}
+        {name: "3",   aliases: ["P12"], specials: [TOL5V]}
+        {name: "4",   aliases: ["P13"], specials: [TOL5V]}
+        {name: "5",   aliases: ["P50"]}
+        {name: "6",   aliases: ["P52"]}
+        {name: "7",   aliases: ["P32"], specials: [TOL5V]}
+        {name: "8",   aliases: ["P33"], specials: [TOL5V]}
+        {name: "9",   aliases: ["P05","DA1"], specials: [DAPIN]}
+      ]
+      right: [
+        {private: "5V"}
+        {private: "GND"}
+        {private: "RESET"}
+        {private: "3.3V"}
+        {name: "17",  aliases: ["P43","A3"], specials: [ADPIN]}
+        {name: "16",  aliases: ["P42","A2"], specials: [ADPIN]}
+        {name: "15",  aliases: ["P41","A1"], specials: [ADPIN]}
+        {name: "14",  aliases: ["P40","A0"], specials: [ADPIN]}
+        {name: "13",  aliases: ["PC5"]}
+        {name: "12",  aliases: ["PC7"]}
+        {name: "11",  aliases: ["PC6"]}
+        {name: "10",  aliases: ["PC4"]}
+      ]
+      aliases: [RXPIN, ANPIN]
+      image: {
+      }
+    } # return {}
+
+  ###*
   @inheritdoc Board#enumerate
   ###
   enumerate: ->
-    return Promise.resolve(
+    return SerialPort.list().then((ports) =>
+      devices = []
+      for port in ports
+        id = (port.vendorId << 16) + (port.productId)
+        if Preferences.os == "mac" and port.path.startsWith("/dev/tty.")
+          continue  # Drop TTY device (for Mac)
+        if Preferences.deviceFilter and !VID_PID_LIST.includes(id)
+          continue  # Skip this device
+        devices.push({
+          friendlyName: port.displayName
+          path: port.path
+          productId: port.productId
+          vendorId: port.vendorId
+        })
+      return devices
     )
 
   ###*
   @inheritdoc Board#connect
   ###
   connect: (path) ->
-    return Promise.resolve(
+    return @errorConnected() if @_serial?
+    serial = new SerialPort(path)
+    return serial.open().then(=>
+      serial.onClosed = @_closeHandler.bind(this)
+      serial.onReceived = @_receiveHandler.bind(this)
+      @_serial = serial
+      @_path = path
+      @onConnected.dispatchEvent(this)
+      return  # Last PromiseValue
     )
 
   ###*
   @inheritdoc Board#disconnect
   ###
   disconnect: ->
-    return Promise.resolve(
+    return @errorNotConnected() unless @_serial?
+    return @_serial.close().then(=>
+      @_serial = null
+      return  # Last PromiseValue
     )
 
+  ###*
+  @inheritdoc Board#getBoardInfo
+  ###
+  getBoardInfo: ->
+    return @errorNotConnected() unless @_serial?
+    lock = {}
+    return Promise.resolve(
+    ).then(=>
+      return @_lock(lock)
+    ).then(=>
+      return @_send("H\r")
+    ).then(=>
+      return @_wait("(H [ENTER])").timeout(CMD_TIMEOUT_MS)
+    ).then((readdata) =>
+      return ab2str(readdata)
+    ).then((readdata) =>
+      v = readdata.split("\r").pop().match(/^(.+)(Ver\..+)\(H \[ENTER\]\)/)
+      return {
+        path: @_path
+        boardVersion: v[1].trim?()
+        firmwareVersion: v[2].trim?()
+      } # Last PromiseValue
+    ).finally(=>
+      return @_unlock(lock)
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @inheritdoc Board#getStorages
+  ###
   getStorages: ->
     return Promise.resolve(["internal"])
 
@@ -115,22 +229,157 @@ class WakayamaRbBoard extends Board
   @inheritdoc Board#requestFileSystem
   ###
   requestFileSystem: (storage) ->
+    switch storage
+      when "internal"
+        return Promise.resolve(new WrbbFileSystemV1(this))
+    return Promise.reject(Error("invalid storage: `#{storage}'"))
+
+  # requestConsole
+
+  ###*
+  @inheritdoc Board#startSketch
+  ###
+  startSketch: (target, onFinished) ->
+    return @errorNotConnected() unless @_serial?
+    lock = {}
+    return Promise.resolve(
+    ).then(=>
+      return @_lock(lock)
+    ).then(=>
+      return @_send("R #{target}\r")
+    ).then(=>
+      return @_wait(">R #{target}\r")
+    ).then(=>
+      return @_unlock(lock)
+    )
     return
 
   #--------------------------------------------------------------------------------
   # Private methods
   #
 
+  ###*
+  @private
+  @method
+    Lock communication
+  @param {Object} obj
+    Lock object
+  @return {Promise}
+    Promise object
+  ###
   _lock: (obj) ->
-    return
+    return new Promise((resolveLock) =>
+      @_lockPromise = (@_lockPromise or Promise.resolve()).then(=>
+        @_waiter = null
+        resolveLock()
+        return new Promise((resolveUnlock) =>
+          obj.unlock = resolveUnlock
+        )
+      )
+    ) # return new Promise()
 
+  ###*
+  @private
+  @method
+    Unlock communication
+  @param {Object} obj
+    Lock object
+  @return {Promise}
+    Promise object
+  ###
   _unlock: (obj) ->
-    return
+    reject = @_waiter?.reject
+    @_waiter = null
+    reject?()
+    unlock = obj.unlock
+    delete obj.unlock
+    unlock()
+    return Promise.resolve()
 
+  ###*
+  @private
+  @method
+    Send data
+  @param {string/ArrayBuffer} data
+    Data
+  @return {Promise}
+    Promise object
+  ###
   _send: (data) ->
+    return Promise.resolve(
+    ).then(=>
+      return str2ab(data) if typeof(data) == "string"
+      return data
+    ).then((ab) =>
+      return @_serial.write(ab)
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Receive data
+  @param {string/ArrayBuffer} expect
+    Wait data
+  @return {Promise}
+    Promise object
+  @return {ArrayBuffer} return.PromiseValue
+    Received data
+  ###
+  _wait: (expect) ->
+    return Promise.reject(Error("Already waiting")) if @_waiter?
+    return Promise.resolve(
+    ).then(=>
+      return str2ab(expect) if typeof(expect) == "string"
+      return expect
+    ).then((ab) =>
+      return new Promise((resolve, reject) =>
+        @_waiter = {token: new Uint8Array(ab), resolve: resolve, reject: reject}
+      )
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Handler for disconnection
+  ###
+  _closeHandler: ->
+    @_serial = null
+    reject = @_waiter?.reject
+    @_waiter = null
+    reject?()
+    @onDisconnected.dispatchEvent(this)
     return
 
-  _wait: (expect) ->
+  ###*
+  @private
+  @method
+    Handler for data receive
+  @param {ArrayBuffer} ab
+    Received data
+  ###
+  _receiveHandler: (ab) ->
+    @_recvBuffer or= new FifoBuffer()
+    oldLen = @_recvBuffer.byteLength
+    @_recvBuffer.push(ab)
+    token = @_waiter?.token
+    return unless token?
+    tlen = token.byteLength
+    start = Math.max(0, oldLen - tlen)
+    end = @_recvBuffer.byteLength - tlen
+    return unless start <= end
+    data = new Uint8Array(@_recvBuffer.peek())
+    for i in [start..end] by 1
+      match = true
+      for j in [0...tlen] by 1
+        if data[i+j] != token[j]
+          match = false
+          break
+      continue unless  match
+      data = @_recvBuffer.pop(i + tlen)
+      resolve = @_waiter.resolve
+      @_waiter = null
+      resolve?(data)
+      break
     return
 
   #--------------------------------------------------------------------------------
@@ -249,117 +498,24 @@ class WakayamaRbBoard extends Board
     @inheritdoc AsyncFs#opendirfsImpl
     ###
     opendirfsImpl: (path) ->
-      path = path.replace(/\/\+/g, '/').replace(/\/$/, '')
+      path = path.replace(/\/\+/g, "/").replace(/\/$/, "")
       return Promise.reject(Error("invalid path")) if path == "" or path.includes(" ")
       return Promise.resolve(new @constructor(@_wrbb, "#{@_dir}#{path}/"))
 
-  #--------------------------------------------------------------------------------
-  #--------------------------------------------------------------------------------
-  #--------------------------------------------------------------------------------
-  #--------------------------------------------------------------------------------
-  #--------------------------------------------------------------------------------
-  #--------------------------------------------------------------------------------
-  # Private constants
-  #
-
-  SerialPort = null
-  TOL5V = new I18n({en: "5V tolerant", ja: "5Vトレラント"})
-  ADPIN = new I18n({en: "With analog input", ja: "アナログ入力対応"})
-  DAPIN = new I18n({en: "With analog output", ja: "アナログ出力対応"})
-  RXPIN = new I18n({en: "Pin name of RX63N", ja: "RX63Nピン名"})
-  ANPIN = new I18n({en: "Analog pins", ja: "アナログ対応ピン名"})
-
-  #--------------------------------------------------------------------------------
-  # Public methods
-  #
-
-  ###*
-  @method constructor
-    Constructor of WakayamaRbBoard class
-  @param {Object} obj
-    JSON object
-  ###
-  constructor: (obj) ->
-    super(obj)
-    SerialPort or= Canarium.BaseComm.SerialWrapper
-    return
-
-  ###*
-  @inheritdoc Board#getPinList
-  ###
-  getPinList: ->
-    return {
-      left: [
-        {name: "0",   aliases: ["P20"], specials: [TOL5V]}
-        {name: "1",   aliases: ["P21"], specials: [TOL5V]}
-        {name: "18",  aliases: ["PC0"], specials: [TOL5V]}
-        {name: "19",  aliases: ["PC1"], specials: [TOL5V]}
-        {name: "2",   aliases: ["PC2"], specials: [TOL5V]}
-        {name: "3",   aliases: ["P12"], specials: [TOL5V]}
-        {name: "4",   aliases: ["P13"], specials: [TOL5V]}
-        {name: "5",   aliases: ["P50"]}
-        {name: "6",   aliases: ["P52"]}
-        {name: "7",   aliases: ["P32"], specials: [TOL5V]}
-        {name: "8",   aliases: ["P33"], specials: [TOL5V]}
-        {name: "9",   aliases: ["P05","DA1"], specials: [DAPIN]}
-      ]
-      right: [
-        {private: "5V"}
-        {private: "GND"}
-        {private: "RESET"}
-        {private: "3.3V"}
-        {name: "17",  aliases: ["P43","A3"], specials: [ADPIN]}
-        {name: "16",  aliases: ["P42","A2"], specials: [ADPIN]}
-        {name: "15",  aliases: ["P41","A1"], specials: [ADPIN]}
-        {name: "14",  aliases: ["P40","A0"], specials: [ADPIN]}
-        {name: "13",  aliases: ["PC5"]}
-        {name: "12",  aliases: ["PC7"]}
-        {name: "11",  aliases: ["PC6"]}
-        {name: "10",  aliases: ["PC4"]}
-      ]
-      aliases: [RXPIN, ANPIN]
-      image: {
-      }
-    } # return {}
-
-  ###*
-  @inheritdoc Board#enumerate
-  ###
-  enumerate: ->
-    return SerialPort.list().then((ports) ->
-      getFriendlyName = (port) ->
-        name = port.manufacturer
-        path = port.path
-        return "#{name} (#{path})" if name? and name != ""
-        return path
-      return {friendlyName: getFriendlyName(p), path: p.path} for p in ports
-    )
-
-  ###*
-  @inheritdoc Board#connect
-  ###
-  connect: (path, onDisconnected) ->
-    @_serial = new SerialPort(path)
-    return @_serial.open().then(=>
-      @_serial.onClosed = =>
-        @_serial.onClosed = null
-        @_connected = false
-        onDisconnected()
-
-      @_connected = true
+    ###*
+    @method constructor
+      Constructor of WrbbFileSystemV1 class
+    @param {WakayamaRbBoard} _wrbb
+      Owner class instance
+    @param {string} [_dir=""]
+      Base directory
+    ###
+    constructor: (@_wrbb, @_dir = "") ->
       return
-    ) # return @_serial.open().then()
-
-  ###*
-  @inheritdoc Board#disconnect
-  ###
-  disconnect: ->
-    return @_serial.close().then(=>
-      @_serial = null
-      return
-    )
 
 module.exports = WakayamaRbBoard
 
 # Post dependencies
-# (none)
+FifoBuffer = require("./fifobuffer")
+Preferences = require("./preferences")
+SerialPort = global.Canarium.BaseComm.SerialWrapper

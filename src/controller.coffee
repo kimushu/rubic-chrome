@@ -1,7 +1,5 @@
 # Pre dependencies
-App = require("./app")
 UnJSONable = require("./unjsonable")
-I18n = null
 
 ###*
 @class Controller
@@ -95,7 +93,6 @@ class Controller extends UnJSONable
   ###
   onActivated: ->
     unless (doc = @window.document).translated
-      I18n or= require("./i18n")
       doc.translated = true
       console.log("Translating document (#{I18n.lang})")
       I18n.translateDocument(doc)
@@ -148,3 +145,8 @@ class Controller extends UnJSONable
     }
 
 module.exports = Controller
+
+# Post dependencies
+# (none)
+App = require("./app")
+I18n = require("./i18n")

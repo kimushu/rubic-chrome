@@ -29,6 +29,12 @@ class BoardController extends WindowController
   )
 
   #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  tabSet = null
+
+  #--------------------------------------------------------------------------------
   # Public methods
   #
 
@@ -50,38 +56,21 @@ class BoardController extends WindowController
   ###*
   @inheritdoc Controller#onActivated
   ###
-  onActivated: ->
+  onActivated: (tab) ->
     super
-    outer = @$(".main-outer.when-board")
-    bodies = outer.children(".config-body").hide()
-    header = outer.children(".config-header")
-    header.find("a").click((event) =>
-      id = @$(event.target).parents("li")[0].id
-      return unless id.startsWith("board-")
-      header.find("li.active").removeClass("active")
-      header.find("li##{id}").addClass("active")
-      for b in bodies
-        tab = @$(b)
-        if tab.hasClass(id)
-          tab.show()
-        else
-          tab.hide()
-    )
+    tab or= "catalog" unless tabSet?
+    tabSet or= @$("#board-tabs").scrollTabs({
+      left_arrow_size: 18
+      right_arrow_size: 18
+      click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
+    })
+    for page in ["catalog", "features", "iodef", "savecfg"]
+      do (id = "board-#{page}") =>
+        @$(".activate-#{id}").unbind("click").click(=>
+          @$("#page-#{id}").click()
+        )
+    @$("#page-board-#{tab}").click() if tab?
     @_refreshCatalog()
-    @$(".board-use-this").click((event) =>
-      li = @$(event.target).parents(".media")
-      name = li[0].id?.split?("-")[1]
-      li.siblings().removeClass("board-selected")
-      li.addClass("board-selected")
-      for board in Board.subclasses
-        continue unless board.name == name
-        # overwrite confirmation
-        @_board = new board()
-        @_refreshFeatures()
-        if AUTO_PAGE_TRANSITION?
-          setTimeout((=> @$("li#board-features > a").click()), AUTO_PAGE_TRANSITION)
-        break
-    )
     @$("body").addClass("controller-board")
     return
 
@@ -100,6 +89,23 @@ class BoardController extends WindowController
   #--------------------------------------------------------------------------------
   # Private methods
   #
+
+  ###*
+  @private
+  @method
+    Tab click callback
+  @param {DOMElement} element
+    Element
+  @param {Event} event
+    Event
+  @return {undefined}
+  ###
+  _tabClick: (element, event) ->
+    id = element.id.match(/^page-(board-\w+)$/)?[1]
+    return unless id
+    @$(".when-board > .editor-body").hide()
+    @$("##{id}").show()
+    return
 
   ###*
   @private
@@ -126,6 +132,20 @@ class BoardController extends WindowController
       @$(ph[2]).attr("href", board.website)
       li.show()
       li.addClass("board-selected") if @_board?.constructor.name == board.name
+    @$(".board-use-this").unbind("click").click((event) =>
+      li = @$(event.target).parents(".media")
+      name = li[0].id?.split?("-")[1]
+      li.siblings().removeClass("board-selected")
+      li.addClass("board-selected")
+      for board in Board.subclasses
+        continue unless board.name == name
+        # overwrite confirmation
+        @_board = new board()
+        @_refreshFeatures()
+        if AUTO_PAGE_TRANSITION?
+          setTimeout((=> @$("li#board-features > a").click()), AUTO_PAGE_TRANSITION)
+        break
+    )
     return
 
   ###*
@@ -153,7 +173,7 @@ class BoardController extends WindowController
         li.find(".label-danger").hide() unless e.obsolete
         li.find(".label-warning").hide() unless e.beta
         li.show()
-      tmpl.siblings.children("a").click((event) =>
+      tmpl.siblings().children("a").click((event) =>
       )
       tmpl = @$("#firmware-tmpl")
       tmpl.hide()

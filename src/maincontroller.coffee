@@ -24,7 +24,7 @@ class MainController extends WindowController
   )
 
   #--------------------------------------------------------------------------------
-  # Private variables
+  # Private variables / constants
   #
 
   PLACES = ["local", "googledrive", "dropbox", "onedrive"]
@@ -41,7 +41,7 @@ class MainController extends WindowController
   ###
   onActivated: ->
     super
-    @$(".editor-body").hide()
+    @$(".when-main > .editor-body").hide()
     @$("body").addClass("controller-main")
     @$(".sketch-new").click(=> @_newSketch())
     @$(".open-latest").click(=> @_openSketch())
@@ -49,11 +49,10 @@ class MainController extends WindowController
       do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
     @$(".sketch-build").click(=> @_buildSketch())
     @$(".sketch-run").click(=> @_runSketch())
-    tabCallback = (e) => @_tabClick(e)
     tabSet or= @$("#editor-tabs").scrollTabs({
       left_arrow_size: 18
       right_arrow_size: 18
-      click_callback: -> tabCallback(this)
+      click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
     })
     App.log.detail({"MainController#tabSet": tabSet})
     @_newSketch() unless App.sketch?
@@ -292,9 +291,12 @@ class MainController extends WindowController
   @method
     Tab click callback
   @param {DOMElement} element
+    Element
+  @param {Event} event
+    Event
   @return {undefined}
   ###
-  _tabClick: (element) ->
+  _tabClick: (element, event) ->
     editor = @_editors[element.id]
     return unless editor?
     return if editor == @_activeEditor

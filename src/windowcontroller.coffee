@@ -30,11 +30,14 @@ class WindowController extends Controller
     super
     @$(".show-left").click(=> @$("body").removeClass("left-hidden"))
     @$(".hide-left").click(=> @$("body").addClass("left-hidden"))
-    @$(".activate-main").click(=> MainController.instance.activate())
-    @$(".activate-pref").click(=> PrefController.instance.activate())
-    @$(".activate-tutorial").click(=> TutorialController.instance.activate())
-    @$(".activate-about").click(=> AboutController.instance.activate())
-    @$(".activate-board").click(=> BoardController.instance.activate())
+    act = (c) => return =>
+      @$(".hide-left").click()
+      c.instance.activate()
+    @$(".activate-main").click(act(MainController))
+    @$(".activate-pref").click(act(PrefController))
+    @$(".activate-tutorial").click(act(TutorialController))
+    @$(".activate-about").click(act(AboutController))
+    @$(".activate-board").click(act(BoardController))
     @$(".fold-toggle").click((event) =>
       @$(event.target).parents(".fold-header").toggleClass("fold-opened")
     )
@@ -57,7 +60,6 @@ class WindowController extends Controller
 module.exports = WindowController
 
 # Post dependencies
-# (none)
 MainController = require("./maincontroller")
 PrefController = require("./prefcontroller")
 TutorialController = require("./tutorialcontroller")

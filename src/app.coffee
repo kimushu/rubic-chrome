@@ -1,4 +1,5 @@
 # Pre dependencies
+Preferences = require("./preferences")
 sprintf = require("./sprintf")
 
 ###*
@@ -9,7 +10,7 @@ class App
   null
 
   # Version emulation for browser view
-  VER_EMULATION = "2.0.0"
+  VER_EMULATION = "0.9.0"
 
   # Conversion from version string to integer
   v2i = (v) ->
@@ -21,7 +22,14 @@ class App
   @property {Sketch}
     Current sketch
   ###
-  @sketch: null
+  @classProperty("sketch",
+    get: -> @_sketch
+    set: (v) ->
+      @_sketch = v
+      t = "#{v.friendlyName} - " if v?
+      window.document.title = "#{t or ""}Rubic"
+      return
+  )
 
   ###*
   @static
@@ -32,7 +40,7 @@ class App
   @classProperty("version", value: chrome.runtime.getManifest?()["version"] or VER_EMULATION)
 
   LOG = (type, verbosity, args) ->
-    return if window.log_verbosity < verbosity
+    return if Preferences.logVerbosity < verbosity
     fn = window.console[type].bind(window.console)
     return fn(sprintf(args...)) if typeof(args[0]) == "string"
     return fn(args...)
@@ -46,7 +54,7 @@ class App
   @error        = -> return LOG("error", 1, arguments)
   @error.detail = -> return LOG("error", 2, arguments)
 
-  @log("Rubic/%s %s", @version, window.navigator.userAgent)
+  @info("Rubic/%s %s", @version, window.navigator.userAgent)
 
   ###*
   @static

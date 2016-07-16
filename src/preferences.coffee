@@ -5,6 +5,40 @@ class Preferences
   unless (CHROME_STORAGE = chrome.storage?.local)?
     console.warn("chrome.storage.local is provided as an emulation module using webkit TEMPORARY FileSystem.")
 
+  #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  KEY_DEVFILT = "device_filter"
+  KEY_LOGVERB = "log_verbosity"
+  _cache = {"#{KEY_DEVFILT}": true, "#{KEY_LOGVERB}": 1}  # Default values for debugging
+  _os = null
+
+  #--------------------------------------------------------------------------------
+  # Public properties
+  #
+
+  Object.defineProperties(this, {
+    deviceFilter:
+      get: -> _cache[KEY_DEVFILT]
+    logVerbosity:
+      get: -> _cache[KEY_LOGVERB]
+  })
+
+  Object.defineProperty(this, "os", get: ->
+    return _os if _os?
+    ua = window.navigator.userAgent
+    if ua.includes("(Windows")
+      return (_os = "win")
+    if ua.includes("(Mac")
+      return (_os = "mac")
+    return (_os = "unknown")
+  )
+
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
+
   ###*
   @static
   @method
@@ -75,6 +109,31 @@ class Preferences
   ###*
   @static
   @method
+    Initialize cache
+  @param {Object} [items]
+    Key:value map
+  @return {Promise/undefined}
+    Promise object if items omitted
+  ###
+  @initCache: (items) ->
+    if items?
+      # Sync call
+      v = items[k = KEY_DEVFILT]
+      _cache[k] = !!v if v?
+      v = items[k = KEY_LOGVERB]
+      _cache[k] = parseInt(v) or 0 if v?
+      return
+
+    # Async call
+    # (Default values for production)
+    return @get({"#{KEY_DEVFILT}": true, "#{KEY_LOGVERB}": 0}).then((items) =>
+      @initCache(items)
+      return  # Last PromiseValue
+    )
+
+  ###*
+  @static
+  @method
     Set preference item(s)
   @param {Object} items
     Key:value map
@@ -83,6 +142,7 @@ class Preferences
   @return {undefined} return.PromiseValue
   ###
   @set: (items) ->
+    @initCache(items or {})
     return new Promise((resolve, reject) =>
       # (Chrome App) chrome.storage
       CHROME_STORAGE.set(items, =>

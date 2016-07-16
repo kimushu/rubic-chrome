@@ -52,7 +52,7 @@ class GrCitrusBoard extends WakayamaRbBoard
   @description: new I18n({
     # TODO
     "en": "Compact RX631 microcontroller board with Ruby language support and Arduino-like methods."
-    "ja": "Arduinoに似たメソッドを持ちつつ、Ruby言語でプログラミングができるコンパクトなRX631搭載マイコンボード。"
+    "ja": "Arduinoに似たメソッドを持ち、Ruby言語でプログラミングができるコンパクトなRX631搭載マイコンボード。"
   })
 
   ###*
@@ -69,7 +69,7 @@ class GrCitrusBoard extends WakayamaRbBoard
     Rubic version
   @readonly
   ###
-  @rubicVersion: ">=1.0.0"
+  @rubicVersion: ">= 0.9.0"
 
   ###*
   @static
@@ -80,18 +80,58 @@ class GrCitrusBoard extends WakayamaRbBoard
   @beta: true
 
   #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  TOL5V = new I18n({en: "5V tolerant", ja: "5Vトレラント"})
+  ADPIN = new I18n({en: "With analog input", ja: "アナログ入力対応"})
+  DAPIN = new I18n({en: "With analog output", ja: "アナログ出力対応"})
+  RXPIN = new I18n({en: "Pin number of RX631", ja: "RX631ピン番号"})
+  ANPIN = new I18n({en: "Analog pins", ja: "アナログピン名称"})
+
+  #--------------------------------------------------------------------------------
   # Public methods
   #
 
   ###*
-  @inheritdoc Board#getEngineList
+  @inheritdoc Board#getPinList
   ###
-  getEngineList: ->
-    return [
-      {
-        name: "mruby with V2 library"
-        id: "mruby_v2lib"
-        icon: "mruby"
+  getPinList: ->
+    return {
+      left: [
+        {name: "0",   aliases: ["P20"], specials: [TOL5V]}
+        {name: "1",   aliases: ["P21"], specials: [TOL5V]}
+        {name: "18",  aliases: ["P12"], specials: [TOL5V]}
+        {name: "19",  aliases: ["P13/P15"], specials: [TOL5V]}
+        {name: "2",   aliases: ["PC0/P31"], specials: [TOL5V]}
+        {name: "3",   aliases: ["PC1"], specials: [TOL5V]}
+        {name: "4",   aliases: ["PC2"], specials: [TOL5V]}
+        {name: "5",   aliases: ["P25/P34"]}
+        {name: "6",   aliases: ["P52"]}
+        {name: "7",   aliases: ["P32"], specials: [TOL5V]}
+        {name: "8",   aliases: ["P33"], specials: [TOL5V]}
+        {name: "9",   aliases: ["P05","DA1"], specials: [DAPIN]}
+      ]
+      right: [
+        {private: "5V"}
+        {private: "GND"}
+        {private: "RESET"}
+        {private: "3.3V"}
+        {name: "17",  aliases: ["P43","A3"], specials: [ADPIN]}
+        {name: "16",  aliases: ["P42","A2"], specials: [ADPIN]}
+        {name: "15",  aliases: ["P41","A1"], specials: [ADPIN]}
+        {name: "14",  aliases: ["P40","A0"], specials: [ADPIN]}
+        {name: "13",  aliases: ["PC5"]}
+        {name: "12",  aliases: ["PC7"]}
+        {name: "11",  aliases: ["PC6"]}
+        {name: "10",  aliases: ["PC4"]}
+      ]
+      aliases: [RXPIN, ANPIN]
+      image: {
       }
-    ] # return []
+    } # return {}
 
+module.exports = GrCitrusBoard
+
+# Post dependencies
+# (none)

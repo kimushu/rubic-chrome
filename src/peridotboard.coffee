@@ -1,8 +1,7 @@
 # Pre dependencies
 Board = require("./board")
 I18n = require("./i18n")
-
-AsyncFs = {}
+AsyncFs = require("./asyncfs")
 
 ###*
 @class PeridotBoard
@@ -251,3 +250,6 @@ class PeridotBoard extends Board
         options = {}
 
 module.exports = PeridotBoard
+
+# Post dependencies
+Canarium = global.Canarium

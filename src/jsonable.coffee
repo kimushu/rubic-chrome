@@ -46,6 +46,7 @@ class JSONable
   @return {Object} new instance
   ###
   @parseJSON: (obj, args...) ->
+    return unless obj?
     obj = JSON.parse(obj) if typeof(obj) == "string"
     c = obj.__class__
     return s.generateFromJSON(obj, args...) for s in (@subclasses or []) when s.name == c
