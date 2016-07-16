@@ -23,6 +23,9 @@ lib_min  = $(DIST_DIR)/library.min.js
 stub_src = $(SRC_DIR)/stubs.coffee
 stub_min = $(DIST_DIR)/stubs.min.js
 
+mani_src = $(SRC_DIR)/manifest.json
+mani_out = $(DIST_DIR)/$(notdir $(mani_src))
+
 define update_dependency
 	$(call ECHO_W,"Updating dependencies ($<)")
 	$(Q)touch $@ && mv $@ $@~
@@ -32,13 +35,14 @@ define update_dependency
 	$(Q)diff -u $@~ $@; rm $@~
 endef
 
-all: $(bkg_min) $(top_min) $(lib_min) $(stub_min)
+all: $(bkg_min) $(top_min) $(lib_min) $(stub_min) $(mani_out)
 
 clean:
 	$(Q)rm -f $(bkg_dep) $(bkg_dep)~ $(bkg_out)
 	$(Q)rm -f $(top_dep) $(top_dep)~ $(top_out)
 	$(Q)rm -f $(lib_dep) $(lib_dep)~ $(lib_min)
 	$(Q)rm -f $(stub_min)
+	$(Q)rm -f $(mani_out)
 
 clobber: clean
 
@@ -74,6 +78,10 @@ $(lib_dep): $(lib_src) $(BROWSERIFY)
 $(stub_min): $(stub_src) $(COFFEE) $(UGLIFYJS)
 	$(call ECHO_W,"Generating stub scripts ($@)")
 	$(Q)cat $< | $(COFFEE) -c -s | $(UGLIFYJS) $(uglifyjs_opts) -o $@
+
+$(mani_out): $(mani_src) $(MAKEFILE_LIST)
+	$(call ECHO_W,"Generating manifest ($@)")
+	$(Q)sed -e 's/__BACKGROUND__/$(notdir $(bkg_min))/' $< > $@
 
 .PHONY: doc
 doc: $(top_out) $(JSDUCK)
