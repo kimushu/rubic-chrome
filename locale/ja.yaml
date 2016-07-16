@@ -1,3 +1,5 @@
+Manifest_Desc:
+    "組み込みボードをスクリプト言語で開発するためのプロトタイプ開発環境"
 Show_menu:
     "メニューを表示"
 Hide_menu:
@@ -208,3 +210,21 @@ Privacy_statement_for_internet_access:
     "※データのダウンロード時に、ユーザのスケッチデータなどを送信することはありません。"
 Change:
     "変更"
+Current_sketch_has_been_modified:
+    "スケッチに未保存の変更があります"
+Are_you_sure_to_discard_modifications:
+    "変更箇所を破棄してもよろしいですか?"
+Yes_discard_them:
+    "はい、破棄します。"
+No_cancel_the_operation:
+    "いいえ、処理を中断します。"
+Saving_sketch:
+    "スケッチを保存しています..."
+Building_1:
+    "$1 をビルドしています..."
+Transferring_1:
+    "$1 を転送しています..."
+Save_your_settings:
+    "お気に入り構成の保存"
+Back:
+    "戻る"
