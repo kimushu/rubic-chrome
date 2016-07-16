@@ -4,6 +4,7 @@ Q ?= @
 ROOT_DIR   := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 DIST_DIR   := $(ROOT_DIR)/dist
 SRC_DIR    := $(ROOT_DIR)/src
+LIBS_DIR   := $(ROOT_DIR)/libs
 VIEW_DIR   := $(ROOT_DIR)/view
 LOCALE_DIR := $(ROOT_DIR)/locale
 TEST_DIR   := $(ROOT_DIR)/test
@@ -15,6 +16,7 @@ COFFEE     := $(NPM_BIN)/coffee
 UGLIFYJS   := $(NPM_BIN)/uglifyjs
 LESSC      := $(NPM_BIN)/lessc
 JSDUCK     := $(firstword $(shell which jsduck 2> /dev/null) .jsduck-required)
+EMCC       := $(firstword $(shell which emcc 2> /dev/null) .emscripten-required)
 
 ECHO_R     = @echo -e "\033[1;31m\# "$1"\033[0m"
 ECHO_G     = @echo -e "\033[1;32m\# "$1"\033[0m"
@@ -35,6 +37,11 @@ $(BROWSERIFY) $(COFFEE) $(UGLIFYJS) $(LESSC):
 $(JSDUCK):
 	$(call ECHO_C,"Installing gem packages")
 	$(Q)cd $(ROOT_DIR) && bundle install
+
+$(EMCC):
+	$(call ECHO_R,"Emscripten (emcc) not found!")
+	$(call ECHO_R,"Please install manually: http://emscripten.org/")
+	@false
 
 clean: clean-message
 
