@@ -26,7 +26,7 @@ unless Array::findIndex
 unless String::endsWith
   String::endsWith = (searchString, position) ->
     subjectString = @toString()
-    if (typeof(position) != number) or
+    if (typeof(position) != "number") or
        (!isFinite(position)) or
        (Math.floor(position) != position) or
        (position > subjectString.length)
