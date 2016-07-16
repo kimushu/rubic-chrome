@@ -5,12 +5,12 @@ clean: clean-html
 clobber: clobber-html
 
 dwld_dir  = $(VIEW_DIR)/downloads
-modules   = jqy twbs fawe ace spin bbox cana jstr
+modules   = jqy twbs fawe ace spin jqsp bbox jqst cana jstr
 
 .PHONY: info
 info:
 	$(call ECHO_W,"Module versions")
-	@true $(foreach m,$(modules),&& printf "    %-12s : %s\n" "$($(m)_name)" "$($(m)_ver)")
+	@true $(foreach m,$(modules),&& printf "    %-14s : %s\n" "$($(m)_name)" "$($(m)_ver)")
 
 #--------------------------------------------------------------------------------
 # jQuery
@@ -192,6 +192,33 @@ $(spin_tgz):
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(spin_url)"
 
 #--------------------------------------------------------------------------------
+# jquery.spin.js
+#
+
+jqsp_name = jquery.spin.js
+jqsp_ver  = -----
+jqsp_url  = http://spin.js.org/jquery.spin.js
+jqsp_src  = $(dwld_dir)/$(notdir $(jqsp_url))
+jqsp_out  = $(DIST_DIR)/$(notdir $(jqsp_src))
+
+.PHONY: jqsp clean-jqsp clobber-jqsp
+jqsp: $(jqsp_out)
+
+clean-jqsp:
+	$(Q)rm -f $(jqsp_out)
+
+clobber-jqsp: clean-jqsp
+	$(Q)rm -f $(jqsp_src)
+
+$(jqsp_out): $(jqsp_src)
+	$(call ECHO_W,"Locating $(jqsp_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $< $@
+
+$(jqsp_src):
+	$(call ECHO_C,"Downloading $(jqsp_name) script ($(jqsp_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqsp_url)"
+
+#--------------------------------------------------------------------------------
 # Bootbox
 #
 
@@ -217,6 +244,53 @@ $(bbox_out): $(bbox_src)
 $(bbox_src):
 	$(call ECHO_C,"Downloading $(bbox_name) script ($(bbox_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(bbox_url)"
+
+#--------------------------------------------------------------------------------
+# jQuery-ScrollTabs
+#
+
+jqst_name = jQuery-ScrollTabs
+jqst_ver  = 2.0.0
+jqst_url  = https://github.com/joshreed/jQuery-ScrollTabs/archive/$(jqst_ver).tar.gz
+jqst_dir  = $(dwld_dir)/jQuery-ScrollTabs-$(jqst_ver)
+jqst_tgz  = $(jqst_dir).tar.gz
+jqst_key  = $(jqst_dir)/.unpacked
+jqst_src1 = $(jqst_dir)/js/jquery.scrolltabs.js
+jqst_out1 = $(DIST_DIR)/$(notdir $(jqst_src1))
+jqst_src2 = $(jqst_dir)/js/jquery.mousewheel.js
+jqst_out2 = $(DIST_DIR)/$(notdir $(jqst_src2))
+jqst_csrc = $(jqst_dir)/css/scrolltabs.css
+jqst_cout = $(DIST_DIR)/css/$(notdir $(jqst_csrc))
+
+.PHONY: jqst clean-jqst clobber-jqst
+jqst: $(jqst_out1) $(jqst_out2) $(jqst_cout)
+
+clean-jqst:
+	$(Q)rm -f $(jqst_out1) $(jqst_out2) $(jqst_cout)
+
+clobber-jqst: clean-jqst
+	$(Q)rm -rf $(jqst_dir)
+	$(Q)rm -f $(jqst_tgz)
+
+$(jqst_out1): $(jqst_key)
+	$(call ECHO_W,"Locating $(jqst_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(jqst_src1) $@
+
+$(jqst_out2): $(jqst_key)
+	$(call ECHO_W,"Locating $(jqst_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(jqst_src2) $@
+
+$(jqst_cout): $(jqst_key)
+	$(call ECHO_W,"Locating $(jqst_name) css ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(jqst_csrc) $@
+
+$(jqst_key): $(jqst_tgz)
+	$(call ECHO_W,"Unpacking $(jqst_name) tarball ($<)")
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
+
+$(jqst_tgz):
+	$(call ECHO_C,"Downloading $(jqst_name) tarball ($(jqst_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqst_url)"
 
 #--------------------------------------------------------------------------------
 # Canarium

@@ -99,6 +99,16 @@ body.left-hidden .hide-left {
   bottom: @navbar-height;
 }
 
+.sidebar-left {
+  z-index: 500;
+  border-right: #ccc solid 1px;
+}
+
+.sidebar-right {
+  z-index: 500;
+  border-left: #ccc solid 1px;
+}
+
 .main-outer {
   left: 0px;
   right: 0px;
@@ -110,8 +120,7 @@ body.left-hidden .hide-left {
   transition-duration: 0.2s;
 }
 
-.main-outer:not(.when-main),
-.main-outer:not(.when-board) {
+.main-outer:not(.when-main):not(.when-board) {
   overflow-y: scroll;
 }
 
@@ -144,8 +153,17 @@ body.left-hidden .hide-left {
   margin-bottom: 100px;
 }
 
+.editor-body#board-features {
+  padding-top: 16px;
+}
+
 .bottom-hidden .editor-body {
   margin-bottom: 0px !important;
+}
+
+.editor-divider {
+  height: 5px;
+  background-color: #fcc; // TODO
 }
 
 .editor-bottom {
@@ -153,6 +171,7 @@ body.left-hidden .hide-left {
   bottom: 0px;
   height: 100px;
   width: 100%;
+  background-color: #444;
 }
 
 .bottom-hidden .editor-bottom {
@@ -221,6 +240,19 @@ body.left-hidden .hide-left {
   top: 48px;
   bottom: 0px;
   overflow-y: scroll;
+}
+
+.spin-text {
+  position: absolute;
+  top: ~"calc(50% + 30px)";
+  left: 0px;
+  right: 0px;
+  color: #fff;
+  text-align: center;
+}
+
+#about-rubic-logo {
+  max-width: ~"calc(100% + 16px)";
 }
 
 body.controller-main .when-not-main, body:not(.controller-main) .when-main,
@@ -293,6 +325,73 @@ body.cloud-onedrive .when-no-cloud {
 .label.label-bigger {
   font-size: 85%;
   padding-bottom: 0.2em;
+}
+
+@st-compact-height: 26px;
+
+.scroll_tabs_theme_compact {
+  height: @st-compact-height;
+  background-color: #888;
+}
+
+.scroll_tabs_theme_compact div.scroll_tab_inner {
+  height: @st-compact-height;
+  color: #000;
+}
+
+.scroll_tabs_theme_compact div.scroll_tab_inner span,
+.scroll_tabs_theme_compact div.scroll_tab_inner li {
+  line-height: calc(@st-compact-height - 4px);
+  font-size: 9pt;
+  background-color: #bbb;
+  padding: 0px 8px;
+  border-radius: 4px 4px 0px 0px;
+  margin: 4px 2px 0px;
+}
+
+.scroll_tabs_theme_compact div.scroll_tab_inner li.scroll_tab_over {
+  background-color: #ccc;
+}
+
+.scroll_tabs_theme_compact .scroll_tab_left_button,
+.scroll_tabs_theme_compact .scroll_tab_right_button {
+  height: @st-compact-height;
+  color: #ccc;
+  background-color: #888;
+  font: normal normal normal 12px/1 FontAwesome;
+}
+
+.scroll_tabs_theme_compact .scroll_tab_left_button::before {
+  content: "\f053";
+  line-height: @st-compact-height;
+}
+
+.scroll_tabs_theme_compact .scroll_tab_right_button::before {
+  content: "\f054";
+  line-height: @st-compact-height;
+}
+
+.scroll_tabs_theme_compact .scroll_tab_left_button_over,
+.scroll_tabs_theme_compact .scroll_tab_right_button_over {
+  color: #fff;
+  background-color: #888;
+}
+
+.scroll_tabs_theme_compact .scroll_tab_left_button_disabled,
+.scroll_tabs_theme_compact .scroll_tab_right_button_disabled {
+  color: #777;
+  background-color: #888;
+  cursor: default !important;
+}
+
+.scroll_tabs_theme_compact div.scroll_tab_inner span.tab_selected,
+.scroll_tabs_theme_compact div.scroll_tab_inner li.tab_selected {
+  background-color: #fff;
+}
+
+.scroll_tabs_theme_compact div.scroll_tab_inner img {
+  margin-left: -2px;
+  margin-top: -2px;
 }
 
 //
@@ -443,10 +542,10 @@ monospace;
 @btn-warning-bg : @brand-warning;
 @btn-warning-border : darken(@btn-warning-bg,
 5%);
-@btn-danger-color : contrast(@btn-danger-bg,
+@btn-danger-color : white; /*contrast(@btn-danger-bg,
 @text-color,
 @text-inverse,
-43%);
+43%);*/
 @btn-danger-bg : @brand-danger;
 @btn-danger-border : darken(@btn-danger-bg,
 5%);

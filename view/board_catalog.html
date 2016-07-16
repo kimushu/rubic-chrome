@@ -11,43 +11,33 @@
     <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
     <div class="sidebar-left"></div>
     <!--begin-->
-    <div class="main-outer when-board">
-      <div class="main-inner config-header">
-        <ul class="nav nav-pills">
-          <li id="board-catalog" class="active">
-            <a href="#" class="i18n">{Select_board}</a>
-          </li>
-          <li id="board-features">
-            <a href="#" class="i18n">{Select_features}</a>
-          </li>
-          <li id="board-iodef">
-            <a href="#" class="i18n">{Configure_io_pins}</a>
-          </li>
-          <li id="board-savecfg">
-            <a href="#" class="i18n">{Save_your_settings}</a>
-          </li>
+    <div class="main-outer when-board bottom-hidden">
+      <div class="editor-header">
+        <ul class="scroll_tabs_theme_compact" id="board-tabs">
+          <li class="i18n" id="page-board-catalog">{Select_board}</li>
+          <li class="i18n" id="page-board-features">{Select_features}</li>
+          <li class="i18n" id="page-board-iodef">{Configure_io_pins}</li>
+          <li class="i18n" id="page-board-savecfg">{Save_your_settings}</li>
         </ul>
       </div>
-      <div class="main-inner config-body board-catalog">
-        <div class="row">
-          <div class="col-md-12">
-            <ul class="media-list">
-              <li class="media" id="board-catalog-tmpl">
-                <a class="pull-left"><img class="media-object icon-frame" src="" height="64" width="64"></a>
-                <div class="media-body">
-                  <h4 class="media-heading"><span class="placeholder">(Board name)</span>
-                    <button class="board-use-this pull-right btn btn-info btn-xs i18n"><span class="glyphicon glyphicon-ok board-when-selected">&nbsp;</span>{Use_this_board}</button>
-                  </h4>
-                  <p class="i18n">
-                    <span class="placeholder">(Board Description)</span>
-                    <br>{Author}:
-                    <span class="placeholder">(author)</span>&nbsp;/&nbsp;
-                    <a href="#" class="placeholder" target="_blank">{Website}</a>
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
+      <div class="editor-body" id="board-catalog">
+        <div class="col-md-12">
+          <ul class="media-list">
+            <li class="media" id="board-catalog-tmpl">
+              <a class="pull-left"><img class="media-object icon-frame" src="" height="64" width="64"></a>
+              <div class="media-body">
+                <h4 class="media-heading"><span class="placeholder">(Board name)</span>
+                  <button class="board-use-this pull-right btn btn-info btn-xs i18n"><span class="glyphicon glyphicon-ok board-when-selected">&nbsp;</span>{Use_this_board}</button>
+                </h4>
+                <p class="i18n">
+                  <span class="placeholder">(Board Description)</span>
+                  <br>{Author}:
+                  <span class="placeholder">(author)</span>&nbsp;/&nbsp;
+                  <a href="#" class="placeholder" target="_blank">{Website}</a>
+                </p>
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
       <!--include(feature_config.html)-->
