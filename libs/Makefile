@@ -13,10 +13,10 @@ mrbc_mout = $(DIST_DIR)/$(notdir $(mrbc_mem))
 define em_build
 	$(call ECHO_W,"Generating emscripten module ($($1_name))")
 	$(Q)mkdir -p $(dir $@)
-	$(Q)echo "function $($1_name)(){" > $@
+	$(Q)echo "(function(){function $($1_name)(){" > $@
 	$(Q)cat $(em_runner) | $(COFFEE) -bcs | $(UGLIFYJS) >> $@
 	$(Q)cat $< >> $@
-	$(Q)echo "return;}" >> $@
+	$(Q)echo "return}(this.Libs=(this.Libs||{})).$($1_name)=$($1_name)})()" >> $@
 endef
 
 all: $(mrbc_sout) $(mrbc_mout)
