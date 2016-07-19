@@ -24,9 +24,14 @@
 
 include common.mk
 
+dist_ver = $(shell sed -ne 's/\s\+"version": "\([^"]\+\)".*/\1/p' $(DIST_DIR)/manifest.json)
+
 all: recursive-all
 clean: recursive-clean
 clobber: recursive-clobber
+
+release: recursive-all
+	d=$(shell pwd)/rubic-$(dist_ver).zip && cd $(DIST_DIR) && test ! -e $$d && zip -r $$d *
 
 recursive-%:
 	$(Q)$(MAKE) -C $(SRC_DIR) $*
