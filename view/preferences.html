@@ -23,6 +23,30 @@
                 <p>TODO</p>
               </div>
             </div>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="i18n panel-title">
+                  <b>{Appearance}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_appearance}</p>
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label class="control-label i18n">{Zoom_ratio}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <select class="form-control" id="config-zoom-ratio">
+                        <option class="i18n" value="10">{Zoom_1_0}</option>
+                        <option class="i18n" value="15">{Zoom_1_5}</option>
+                        <option class="i18n" value="20">{Zoom_2_0}</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="panel panel-primary">
               <div class="panel-heading">
                 <h3 class="panel-title i18n">
@@ -95,30 +119,6 @@
                 </div>
               </div>
             </div>
-            <div class="panel panel-info">
-              <div class="panel-heading">
-                <h3 class="i18n panel-title">
-                  <b>{Appearance}</b>
-                </h3>
-              </div>
-              <div class="panel-body">
-                <p class="i18n">{Desc_of_appearance}</p>
-                <div class="form-horizontal">
-                  <div class="form-group">
-                    <div class="col-sm-3">
-                      <label class="control-label i18n">{Zoom_ratio}</label>
-                    </div>
-                    <div class="col-sm-9">
-                      <select class="form-control" id="config-beta-firmware">
-                        <option class="i18n" value="1.0">1.0x - {No_zoom}</option>
-                        <option class="i18n" value="1.5">1.5x - {Zoom}</option>
-                        <option class="i18n" value="2.0">2.0x - {Zoom}</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="panel panel-danger">
               <div class="panel-heading">
                 <h3 class="i18n panel-title">
@@ -154,9 +154,8 @@
                       </div>
                       <div class="col-sm-9">
                         <select class="form-control" id="config-log-verbosity">
-                          <option class="i18n" value="0">{No_log}</option>
-                          <option class="i18n" value="1">{Simple_logs}</option>
-                          <option class="i18n" value="2">{Detail_logs}</option>
+                          <option class="i18n" value="0">{Simple_logs}</option>
+                          <option class="i18n" value="1">{Detail_logs}</option>
                         </select>
                       </div>
                       <div class="col-sm-offset-3 col-sm-9">
@@ -168,7 +167,7 @@
                         <label class="control-label i18n">{Init_cache}</label>
                       </div>
                       <div class="col-sm-9">
-                        <select class="form-control" id="config-init-cache">
+                        <select class="form-control" id="config-reset-all">
                           <option class="i18n" value="false">{Do_not_init_cache}</option>
                           <option class="i18n" value="true">{Init_cache_at_next_boot}</option>
                         </select>

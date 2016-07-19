@@ -193,7 +193,7 @@ class Preferences
   @clear: ->
     return new Promise((resolve, reject) =>
       # (Chrome App) chrome.storage
-      CHROME_STORAGE.clear(items, =>
+      CHROME_STORAGE.clear(=>
         return resolve() unless (e = chrome.runtime.lastError)?
         return reject(e)
       )
