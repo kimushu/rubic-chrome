@@ -133,6 +133,19 @@ ace_tgz   = $(ace_dir).tar.gz
 ace_key   = $(ace_dir)/.unpacked
 ace_src   = $(ace_dir)/src-min-noconflict
 ace_out   = $(DIST_DIR)/ace
+ace_lang  = coffee javascript python ruby yaml
+ace_ext   =
+ace_kbind =
+ace_theme = twilight
+ace_mods  = $(wildcard $(foreach m,\
+	ace \
+	$(addprefix ext-,$(ace_ext)) \
+	$(addprefix keybinding-,$(ace_kbind)) \
+	$(addprefix mode-,$(ace_lang)) \
+	$(addprefix theme-,$(ace_theme)) \
+	$(addprefix worker-,$(ace_lang)) \
+	,$(ace_src)/$(m).js))
+ace_snip  = $(wildcard $(foreach l,$(ace_lang),$(ace_src)/snippets/$(l).js))
 
 .PHONY: ace clean-ace clobber-ace
 ace: $(ace_out)
@@ -146,7 +159,8 @@ clobber-ace: clean-ace
 
 $(ace_out): $(ace_key)
 	$(call ECHO_W,"Locating $(ace_name) scripts ($@)")
-	$(Q)mkdir -p $(dir $@) && cp -r $(ace_src) $(ace_out)
+	$(Q)mkdir -p $@ && cp $(ace_mods) $@
+	$(Q)mkdir -p $@/snippets && cp $(ace_snip) $@/snippets
 
 $(ace_key): $(ace_tgz)
 	$(call ECHO_W,"Unpacking $(ace_name) tarball ($<)")
