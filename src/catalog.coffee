@@ -49,7 +49,7 @@ class Catalog extends JSONable
         App.log("Update catalog has been skipped")
         return  # Last PromiseValue
 
-      repo = new GitHub().getRepo(CAT_OWNER, CAT_REPO)
+      repo = GitHubFactory.create().getRepo(CAT_OWNER, CAT_REPO)
       timestamp = null
       return repo.getContents(CAT_REF, CAT_PATH, true).then((response) =>
         timestamp = Date.now()
@@ -177,4 +177,4 @@ Preferences = require("./preferences")
 App = require("./app")
 Board = require("./board")
 Engine = require("./engine")
-GitHub = window.Libs.GitHub
+GitHubFactory = window.Libs.GitHubFactory
