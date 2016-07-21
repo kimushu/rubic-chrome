@@ -1,3 +1,15 @@
+# http://bluebirdjs.com/docs/api/promise.delay.html
+unless Promise.delay
+  Promise.delay = (ms, value) ->
+    return new Promise((resolve) ->
+      window.setTimeout((-> resolve(value)), ms)
+    )
+
+# http://bluebirdjs.com/docs/api/delay.html
+unless Promise::delay
+  Promise::delay = (ms) ->
+    return Promise.delay(ms, this)
+
 # http://bluebirdjs.com/docs/api/finally.html
 unless Promise::finally
   Promise::finally = (handler) ->
@@ -25,6 +37,17 @@ unless Promise::spread
       return Promise.all(promiseArray...)
     ).then((valueArray) ->
       return fulfilledHandler(valueArray...)
+    )
+
+# http://bluebirdjs.com/docs/api/tap.html
+unless Promise::tap
+  Promise::tap = (handler) ->
+    return @then(
+      (value) ->
+        pass = -> Promise.resolve(value)
+        return Promise.resolve().then(->
+          return handler()
+        ).then(pass, pass)
     )
 
 # http://bluebirdjs.com/docs/api/timeout.html
