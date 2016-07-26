@@ -1,54 +1,56 @@
 # http://bluebirdjs.com/docs/api/promise.delay.html
-unless Promise.delay
-  Promise.delay = (ms, value) ->
-    return new Promise((resolve) ->
-      window.setTimeout((-> resolve(value)), ms)
-    )
+Promise.delay or= (ms, value) ->
+  return new Promise((resolve) ->
+    window.setTimeout((-> resolve(value)), ms)
+  )
 
 # http://bluebirdjs.com/docs/api/delay.html
-unless Promise::delay
-  Promise::delay = (ms) ->
-    return Promise.delay(ms, this)
+Promise::delay or= (ms) ->
+  return Promise.delay(ms, this)
 
 # http://bluebirdjs.com/docs/api/finally.html
-unless Promise::finally
-  Promise::finally = (handler) ->
-    return @then(
-      (value) ->
-        pass = -> Promise.resolve(value)
-        return Promise.resolve().then(->
-          return handler()
-        ).then(pass, pass)
-      (error) ->
-        pass = -> Promise.reject(error)
-        return Promise.resolve().then(->
-          return handler()
-        ).then(pass, pass)
+Promise::finally or= (handler) ->
+  return @then(
+    (value) ->
+      pass = -> Promise.resolve(value)
+      return Promise.resolve().then(->
+        return handler()
+      ).then(pass, pass)
+    (error) ->
+      pass = -> Promise.reject(error)
+      return Promise.resolve().then(->
+        return handler()
+      ).then(pass, pass)
+  )
+
+# http://bluebirdjs.com/docs/api/finally.html
+Promise::lastly or= Promise::finally
+
+# http://bluebirdjs.com/docs/api/promise.method.html
+Promise.method or= (fn) ->
+  return (args...) ->
+    return Promise.resolve(
+    ).then(=>
+      return fn(args...)
     )
-
-# http://bluebirdjs.com/docs/api/finally.html
-unless Promise::lastly
-  Promise::lastly = Promise::finally
 
 # http://bluebirdjs.com/docs/api/spread.html
-unless Promise::spread
-  Promise::spread = (fulfilledHandler) ->
-    return @then((promiseArray) ->
-      return Promise.all(promiseArray...)
-    ).then((valueArray) ->
-      return fulfilledHandler(valueArray...)
-    )
+Promise::spread or= (fulfilledHandler) ->
+  return @then((promiseArray) ->
+    return Promise.all(promiseArray...)
+  ).then((valueArray) ->
+    return fulfilledHandler(valueArray...)
+  )
 
 # http://bluebirdjs.com/docs/api/tap.html
-unless Promise::tap
-  Promise::tap = (handler) ->
-    return @then(
-      (value) ->
-        pass = -> Promise.resolve(value)
-        return Promise.resolve().then(->
-          return handler()
-        ).then(pass, pass)
-    )
+Promise::tap or= (handler) ->
+  return @then(
+    (value) ->
+      pass = -> Promise.resolve(value)
+      return Promise.resolve().then(->
+        return handler()
+      ).then(pass, pass)
+  )
 
 # http://bluebirdjs.com/docs/api/timeout.html
 unless Promise.TimeoutError
@@ -66,10 +68,9 @@ unless Promise.TimeoutError
   Promise.TimeoutError = TimeoutError
 
 # http://bluebirdjs.com/docs/api/timeout.html
-unless Promise::timeout
-  Promise::timeout = (ms, error) ->
-    error = new Promise.TimeoutError(error) unless error instanceof Error
-    return Promise.race([this, new Promise((resolve, reject) ->
-      window.setTimeout((-> reject(error)), ms)
-    )])
+Promise::timeout or= (ms, error) ->
+  error = new Promise.TimeoutError(error) unless error instanceof Error
+  return Promise.race([this, new Promise((resolve, reject) ->
+    window.setTimeout((-> reject(error)), ms)
+  )])
 
