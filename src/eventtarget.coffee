@@ -9,12 +9,15 @@ UnJSONable = require("./unjsonable")
 class EventTarget extends UnJSONable
   null
 
-  ###*
-  @private
-  @property {Function[]}
-    Array of event listeners
-  ###
-  #_listeners: []
+  #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  ITEM_EQUAL = (i) -> return @[0] == i[0] and @[1] == i[1]
+
+  #--------------------------------------------------------------------------------
+  # Public methods
+  #
 
   ###*
   @method constructor
@@ -34,7 +37,7 @@ class EventTarget extends UnJSONable
   ###
   addEventListener: (listener, thisObject = null) ->
     item = [listener, thisObject]
-    @_listeners.push(item) unless @_listeners.includes(item)
+    @_listeners.push(item) unless @_listeners.find(ITEM_EQUAL, item)
     return
 
   ###*
@@ -48,7 +51,7 @@ class EventTarget extends UnJSONable
   ###
   removeEventListener: (listener, thisObject = null) ->
     item = [listener, thisObject]
-    index = @_listeners.indexOf(item)
+    index = @_listeners.findIndex(ITEM_EQUAL, item)
     @_listeners.splice(index, 1) if index >= 0
     return
 
