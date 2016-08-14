@@ -166,14 +166,27 @@ class Preferences
               dirEntry.getFile(key, {create: true}, resolve, reject)
             )
           ).then((fileEntry) =>
-            return new Promise((resolve, reject) =>
-              fileEntry.createWriter(resolve, reject)
-            )
-          ).then((fileWriter) =>
-            return new Promise((resolve, reject) =>
-              fileWriter.onwriteend = resolve
-              fileWriter.onerror = reject
-              fileWriter.write(new Blob([JSON.stringify(items[key])]))
+            return Promise.resolve(
+            ).then(=>
+              return new Promise((resolve, reject) =>
+                fileEntry.createWriter(resolve, reject)
+              )
+            ).then((fileWriter) =>
+              return new Promise((resolve, reject) =>
+                fileWriter.onwriteend = resolve
+                fileWriter.onerror = reject
+                fileWriter.truncate(0)
+              )
+            ).then(=>
+              return new Promise((resolve, reject) =>
+                fileEntry.createWriter(resolve, reject)
+              )
+            ).then((fileWriter) =>
+              return new Promise((resolve, reject) =>
+                fileWriter.onwriteend = resolve
+                fileWriter.onerror = reject
+                fileWriter.write(new Blob([JSON.stringify(items[key])]))
+              )
             )
           )
         Promise.resolve()
