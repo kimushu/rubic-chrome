@@ -7,7 +7,7 @@ JSONable = require("./jsonable")
 ###
 class I18n extends JSONable
   I18n.jsonable()
-  lang = chrome.i18n.getUILanguage()
+  lang = chrome?.i18n.getUILanguage()
 
   ###*
   @static
@@ -55,7 +55,7 @@ class I18n extends JSONable
     Translated message
   ###
   @getMessage: (id, subs...) ->
-    r = chrome.i18n.getMessage(id, subs...)
+    r = chrome?.i18n.getMessage(id, subs) or ""
     if r == ""
       console.warn("No translation for id='#{id}'")
       r = id.replace(/_/g, " ")
