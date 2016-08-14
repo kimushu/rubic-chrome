@@ -38,6 +38,6 @@ String::includes or= (searchString, position) ->
 
 # https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
 String::startsWith or= (searchString, position) ->
-  position ||= 0
+  position or= 0
   return @substr(position, searchString.length) == searchString
 
