@@ -1,6 +1,8 @@
 include ../common.mk
 
-browserify_opts = --transform=coffeeify --extension=coffee --debug --full-paths
+browserify_opts = \
+	--transform=coffeeify --extension=coffee --debug \
+	$(addprefix --external=,crypto)
 
 jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQuery
 
@@ -48,6 +50,7 @@ clobber: clean
 
 $(bkg_out): $(bkg_dep) $(BROWSERIFY)
 	$(call ECHO_W,"Compiling coffee scripts ($@)")
+	$(Q)mkdir -p $(dir $@)
 	$(Q)$(BROWSERIFY) $(browserify_opts) --outfile $@ $(bkg_src) || (rm -f $@ $(bkg_dep); false)
 
 $(bkg_dep): $(bkg_src) $(BROWSERIFY)
@@ -59,6 +62,7 @@ $(bkg_min): $(bkg_out) $(UGLIFYJS)
 
 $(top_out): $(top_dep) $(BROWSERIFY)
 	$(call ECHO_W,"Compiling coffee scripts ($@)")
+	$(Q)mkdir -p $(dir $@)
 	$(Q)$(BROWSERIFY) $(browserify_opts) --outfile $@ $(top_src) || (rm -f $@ $(top_dep); false)
 
 $(top_dep): $(top_src) $(BROWSERIFY)
@@ -70,6 +74,7 @@ $(top_min): $(top_out) $(UGLIFYJS)
 
 $(lib_min): $(lib_dep) $(BROWSERIFY) $(ROOT_DIR)/package.json
 	$(call ECHO_W,"Compiling coffee scripts ($@)")
+	$(Q)mkdir -p $(dir $@)
 	$(Q)$(BROWSERIFY) $(browserify_opts) $(lib_src) | $(UGLIFYJS) $(uglifyjs_opts) -o $@
 
 $(lib_dep): $(lib_src) $(BROWSERIFY)
@@ -77,10 +82,12 @@ $(lib_dep): $(lib_src) $(BROWSERIFY)
 
 $(stub_min): $(stub_src) $(COFFEE) $(UGLIFYJS)
 	$(call ECHO_W,"Generating stub scripts ($@)")
+	$(Q)mkdir -p $(dir $@)
 	$(Q)cat $< | $(COFFEE) -c -s | $(UGLIFYJS) $(uglifyjs_opts) -o $@
 
 $(mani_out): $(mani_src) $(MAKEFILE_LIST)
 	$(call ECHO_W,"Generating manifest ($@)")
+	$(Q)mkdir -p $(dir $@)
 	$(Q)sed -e 's/__BACKGROUND__/$(notdir $(bkg_min))/' $< > $@
 
 .PHONY: doc
