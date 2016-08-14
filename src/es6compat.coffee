@@ -20,6 +20,9 @@ Array::findIndex or= (predicate, thisArg) ->
     return i if predicate.call(thisArg, value, i, list)
   return -1
 
+# https://www.npmjs.com/package/es6-map
+Map or= require("es6-map")
+
 # https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
 String::endsWith or= (searchString, position) ->
   subjectString = @toString()
