@@ -1,6 +1,6 @@
 require("./primitive")
 
-require("./es6compat")
+# require("./es6compat")  # Chrome supports ES6!
 require("./es7compat")
 require("./bbjscompat")
 require("./bootbox-promise")
