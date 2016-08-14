@@ -1,24 +1,4 @@
-Function::property = (prop, desc) ->
-  Object.defineProperty(@prototype, prop, desc)
-
-Function::classProperty = (prop, desc) ->
-  Object.defineProperty(@, prop, desc)
-
-window.delayedLoader = (dict) ->
-  lib = {}
-  fix = (name, obj) -> Object.defineProperty(lib, name, {enumerable: true, value: obj})
-  dly = (name, loader) ->
-    Object.defineProperty(lib, name, {
-      enumerable: true
-      configurable: true
-      get: -> fix(name, obj = loader()); return obj
-    })
-  for key, value of dict
-    if typeof(value) == "function"
-      dly(key, value)
-    else
-      fix(key, value)
-  return lib
+require("./primitive")
 
 require("./es6compat")
 require("./es7compat")
