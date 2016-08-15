@@ -17,67 +17,54 @@ class GrCitrusBoard extends WakayamaRbBoard
 
   ###*
   @static
-  @property {I18n}
-    Name of this board
+  @property {string} id
+    ID of this board class
   @readonly
   ###
-  @friendlyName: new I18n(
-    "GR-CITRUS"
-  )
+  @classProperty("id", value: "24f62778-b930-4c1b-8fc0-4fcf4884c09f")
 
   ###*
   @static
-  @property {I18n}
-    Author of this board
-  @readonly
-  ###
-  @author: new I18n(
-    "Wakayama.rb"
-  )
-
-  ###*
-  @static
-  @property {string}
-    Website URL of board
-  @readonly
-  ###
-  @website: "https://github.com/wakayamarb/"
-
-  ###*
-  @static
-  @property {I18n}
-    Description of this board
-  @readonly
-  ###
-  @description: new I18n({
-    # TODO
-    "en": "Compact RX631 microcontroller board with Ruby language support and Arduino-like methods."
-    "ja": "Arduinoに似たメソッドを持ち、Ruby言語でプログラミングができるコンパクトなRX631搭載マイコンボード。"
-  })
-
-  ###*
-  @static
-  @property {string[]}
-    List of images of this board (The first item is used as an icon)
-  @readonly
-  ###
-  @images: ["images/boards/grcitrus_64x64.png"]
-
-  ###*
-  @static
-  @property {string}
+  @property {string} rubicVersion
     Rubic version
   @readonly
   ###
-  @rubicVersion: ">= 0.9.0"
+  @classProperty("rubicVersion", value: ">= 0.9.0")
 
   ###*
   @static
-  @property {boolean}
-    Beta
+  @property {I18n} friendlyName
+    Name of this board class
   @readonly
   ###
-  @beta: true
+  @classProperty("friendlyName", value: new I18n("GR-CITRUS"))
+
+  ###*
+  @static
+  @property {I18n} author
+    Author of this board class
+  @readonly
+  ###
+  @classProperty("author", value: new I18n("Wakayama.rb"))
+
+  ###*
+  @static
+  @property {string} website
+    Website URL of board class
+  @readonly
+  ###
+  @classProperty("website", value: "https://github.com/wakayamarb/")
+
+  ###*
+  @static
+  @property {string[]} images
+    List of images of this board class
+    (The first item is used as an icon)
+  @readonly
+  ###
+  @classProperty("images", get: -> [
+    "images/boards/grcitrus_64x64.png"
+  ])
 
   #--------------------------------------------------------------------------------
   # Private variables / constants

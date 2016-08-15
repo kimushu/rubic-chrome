@@ -17,66 +17,64 @@ class PeridotBoard extends Board
 
   ###*
   @static
-  @property {I18n}
-    Name of this board
+  @property {string} id
+    ID of this board class
   @readonly
   ###
-  @friendlyName: new I18n(
-    "PERIDOT"
-  )
+  @classProperty("id", value: "016baa35-4954-4b47-89c2-4d379c314f1d")
 
   ###*
   @static
-  @property {I18n}
-    Author of this board
-  @readonly
-  ###
-  @author: new I18n(
-    "J-7SYSTEM WORKS"
-  )
-
-  ###*
-  @static
-  @property {string}
-    Website URL of this board
-  @readonly
-  ###
-  @website: "https://osafune.github.io/peridot.html"
-
-  ###*
-  @static
-  @property {I18n}
-    Description of this board
-  @readonly
-  ###
-  @description: new I18n({
-    "en": "FPGA-based Arduino form-factor board with configurable hardware. This board supports many script engines such as mruby, Lua, Javascript, and so on."
-    "ja": "ハードウェア構成をカスタマイズできるFPGA搭載のArduino互換形状ボード。スクリプト言語エンジンにはmruby/Lua/JavaScriptなど様々な種類から選択できます。"
-  })
-
-  ###*
-  @static
-  @property {string[]}
-    List of images of this board (The first item is used as an icon)
-  @readonly
-  ###
-  @images: ["images/boards/peridot_64x64.png"]
-
-  ###*
-  @static
-  @property {string}
+  @property {string} rubicVersion
     Rubic version
   @readonly
   ###
-  @rubicVersion: ">=1.0.0"
+  @classProperty("rubicVersion", value: ">= 0.9.0")
 
   ###*
   @static
-  @property {string[]}
-    List of board variations
+  @property {I18n} friendlyName
+    Name of this board class
   @readonly
   ###
-  @boardVariations: []
+  @classProperty("friendlyName", value: new I18n("PERIDOT"))
+
+  ###*
+  @static
+  @property {I18n} author
+    Author of this board class
+  @readonly
+  ###
+  @classProperty("author", value: new I18n("J-7SYSTEM WORKS"))
+
+  ###*
+  @static
+  @property {string} website
+    Website URL of this board class
+  @readonly
+  ###
+  @classProperty("website", value: "https://osafune.github.io/peridot.html")
+
+  ###*
+  @static
+  @property {string[]} images
+    List of images of this board class
+    (The first item is used as an icon)
+  @readonly
+  ###
+  @classProperty("images", get: -> [
+    "images/boards/peridot_64x64.png"
+  ])
+
+  ###*
+  @static
+  @property {string[]} boardRevisions
+    List of board revisions of this board class
+  @readonly
+  ###
+  @classProperty("boardRevisions", get: -> [
+    "VER 1.0 / VER 1.1"
+  ])
 
   #--------------------------------------------------------------------------------
   # Private constants

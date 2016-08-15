@@ -19,60 +19,57 @@ class WakayamaRbBoard extends Board
 
   ###*
   @static
-  @property {I18n}
-    Name of this board
+  @property {string} id
+    ID of this board class
   @readonly
   ###
-  @friendlyName: new I18n({
-    en: "Wakayama.rb board"
-    ja: "Wakayama.rb ボード"
-  })
+  @classProperty("id", value: "498d332f-0172-4797-8653-019d864159e8")
 
   ###*
   @static
-  @property {I18n}
-    Author of this board
-  @readonly
-  ###
-  @author: new I18n(
-    "Minao Yamamoto"
-  )
-
-  ###*
-  @static
-  @property {string}
-    Website URL of board
-  @readonly
-  ###
-  @website: "https://github.com/tarosay/Wakayama-mruby-board"
-
-  ###*
-  @static
-  @property {I18n}
-    Description of this board
-  @readonly
-  ###
-  @description: new I18n({
-    # TODO
-    "en": "Compact RX63N microcontroller board with Ruby language support and Arduino-like methods."
-    "ja": "Arduinoに似たメソッドを持ち、Ruby言語でプログラミングができるコンパクトなRX63Nマイコンボード。"
-  })
-
-  ###*
-  @static
-  @property {string[]}
-    List of images of this board (The first item is used as an icon)
-  @readonly
-  ###
-  @images: ["images/boards/wrbb_64x64.png"]
-
-  ###*
-  @static
-  @property {string}
+  @property {string} rubicVersion
     Rubic version
   @readonly
   ###
-  @rubicVersion: ">= 0.9.0"
+  @classProperty("rubicVersion", value: ">= 0.9.0")
+
+  ###*
+  @static
+  @property {I18n} friendlyName
+    Name of this board class
+  @readonly
+  ###
+  @classProperty("friendlyName", value: new I18n(
+    en: "Wakayama.rb board"
+    ja: "Wakayama.rb ボード"
+  ))
+
+  ###*
+  @static
+  @property {I18n} author
+    Author of this board class
+  @readonly
+  ###
+  @classProperty("author", value: new I18n("Minao Yamamoto"))
+
+  ###*
+  @static
+  @property {string} website
+    Website URL of board class
+  @readonly
+  ###
+  @classProperty("website", value: "https://github.com/tarosay/Wakayama-mruby-board")
+
+  ###*
+  @static
+  @property {string[]} images
+    List of images of this board class
+    (The first item is used as an icon)
+  @readonly
+  ###
+  @classProperty("images", get: -> [
+    "images/boards/wrbb_64x64.png"
+  ])
 
   #--------------------------------------------------------------------------------
   # Private variables / constants
@@ -154,13 +151,13 @@ class WakayamaRbBoard extends Board
     return SerialPort.list().then((ports) =>
       devices = []
       for port in ports
-        id = (port.vendorId << 16) + (port.productId)
+        id = (parseInt(port.vendorId) << 16) + parseInt(port.productId)
         if Preferences.os == "mac" and port.path.startsWith("/dev/tty.")
           continue  # Drop TTY device (for Mac)
         if Preferences.deviceFilter and !VID_PID_LIST.includes(id)
           continue  # Skip this device
         devices.push({
-          friendlyName: port.displayName
+          friendlyName: port.manufacturer
           path: port.path
           productId: port.productId
           vendorId: port.vendorId
