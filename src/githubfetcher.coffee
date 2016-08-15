@@ -63,7 +63,7 @@ module.exports = class GitHubFetcher
     URL for raw GitHub user content
   ###
   # @rawContentUrl: "https://raw.githubusercontent.com/$owner/$repo/$branch$tag/$path"
-  @rawContentUrl: "http://$host/api/repos/$owner/$repo/contents/$path"
+  @rawContentUrl: "$prot//$host/api/repos/$owner/$repo/contents/$path"
 
   ###*
   @method constructor
@@ -128,7 +128,8 @@ module.exports = class GitHubFetcher
     ).then(=>
       url = @constructor.rawContentUrl
       return unless url?
-      url = url.replace("$host", window.location.host).
+      url = url.replace("$prot", window.location.protocol).
+                replace("$host", window.location.host).
                 replace("$owner", @owner).
                 replace("$repo", @repo).
                 replace("$branch", @branch || "").
