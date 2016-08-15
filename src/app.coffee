@@ -37,11 +37,11 @@ class App
     Version string for Rubic
   @readonly
   ###
-  @classProperty("version", value: chrome.runtime.getManifest?()["version"] or VER_EMULATION)
+  @classProperty("version", value: chrome?.runtime?.getManifest?()["version"] or VER_EMULATION)
 
   LOG = (type, verbosity, args) ->
     return if Preferences.logVerbosity < verbosity
-    fn = window.console[type].bind(window.console)
+    fn = global.console[type].bind(global.console)
     return fn(sprintf(args...)) if typeof(args[0]) == "string"
     return fn(args...)
 
@@ -54,7 +54,7 @@ class App
   @error        = -> return LOG("error", 1, arguments)
   @error.detail = -> return LOG("error", 2, arguments)
 
-  @info("Rubic/%s %s", @version, window.navigator.userAgent)
+  @info("Rubic/%s %s", @version, window?.navigator.userAgent)
 
   ###*
   @static
