@@ -18,7 +18,7 @@ class Controller extends UnJSONable
     The AppWindow instance
   @readonly
   ###
-  @property("appWindow", get: -> chrome.app.window.current())
+  @property("appWindow", get: -> chrome?.app.window?.current())
 
   ###*
   @property {Window} window
