@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 Engine = require("./engine")
 
@@ -6,7 +7,7 @@ Engine = require("./engine")
   Script execution engine for JavaScript (Model)
 @extends Engine
 ###
-class JavaScriptEngine extends Engine
+module.exports = class JavaScriptEngine extends Engine
   null
 
   #--------------------------------------------------------------------------------
@@ -14,16 +15,23 @@ class JavaScriptEngine extends Engine
   #
 
   ###*
-  @inheritdoc Engine#langName
+  @inheritdoc Engine#languageName
   ###
-  @classProperty("langName", get: -> "JavaScript/CoffeeScript")
+  @property("languageName", get: -> "JavaScript/CoffeeScript")
 
   ###*
   @inheritdoc Engine#suffixes
   ###
-  @classProperty("suffixes", get: -> ["js", "coffee"])
-  # {js: new I18n({en: "JavaScript"}),
-  #  coffee: new I18n({en: "Coffee script", ja: "Coffee スクリプト"})}
+  @property("fileTypes", get: -> [
+    {
+      suffix: "js"
+      name: "JavaScript"  # TODO: how to distinguish ES6 or CommonJS?
+    },
+    {
+      suffix: "coffee"
+      name: "CoffeeScript"
+    }
+  ])
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -75,8 +83,6 @@ class JavaScriptEngine extends Engine
     ).then(=>
       return  # Last PromiseValue
     ) # return Promise.resolve().then()...
-
-module.exports = JavaScriptEngine
 
 # Post dependencies
 SketchItem = require("./sketchitem")

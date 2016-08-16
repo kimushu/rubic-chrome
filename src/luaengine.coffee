@@ -6,7 +6,7 @@ Engine = require("./engine")
   Script execution engine for Lua (Model)
 @extends Engine
 ###
-class LuaEngine extends Engine
+module.exports = class LuaEngine extends Engine
   Engine.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -14,19 +14,24 @@ class LuaEngine extends Engine
   #
 
   ###*
-  @inheritdoc Engine#coreName
+  @inheritdoc Engine#friendlyName
   ###
-  @classProperty("coreName", get: -> "Lua")
+  @property("friendlyName", get: -> "Lua")
 
   ###*
-  @inheritdoc Engine#langName
+  @inheritdoc Engine#languageName
   ###
-  @classProperty("langName", get: -> "Lua")
+  @property("languageName", get: -> "Lua")
 
   ###*
-  @inheritdoc Engine#suffixes
+  @inheritdoc Engine#fileTypes
   ###
-  @classProperty("suffixes", get: -> ["lua"])
+  @property("fileTypes", get: -> [
+    {
+      suffix: "lua"
+      name: {"en": "Lua script", "ja": "Lua スクリプト"}
+    }
+  ])
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -44,8 +49,6 @@ class LuaEngine extends Engine
   ###
   build: (sketch, item) ->
     return Promise.resolve()
-
-module.exports = LuaEngine
 
 # Post dependencies
 # (none)

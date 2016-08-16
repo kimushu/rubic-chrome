@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 Engine = require("./engine")
 
@@ -6,7 +7,7 @@ Engine = require("./engine")
   Script execution engine for mruby (Model)
 @extends Engine
 ###
-class MrubyEngine extends Engine
+module.exports = class MrubyEngine extends Engine
   Engine.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -14,20 +15,31 @@ class MrubyEngine extends Engine
   #
 
   ###*
-  @inheritdoc Engine#coreName
+  @inheritdoc Engine#friendlyName
   ###
-  @classProperty("coreName", get: -> "mruby")
+  @property("friendlyName", get: -> "mruby")
 
   ###*
-  @inheritdoc Engine#langName
+  @inheritdoc Engine#languageName
   ###
-  @classProperty("langName", get: -> "mruby")
+  @property("languageName", get: -> "mruby")
 
   ###*
-  @inheritdoc Engine#suffixes
+  @inheritdoc Engine#fileTypes
   ###
-  @classProperty("suffixes", get: -> ["rb"])
-  # {rb: new I18n({en: "Ruby script", ja: "Ruby スクリプト"})}
+  @property("fileTypes", get: -> [
+    {
+      suffix: "rb"
+      name: {"en": "Ruby script", "ja": "Ruby スクリプト"}
+    }
+  ])
+
+  ###*
+  @property {string} version
+    mruby version string
+  @readonly
+  ###
+  @property("version", get: -> @_version)
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -106,7 +118,18 @@ class MrubyEngine extends Engine
   ###
   constructor: (obj) ->
     super(obj)
+    @_version = obj?.version
     return
+
+  ###*
+  @method
+    Convert to JSON object
+  @return {Object}
+  ###
+  toJSON: ->
+    return super().extends({
+      version: @_version
+    })
 
   #--------------------------------------------------------------------------------
   # Private methods
@@ -163,8 +186,6 @@ class MrubyEngine extends Engine
         return "#{@fileName}:#{@lineNumber}:#{@columnNumber}: #{@constructor.name}: #{@message}"
     )
     return e or new Error(text)
-
-module.exports = MrubyEngine
 
 # Post dependencies
 SketchItem = require("./sketchitem")

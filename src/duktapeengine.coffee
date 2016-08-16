@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 Engine = require("./engine")
 JavaScriptEngine = require("./javascriptengine")
@@ -5,15 +6,19 @@ JavaScriptEngine = require("./javascriptengine")
 ###*
 @class DuktapeEngine
   Script execution engine for duktape (Model)
-@extends Engine
+@extends JavaScriptEngine
 ###
-class DuktapeEngine extends JavaScriptEngine
+module.exports = class DuktapeEngine extends JavaScriptEngine
   Engine.jsonable(this)
 
   #--------------------------------------------------------------------------------
   # Public properties
   #
 
-  @classProperty("coreName", get: -> "Duktape")
+  ###*
+  @inheritdoc Engine#friendlyName
+  ###
+  @property("friendlyName", get: -> "Duktape")
 
-module.exports = DuktapeEngine
+# Post dependencies
+# (none)

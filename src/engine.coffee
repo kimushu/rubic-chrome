@@ -16,29 +16,26 @@ module.exports = class Engine extends JSONable
 
   ###*
   @template
-  @static
   @property {string} friendlyName
     Name of engine
   @readonly
   ###
-  @classProperty("coreName", get: -> null)
+  @property("coreName", get: -> null)
 
   ###*
   @template
-  @static
   @property {string} languageName
     Name of programming language
   @readonly
   ###
-  @classProperty("languageName", get: -> null)
+  @property("languageName", get: -> null)
 
   ###*
   @template
-  @static
   @property {Object[]} fileTypes
     Array of file type definition
   ###
-  @classProperty("fileTypes", get: -> [])
+  @property("fileTypes", get: -> [])
 
   #--------------------------------------------------------------------------------
   # Public methods
