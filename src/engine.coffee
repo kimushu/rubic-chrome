@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 JSONable = require("./jsonable")
 
@@ -6,7 +7,7 @@ JSONable = require("./jsonable")
   Script execution engine (Model)
 @extends JSONable
 ###
-class Engine extends JSONable
+module.exports = class Engine extends JSONable
   null
 
   #--------------------------------------------------------------------------------
@@ -16,8 +17,8 @@ class Engine extends JSONable
   ###*
   @template
   @static
-  @property {string} coreName
-    Name of engine core
+  @property {string} friendlyName
+    Name of engine
   @readonly
   ###
   @classProperty("coreName", get: -> null)
@@ -25,61 +26,19 @@ class Engine extends JSONable
   ###*
   @template
   @static
-  @property {string} langName
+  @property {string} languageName
     Name of programming language
   @readonly
   ###
-  @classProperty("langName", get: -> null)
+  @classProperty("languageName", get: -> null)
 
   ###*
   @template
   @static
-  @property {string[]} suffixes
-    Array of suffixes
+  @property {Object[]} fileTypes
+    Array of file type definition
   ###
-  @classProperty("suffixes", get: -> null)
-
-  ###*
-  @property {string} id
-    ID of engine
-  @readonly
-  ###
-  @property("id", get: -> @_id)
-
-  ###*
-  @property {string} rubicVersion
-    Supported Rubic version
-  @readonly
-  ###
-  @property("rubicVersion", get: -> @_rubicVersion)
-
-  ###*
-  @property {I18n} friendlyName
-    The name of engine
-  @readonly
-  ###
-  @property("friendlyName", get: -> @_friendlyName)
-
-  ###*
-  @property {boolean} beta
-    Is a beta feature?
-  @readonly
-  ###
-  @property("beta", get: -> @_beta)
-
-  ###*
-  @property {boolean} obsolete
-    Is an obsolete feature?
-  @readonly
-  ###
-  @property("obsolete", get: -> @_obsolete)
-
-  ###*
-  @property {Firmware[]} firmware
-    Array of firmwares
-  @readonly
-  ###
-  @property("firmwares", get: -> f for f in @_firmwares)
+  @classProperty("fileTypes", get: -> [])
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -98,8 +57,7 @@ class Engine extends JSONable
   @return {SketchItem[]/null} return.PromiseValue
     Array of generated items
   ###
-  setup: (sketch, item) ->
-    return Promise.reject(Error("Pure method"))
+  setup: null # pure virtual
 
   ###*
   @template
@@ -112,8 +70,7 @@ class Engine extends JSONable
   @return {Promise}
     Promise object
   ###
-  build: (sketch, item) ->
-    return Promise.reject(Error("Pure method"))
+  build: null # pure virtual
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -125,12 +82,7 @@ class Engine extends JSONable
   @param {Object} obj
   ###
   constructor: (obj) ->
-    @_id            = "#{obj.id || ""}"
-    @_rubicVersion  = "#{obj.rubicVersion || ""}"
-    @_friendlyName  = I18n.parseJSON(obj.friendlyName)
-    @_beta          = !!obj.beta
-    @_obsolete      = !!obj.obsolete
-    @_firmwares     = (Firmware.parseJSON(f) for f in (obj.firmwares or []))
+    super(obj)
     return
 
   ###*
@@ -140,16 +92,7 @@ class Engine extends JSONable
   ###
   toJSON: ->
     return super().extends({
-      id            : @_id
-      rubicVersion  : @_rubicVersion
-      friendlyName  : @_friendlyName
-      beta          : @_beta
-      obsolete      : @_obsolete
-      firmwares     : @_firmwares
     })
 
-module.exports = Engine
-
 # Post dependencies
-I18n = require("./i18n")
-Firmware = require("./firmware")
+# (none)
