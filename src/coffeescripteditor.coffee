@@ -1,12 +1,14 @@
+"use strict"
 # Pre dependencies
 TextEditor = require("./texteditor")
+require("./primitive")
 
 ###*
 @class CoffeeScriptEditor
   Editor for CoffeeScript source (View)
 @extends TextEditor
 ###
-class CoffeeScriptEditor extends TextEditor
+module.exports = class CoffeeScriptEditor extends TextEditor
   TextEditor.register(this)
 
   #--------------------------------------------------------------------------------
@@ -33,8 +35,8 @@ class CoffeeScriptEditor extends TextEditor
   ###*
   @inheritdoc Editor#supports
   ###
-  @supports: (path) ->
-    return !!path.match(SUFFIX_RE)
+  @supports: (item) ->
+    return !!item.path.match(SUFFIX_RE)
 
   #--------------------------------------------------------------------------------
   # Protected properties
@@ -54,8 +56,6 @@ class CoffeeScriptEditor extends TextEditor
   constructor: ($, sketch, path) ->
     super($, sketch, path, "ace/mode/coffee")
     return
-
-module.exports = CoffeeScriptEditor
 
 # Post dependencies
 # (none)

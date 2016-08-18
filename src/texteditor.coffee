@@ -1,6 +1,7 @@
 "use strict"
 # Pre dependencies
 Editor = require("./editor")
+require("./primitive")
 
 ###*
 @class TextEditor

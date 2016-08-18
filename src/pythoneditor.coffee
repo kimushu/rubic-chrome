@@ -4,11 +4,11 @@ TextEditor = require("./texteditor")
 require("./primitive")
 
 ###*
-@class YamlEditor
-  Editor for YAML text (View)
+@class PythonEditor
+  Editor for Python script source (View)
 @extends TextEditor
 ###
-module.exports = class YamlEditor extends TextEditor
+module.exports = class PythonEditor extends TextEditor
   TextEditor.register(this)
 
   #--------------------------------------------------------------------------------
@@ -23,10 +23,10 @@ module.exports = class YamlEditor extends TextEditor
   @editable: true
 
   #--------------------------------------------------------------------------------
-  # Private variables / constants
+  # Private constants
   #
 
-  SUFFIX_RE = /\.ya?ml$/i
+  SUFFIX_RE = /\.py$/i
 
   #--------------------------------------------------------------------------------
   # Public properties
@@ -45,7 +45,7 @@ module.exports = class YamlEditor extends TextEditor
   ###*
   @protected
   @method constructor
-    Constructor of YamlEditor class
+    Constructor of PythonEditor class
   @param {jQuery} $
     jQuery object
   @param {Sketch} sketch
@@ -54,7 +54,7 @@ module.exports = class YamlEditor extends TextEditor
     Path of target file
   ###
   constructor: ($, sketch, path) ->
-    super($, sketch, path, "ace/mode/yaml")
+    super($, sketch, path, "ace/mode/python")
     return
 
 # Post dependencies

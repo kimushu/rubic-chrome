@@ -24,7 +24,10 @@ require("./micropythonengine")
 require("./rubyeditor")
 require("./mrbviewer")
 require("./javascripteditor")
+require("./coffeescripteditor")
 require("./luaeditor")
+require("./pythoneditor")
+require("./yamleditor")
 
 require("./sketch")
 

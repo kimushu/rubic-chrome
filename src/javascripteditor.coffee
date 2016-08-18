@@ -1,12 +1,14 @@
+"use strict"
 # Pre dependencies
 TextEditor = require("./texteditor")
+require("./primitive")
 
 ###*
 @class JavaScriptEditor
   Editor for JavaScript source (View)
 @extends TextEditor
 ###
-class JavaScriptEditor extends TextEditor
+module.exports = class JavaScriptEditor extends TextEditor
   TextEditor.register(this)
 
   #--------------------------------------------------------------------------------
@@ -33,8 +35,8 @@ class JavaScriptEditor extends TextEditor
   ###*
   @inheritdoc Editor#supports
   ###
-  @supports: (path) ->
-    return !!path.match(SUFFIX_RE)
+  @supports: (item) ->
+    return !!item.path.match(SUFFIX_RE)
 
   #--------------------------------------------------------------------------------
   # Protected properties
@@ -54,8 +56,6 @@ class JavaScriptEditor extends TextEditor
   constructor: ($, sketch, path) ->
     super($, sketch, path, "ace/mode/javascript")
     return
-
-module.exports = JavaScriptEditor
 
 # Post dependencies
 # (none)

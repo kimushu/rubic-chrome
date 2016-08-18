@@ -1,12 +1,14 @@
+"use strict"
 # Pre dependencies
 TextEditor = require("./texteditor")
+require("./primitive")
 
 ###*
 @class RubyEditor
   Editor for ruby/mruby source (View)
 @extends TextEditor
 ###
-class RubyEditor extends TextEditor
+module.exports = class RubyEditor extends TextEditor
   TextEditor.register(this)
 
   #--------------------------------------------------------------------------------
@@ -21,7 +23,7 @@ class RubyEditor extends TextEditor
   @editable: true
 
   #--------------------------------------------------------------------------------
-  # Private variables
+  # Private variables / constants
   #
 
   SUFFIX_RE = /\.rb$/i
@@ -54,8 +56,6 @@ class RubyEditor extends TextEditor
   constructor: ($, sketch, item) ->
     super($, sketch, item, "ace/mode/ruby")
     return
-
-module.exports = RubyEditor
 
 # Post dependencies
 # (none)

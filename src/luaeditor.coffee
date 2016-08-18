@@ -4,11 +4,11 @@ TextEditor = require("./texteditor")
 require("./primitive")
 
 ###*
-@class YamlEditor
-  Editor for YAML text (View)
+@class LuaEditor
+  Editor for Lua script source (View)
 @extends TextEditor
 ###
-module.exports = class YamlEditor extends TextEditor
+module.exports = class LuaEditor extends TextEditor
   TextEditor.register(this)
 
   #--------------------------------------------------------------------------------
@@ -23,10 +23,10 @@ module.exports = class YamlEditor extends TextEditor
   @editable: true
 
   #--------------------------------------------------------------------------------
-  # Private variables / constants
+  # Private constants
   #
 
-  SUFFIX_RE = /\.ya?ml$/i
+  SUFFIX_RE = /\.lua$/i
 
   #--------------------------------------------------------------------------------
   # Public properties
@@ -45,7 +45,7 @@ module.exports = class YamlEditor extends TextEditor
   ###*
   @protected
   @method constructor
-    Constructor of YamlEditor class
+    Constructor of LuaEditor class
   @param {jQuery} $
     jQuery object
   @param {Sketch} sketch
@@ -54,7 +54,7 @@ module.exports = class YamlEditor extends TextEditor
     Path of target file
   ###
   constructor: ($, sketch, path) ->
-    super($, sketch, path, "ace/mode/yaml")
+    super($, sketch, path, "ace/mode/lua")
     return
 
 # Post dependencies
