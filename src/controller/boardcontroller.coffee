@@ -226,9 +226,11 @@ module.exports = class BoardController extends WindowController
   ###
   _refreshList: (prefix, list, callback) ->
     (tmpl = @$("##{prefix}-tmpl")).hide().siblings().remove()
+    na = list?.length == 0
     (sel = @$("##{prefix}-sel")).find(".placeholder").text(
-      if list?.length == 0 then "N/A" else "(#{I18n.getMessage("Select_one")})"
+      if na then "N/A" else "(#{I18n.getMessage("Select_one")})"
     )
+    sel.prop("disabled", na)
     grp = tmpl.parents("div.form-group").eq(0)
     if list?
       grp.show()

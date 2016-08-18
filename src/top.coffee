@@ -10,6 +10,7 @@ require("compat/bbjscompat")
 require("ui/bootbox-promise")
 
 # Load main controller
+require("controller/windowcontroller")  # Needed to solve circular dependency
 require("controller/maincontroller").instance.activate()
 
 # Boards
