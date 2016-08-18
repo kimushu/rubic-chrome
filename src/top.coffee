@@ -1,33 +1,33 @@
-require("./primitive")
+require("util/primitive")
 
-# require("./es6compat")  # Chrome supports ES6!
-require("./es7compat")
-require("./bbjscompat")
-require("./bootbox-promise")
-require("./windowcontroller")
+# require("compat/es6compat")  # Chrome supports ES6!
+require("compat/es7compat")
+require("compat/bbjscompat")
+require("bootbox-promise")
+require("controller/windowcontroller")
 
-MainController = require("./maincontroller")
+MainController = require("controller/maincontroller")
 MainController.instance.activate()
 
 # List of boards
-require("./peridotboard")
-require("./wakayamarbboard")
-require("./grcitrusboard")
+require("board/peridotboard")
+require("board/wakayamarbboard")
+require("board/grcitrusboard")
 
 # List of engines
-require("./mrubyengine")
-require("./duktapeengine")
-require("./luaengine")
-require("./micropythonengine")
+require("engine/mrubyengine")
+require("engine/duktapeengine")
+require("engine/luaengine")
+require("engine/micropythonengine")
 
 # List of editors
-require("./rubyeditor")
-require("./mrbviewer")
-require("./javascripteditor")
-require("./coffeescripteditor")
-require("./luaeditor")
-require("./pythoneditor")
-require("./yamleditor")
+require("editor/rubyeditor")
+require("editor/mrbviewer")
+require("editor/javascripteditor")
+require("editor/coffeescripteditor")
+require("editor/luaeditor")
+require("editor/pythoneditor")
+require("editor/yamleditor")
 
-require("./sketch")
+require("sketch/sketch")
 

@@ -1,5 +1,7 @@
 include ../common.mk
 
+browserify_envs = NODE_PATH=$(SRC_DIR)
+
 browserify_opts = \
 	--transform=coffeeify --extension=coffee --debug \
 	$(addprefix --external=,crypto)
@@ -33,7 +35,7 @@ mani_out = $(DIST_DIR)/$(notdir $(mani_src))
 define compile_coffee
 	$(call ECHO_W,"Compiling coffee scripts ($@)")
 	$(Q)echo "$@: \\" > $(call dep,$<).new
-	$(Q)$(BROWSERIFY) $(browserify_opts) --list $< | \
+	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) --list $< | \
 		sort | sed -e 's/$$/ \\/' >> $(call dep,$<).new; \
 		$(TEST0) || (rm -f $(call dep,$<).new; false)
 	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $(call dep,$<).new
@@ -41,7 +43,7 @@ define compile_coffee
 	$(Q)diff -u $(call dep,$<) $(call dep,$<).new; true
 	$(Q)mv $(call dep,$<).new $(call dep,$<)
 	$(Q)mkdir -p $(dir $@)
-	$(Q)$(BROWSERIFY) $(browserify_opts) $< $1 > $@ || (rm -f $@; false)
+	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) $< $1 > $@ || (rm -f $@; false)
 endef
 
 all: $(bkg_min) $(top_min) $(lib_min) $(stub_min) $(mani_out)
