@@ -3,7 +3,7 @@ require("util/primitive")
 # require("compat/es6compat")  # Chrome supports ES6!
 require("compat/es7compat")
 require("compat/bbjscompat")
-require("bootbox-promise")
+require("ui/bootbox-promise")
 require("controller/windowcontroller")
 
 MainController = require("controller/maincontroller")
