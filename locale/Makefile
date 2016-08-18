@@ -10,8 +10,11 @@ converter = yaml2json.rb
 tester_src = $(LOCALE_DIR)/tester.coffee
 tester_out = $(DIST_DIR)/locale.js
 
-all: $(messages) $(tester_out)
+all: $(messages)
 
+release: $(tester_out)
+
+.PHONY: $(tester_out)
 $(tester_out):
 	$(Q)echo "/* chrome.i18n */" > $@
 

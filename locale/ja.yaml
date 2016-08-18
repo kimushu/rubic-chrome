@@ -112,10 +112,8 @@ Thanks_testers:
     "Rubicの開発にご協力いただきありがとうございます。"
 Log_verbosity:
     "ログ出力の細かさ"
-No_log:
-    "ログ出力なし (標準設定)"
 Simple_logs:
-    "簡易のログ出力"
+    "簡易のログ出力 (標準設定)"
 Detail_logs:
     "詳細なログ出力 (動作が遅くなる可能性があります)"
 Desc_of_log_verbosity:
@@ -162,6 +160,8 @@ Basic_settings:
     "基本設定"
 Selected_board:
     "選択されたボード"
+Feature:
+    "機能"
 Board_version:
     "ボードのバージョン"
 Script_engine:
@@ -228,3 +228,55 @@ Save_your_settings:
     "お気に入り構成の保存"
 Back:
     "戻る"
+Appearance:
+    "表示設定"
+Desc_of_appearance:
+    "Rubicの表示に関する設定を変更できます。"
+Zoom_ratio:
+    "倍率"
+Zoom_1_0:
+    "1.0倍 - 拡大なし (標準設定)"
+Zoom_1_5:
+    "1.5倍 - 拡大表示"
+Zoom_2_0:
+    "2.0倍 - 拡大表示"
+Refresh_catalog:
+    "カタログを更新"
+Select_board_before:
+    "このページの設定をするには、先にボードを選択してください。"
+Downloads_required:
+    "ダウンロードが必要です"
+Select_firmware:
+    "ファームウェアの選択"
+Board_revision:
+    "ボードのリビジョン"
+Firmware:
+    "ファームウェア"
+Firmware_revision:
+    "ファームウェアのリビジョン"
+Board:
+    "ボード"
+Scanning:
+    "検索中"
+Board_scan:
+    "ボード検索オプション"
+Desc_of_board_scan:
+    "接続されたボードを検索する際のオプションを設定できます。"
+Show_matched_boards_only:
+    "名前やID(VendorID/ProductID)が合致するボードのみを表示する"
+Hidden_devices:
+    "常に表示しないデバイスを指定する"
+Catalog_editor:
+    "カタログエディタ"
+Enable_catalog_editor:
+    "カタログエディタを有効にする"
+Add_item:
+    "追加"
+Rename_item:
+    "名前の変更"
+Remove_item:
+    "削除"
+Open_with_editor:
+    "エディタで開く"
+Add_existing_file:
+    "既存ファイルの追加..."
