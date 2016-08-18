@@ -1,6 +1,6 @@
 "use strict"
 # Pre dependencies
-Preferences = require("preferences")
+Preferences = require("app/preferences")
 sprintf = require("util/sprintf")
 require("util/primitive")
 

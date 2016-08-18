@@ -325,6 +325,6 @@ module.exports = class BoardController extends WindowController
 
 # Post dependencies
 I18n = require("util/i18n")
-App = require("app")
+App = require("app/app")
 Board = require("board/board")
 BoardCatalog = require("firmware/boardcatalog")

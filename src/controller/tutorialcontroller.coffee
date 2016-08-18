@@ -62,4 +62,4 @@ module.exports = TutorialController
 
 # Post dependencies
 I18n = require("util/i18n")
-Preferences = require("preferences")
+Preferences = require("app/preferences")

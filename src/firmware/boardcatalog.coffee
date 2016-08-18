@@ -143,7 +143,7 @@ module.exports = class BoardCatalog
     return
 
 # Post dependencies
-App = require("app")
+App = require("app/app")
 Board = require("board/board")
 CatalogCache = require("firmware/catalogcache")
 I18n = require("util/i18n")

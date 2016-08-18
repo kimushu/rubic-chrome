@@ -1,5 +1,5 @@
 chrome.app.runtime.onLaunched.addListener((launchData) =>
-  Preferences = require("./preferences")
+  Preferences = require("app/preferences")
 
   Promise.resolve(
   ).then(=>

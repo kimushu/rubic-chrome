@@ -170,5 +170,5 @@ module.exports = class CatalogCache
     return Preferences.set({"#{CACHE_KEY}": obj})
 
 # Post dependencies
-Preferences = require("preferences")
+Preferences = require("app/preferences")
 GitHubFetcher = require("util/githubfetcher")

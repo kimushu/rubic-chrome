@@ -117,5 +117,5 @@ module.exports = PrefController
 
 # Post dependencies
 I18n = require("util/i18n")
-App = require("app")
-Preferences = require("preferences")
+App = require("app/app")
+Preferences = require("app/preferences")

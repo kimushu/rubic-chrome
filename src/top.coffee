@@ -1,26 +1,29 @@
-require("util/primitive")
+###
+  Top module for Rubic (for Chrome App)
+###
 
-# require("compat/es6compat")  # Chrome supports ES6!
+# Compatibility modules
 require("compat/es7compat")
 require("compat/bbjscompat")
+
+# UI helpers
 require("ui/bootbox-promise")
-require("controller/windowcontroller")
 
-MainController = require("controller/maincontroller")
-MainController.instance.activate()
+# Load main controller
+require("controller/maincontroller").instance.activate()
 
-# List of boards
+# Boards
 require("board/peridotboard")
 require("board/wakayamarbboard")
 require("board/grcitrusboard")
 
-# List of engines
+# Engines
 require("engine/mrubyengine")
 require("engine/duktapeengine")
 require("engine/luaengine")
 require("engine/micropythonengine")
 
-# List of editors
+# Editors
 require("editor/rubyeditor")
 require("editor/mrbviewer")
 require("editor/javascripteditor")
@@ -28,6 +31,4 @@ require("editor/coffeescripteditor")
 require("editor/luaeditor")
 require("editor/pythoneditor")
 require("editor/yamleditor")
-
-require("sketch/sketch")
 

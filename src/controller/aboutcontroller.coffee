@@ -127,5 +127,5 @@ class AboutController extends WindowController
 module.exports = AboutController
 
 # Post dependencies
-App = require("app")
+App = require("app/app")
 I18n = require("util/i18n")

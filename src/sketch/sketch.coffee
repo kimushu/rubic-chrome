@@ -356,6 +356,6 @@ module.exports = class Sketch extends JSONable
 # Post dependencies
 I18n = require("util/i18n")
 AsyncFs = require("filesystem/asyncfs")
-App = require("app")
+App = require("app/app")
 Board = require("board/board")
 SketchItem = require("sketch/sketchitem")

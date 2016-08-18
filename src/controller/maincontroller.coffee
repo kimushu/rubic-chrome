@@ -399,8 +399,8 @@ module.exports = MainController
 
 # Post dependencies
 I18n = require("util/i18n")
-Preferences = require("preferences")
-App = require("app")
+Preferences = require("app/preferences")
+App = require("app/app")
 Sketch = require("sketch/sketch")
 AsyncFs = require("filesystem/asyncfs")
 SketchEditor = require("editor/sketcheditor")

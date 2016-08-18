@@ -148,5 +148,5 @@ module.exports = Controller
 
 # Post dependencies
 # (none)
-App = require("app")
+App = require("app/app")
 I18n = require("util/i18n")
