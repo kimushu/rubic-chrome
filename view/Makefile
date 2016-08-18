@@ -353,9 +353,11 @@ jstr_tgz  = $(jstr_dir).tar.gz
 jstr_key  = $(jstr_dir)/.unpacked
 jstr_src  = $(jstr_dir)/dist/jstree.min.js
 jstr_out  = $(DIST_DIR)/$(notdir $(jstr_src))
+jstr_asts = $(jstr_dir)/dist/themes/default
+jstr_asto = $(DIST_DIR)/jstree
 
 .PHONY: jstr clean-jstr clobber-jstr
-jstr: $(jstr_out)
+jstr: $(jstr_out) $(jstr_asto)
 
 clean-jstr:
 	$(Q)rm -f $(jstr_out)
@@ -367,6 +369,11 @@ clobber-jstr: clean-jstr
 $(jstr_out): $(jstr_key)
 	$(call ECHO_W,"Locating $(jstr_name) script ($@)")
 	$(Q)mkdir -p $(dir $@) && cp $(jstr_src) $@
+
+$(jstr_asto): $(jstr_key)
+	$(call ECHO_W,"Locating $(jstr_name) assets ($@)")
+	$(Q)rm -rf $@
+	$(Q)cp -r $(jstr_asts) $@
 
 $(jstr_key): $(jstr_tgz)
 	$(call ECHO_W,"Unpacking $(jstr_name) tarball ($<)")
@@ -417,8 +424,8 @@ img_files = \
 	rubic_cube2x2_32.png \
 	rubic_cube2x2_48.png \
 	rubic_cube2x2_128.png \
-	rubic_text_24.png \
-	rubic_text_48.png \
+	rubic_text_white.png \
+	rubic_text_black.png \
 	boards/no_image_48.png \
 	boards/peridot_64x64.png \
 	boards/wrbb_64x64.png \

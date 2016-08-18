@@ -16,6 +16,7 @@
 
 @sidebar-left-width : 216px;
 @sidebar-right-width : 216px;
+@explorer-footer-height : 38px;
 
 body {
   overflow-x: hidden;
@@ -23,6 +24,7 @@ body {
 
 #rubic-brand {
   margin-top: -2px;
+  height: 24px;
 }
 
 .fold-header:not(.fold-opened) + .fold-target {
@@ -68,13 +70,12 @@ body {
   padding-top: 6px;
 }
 
-.navbar > .container > .btn,
-.navbar > .container > .btn-group {
-  margin-left: 4px !important;
+.btn-group {
+  margin-left: 3px;
 }
 
-.navbar > .container > .btn-group.pull-right {
-  margin-right: 3px !important;
+.btn-group.pull-right {
+  margin-right: 3px;
 }
 
 .btn-thin {
@@ -120,7 +121,7 @@ body.left-hidden .hide-left {
   transition-duration: 0.2s;
 }
 
-.main-outer:not(.when-main):not(.when-board) {
+.vert-scroll {
   overflow-y: scroll;
 }
 
@@ -151,10 +152,39 @@ body.left-hidden .hide-left {
   bottom: 0px;
   width: 100%;
   margin-bottom: 100px;
+  background-color: #fff;
 }
 
 .editor-body#board-features {
   padding-top: 16px;
+}
+
+.explorer-left,
+.explorer-right {
+  position: absolute;
+  width: 50%;
+  top: 0px;
+  bottom: @explorer-footer-height;
+}
+
+.explorer-left {
+  left: 0px;
+  padding: 2px 0px;
+}
+
+.explorer-right {
+  right: 0px;
+  border-left: 1px solid #bbb;
+}
+
+.explorer-footer {
+  position: absolute;
+  width: 100%;
+  height: @explorer-footer-height;
+  bottom: 0px;
+  border-top: 1px solid #555;
+  padding: 8px 4px;
+  background-color: #777;
 }
 
 .bottom-hidden .editor-body {
@@ -235,13 +265,6 @@ body.left-hidden .hide-left {
   margin-bottom: -15px !important;
 }
 
-.config-body {
-  position: absolute;
-  top: 48px;
-  bottom: 0px;
-  overflow-y: scroll;
-}
-
 .spin-text {
   position: absolute;
   top: ~"calc(50% + 30px)";
@@ -251,8 +274,26 @@ body.left-hidden .hide-left {
   text-align: center;
 }
 
+#board-noboard {
+  background-color: #666;
+}
+
 #about-rubic-logo {
   max-width: ~"calc(100% + 16px)";
+  height: 48px;
+}
+
+.alt-ph {
+  display: none;
+}
+
+.alt-body:empty + .alt-ph {
+  display: inline;
+}
+
+.grayed-sub {
+  font-size: 9px;
+  color: #999;
 }
 
 body.controller-main .when-not-main, body:not(.controller-main) .when-main,
@@ -276,6 +317,32 @@ body.cloud-onedrive .when-no-cloud {
 
 .show-testers .only-testers {
   display: inherit;
+}
+
+.slidein-rtl {
+  animation: 0.2s slidein-rtl;
+}
+
+@keyframes slidein-rtl {
+  from {
+    margin-left: 100%;
+  }
+  to {
+    margin-left: 0;
+  }
+}
+
+.slidein-ltr {
+  animation: 0.2s slidein-ltr;
+}
+
+@keyframes slidein-ltr {
+  from {
+    margin-left: -100%;
+  }
+  to {
+    margin-left: 0;
+  }
 }
 
 .media.board-selected {

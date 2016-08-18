@@ -11,7 +11,7 @@
     <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
     <div class="sidebar-left"></div>
     <!--begin-->
-    <div class="main-outer when-pref">
+    <div class="main-outer when-pref vert-scroll">
       <div class="main-inner">
         <div class="row">
           <div class="col-md-12">
@@ -67,11 +67,15 @@
             <div class="panel panel-primary">
               <div class="panel-heading">
                 <h3 class="panel-title i18n">
-                  <b>{Hidden_devices}</b>
+                  <b>{Board_scan}</b>
                 </h3>
               </div>
               <div class="panel-body">
-                <p class="i18n">{Desc_of_hidden_devices}</p>
+                <p class="i18n">{Desc_of_board_scan}</p>
+                <div class="checkbox">
+                  <label class="i18n">
+                    <input type="checkbox" id="config-device-filter">{Show_matched_boards_only}</label>
+                </div>
               </div>
             </div>
             <div class="panel panel-primary">
@@ -135,45 +139,56 @@
                   <p class="i18n">{Thanks_testers}</p>
                   <div class="form-horizontal">
                     <div class="form-group">
-                      <div class="col-sm-3">
+                      <div class="col-sm-4">
                         <label class="control-label i18n">{Beta_firmware}</label>
                       </div>
-                      <div class="col-sm-9">
+                      <div class="col-sm-8">
                         <select class="form-control" id="config-beta-firmware">
                           <option class="i18n" value="false">{Hide_beta_versions}</option>
                           <option class="i18n" value="true">{Show_beta_versions}</option>
                         </select>
                       </div>
-                      <div class="col-sm-offset-3 col-sm-9">
+                      <div class="col-sm-offset-4 col-sm-8">
                         <p class="help-block i18n">{Desc_of_beta_firmware}</p>
                       </div>
                     </div>
                     <div class="form-group">
-                      <div class="col-sm-3">
+                      <div class="col-sm-4">
                         <label class="control-label i18n">{Log_verbosity}</label>
                       </div>
-                      <div class="col-sm-9">
+                      <div class="col-sm-8">
                         <select class="form-control" id="config-log-verbosity">
                           <option class="i18n" value="0">{Simple_logs}</option>
                           <option class="i18n" value="1">{Detail_logs}</option>
                         </select>
                       </div>
-                      <div class="col-sm-offset-3 col-sm-9">
+                      <div class="col-sm-offset-4 col-sm-8">
                         <p class="help-block i18n">{Desc_of_log_verbosity}</p>
                       </div>
                     </div>
                     <div class="form-group">
-                      <div class="col-sm-3">
+                      <div class="col-sm-4">
                         <label class="control-label i18n">{Init_cache}</label>
                       </div>
-                      <div class="col-sm-9">
+                      <div class="col-sm-8">
                         <select class="form-control" id="config-reset-all">
                           <option class="i18n" value="false">{Do_not_init_cache}</option>
                           <option class="i18n" value="true">{Init_cache_at_next_boot}</option>
                         </select>
                       </div>
-                      <div class="col-sm-offset-3 col-sm-9">
+                      <div class="col-sm-offset-4 col-sm-8">
                         <p class="help-block i18n">{Desc_of_init_cache}</p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-4">
+                        <label class="control-label i18n">{Catalog_editor}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <div class="checkbox">
+                          <label class="i18n">
+                            <input type="checkbox" id="config-cateditor">{Enable_catalog_editor}</label>
+                        </div>
                       </div>
                     </div>
                   </div>

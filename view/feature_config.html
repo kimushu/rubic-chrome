@@ -14,11 +14,11 @@
       <div class="editor-header">
       </div>
       <!--begin-->
-      <div class="editor-body" id="board-features">
+      <div class="editor-body vert-scroll" id="board-features">
         <div class="col-md-12">
           <div class="panel panel-primary">
             <div class="panel-heading">
-              <h3 class="panel-title i18n"><b>{Basic_settings}</b></h3>
+              <h3 class="panel-title i18n"><b>{Select_firmware}</b></h3>
             </div>
             <div class="panel-body">
               <div class="form-horizontal">
@@ -35,18 +35,18 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-group" id="board-engine">
+                <div class="form-group">
                   <div class="col-sm-4">
-                    <label class="control-label i18n">{Script_engine}</label>
+                    <label class="control-label i18n">{Board_revision}</label>
                   </div>
                   <div class="col-sm-8">
                     <div class="dropdown">
-                      <button class="btn btn-default dropdown-toggle i18n" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                      <button class="btn btn-default dropdown-toggle i18n" id="brdrev-sel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         <span class="placeholder">(Select one)</span>
                         <span class="caret"></span>
                       </button>
                       <ul class="dropdown-menu">
-                        <li id="feature-engine_tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger label-bigger i18n">{Obsolete}</span> <span class="label label-warning label-bigger i18n">{Beta}</span></a></li>
+                        <li id="brdrev-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span></a></li>
                       </ul>
                     </div>
                   </div>
@@ -57,24 +57,33 @@
                   </div>
                   <div class="col-sm-8">
                     <div class="dropdown">
-                      <button class="btn btn-default dropdown-toggle i18n" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                      <button class="btn btn-default dropdown-toggle i18n" id="fw-sel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         <span class="placeholder">(Select one)</span>
                         <span class="caret"></span>
                       </button>
                       <ul class="dropdown-menu">
-                        <li id="feature-fw_tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span><a class="glyphicon glyphicon-circle-arrow-down i18n" title="{Downloads_required}"></a><span class="label label-danger i18n">{Obsolete}</span><span class="label label-warning i18n">{Beta}</span></a></li>
+                        <li id="fw-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger label-bigger i18n">{Obsolete}</span> <span class="label label-warning label-bigger i18n">{Beta}</span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Firmware_revision}</label>
+                  </div>
+                  <div class="col-sm-8">
+                    <div class="dropdown">
+                      <button class="btn btn-default dropdown-toggle i18n" id="fwrev-sel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span class="placeholder">(Select one)</span>
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li id="fwrev-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger i18n">{Obsolete}</span><span class="label label-warning i18n">{Beta}</span><span class="dl-require"> <span class="glyphicon glyphicon-circle-arrow-down i18n" title="{Downloads_required}"></span></span></a></li>
                       </ul>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div class="panel panel-primary">
-            <div class="panel-heading">
-              <h3 class="panel-title i18n"><b>{Serial_communication}</b></h3>
-            </div>
-            <div class="panel-body">
             </div>
           </div>
         </div>
