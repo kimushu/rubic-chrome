@@ -1,5 +1,6 @@
 # Pre dependencies
 UnJSONable = require("util/unjsonable")
+require("util/primitive")
 
 ###*
 @class Controller
