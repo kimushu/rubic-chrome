@@ -1,5 +1,6 @@
+"use strict"
 # Pre dependencies
-# (none)
+require("./primitive")
 
 ###*
 @class JSONable

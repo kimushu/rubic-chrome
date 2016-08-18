@@ -2,13 +2,14 @@
 Board = require("./board")
 I18n = require("./i18n")
 AsyncFs = require("./asyncfs")
+Programmer = require("./programmer")
 
 ###*
 @class PeridotBoard
   PERIDOT board (Model)
 @extends Board
 ###
-class PeridotBoard extends Board
+module.exports = class PeridotBoard extends Board
   Board.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -98,34 +99,10 @@ class PeridotBoard extends Board
     return
 
   ###*
-  @inheritdoc Board#getEngineList
+  @inheritdoc Board#getProgrammer
   ###
-  getEngineList: ->
-    return [
-      {
-        name: "mruby"
-        id: "mruby"
-        icon: "mruby"
-      }
-      {
-        name: "Duktape (JavaScript / CoffeeScript)"
-        id: "duktape"
-        icon: "javascript"
-        beta: true
-      }
-      {
-        name: "Lua"
-        id: "lua"
-        icon: "lua"
-        beta: true
-      }
-      {
-        name: "MicroPython"
-        id: "micropython"
-        icon: "python"
-        beta: true
-      }
-    ] # return []
+  getProgrammer: ->
+    return new PeridotProgrammer(@_canarium)
 
   ###*
   @inheritdoc Board#getPinList
@@ -247,7 +224,11 @@ class PeridotBoard extends Board
         callback = options
         options = {}
 
-module.exports = PeridotBoard
+  class PeridotProgrammer extends Programmer
+    null
+
+    constructor: (@_canarium) ->
+      return
 
 # Post dependencies
 Canarium = global.Canarium

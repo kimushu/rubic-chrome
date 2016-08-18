@@ -1,8 +1,8 @@
 # Pre dependencies
 # (none)
 
-class Preferences
-  unless (CHROME_STORAGE = chrome.storage?.local)?
+module.exports = class Preferences
+  unless (CHROME_STORAGE = chrome?.storage?.local)?
     console.warn("chrome.storage.local is provided as an emulation module using webkit TEMPORARY FileSystem.")
 
   #--------------------------------------------------------------------------------
@@ -253,8 +253,6 @@ class Preferences
         reject
       )
     )
-
-module.exports = Preferences
 
 # Post dependencies
 # (none)

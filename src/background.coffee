@@ -1,4 +1,4 @@
-chrome.app.runtime.onLaunched.addListener(=>
+chrome.app.runtime.onLaunched.addListener((launchData) =>
   Preferences = require("./preferences")
 
   Promise.resolve(
@@ -22,7 +22,8 @@ chrome.app.runtime.onLaunched.addListener(=>
       bounds: {width: values.window_width, height: values.window_height}
     }
     chrome.app.window.create("window.html", options, (appWindow) =>
-      appWindow.onClosed.addListener(=>
+      boundsSaveTimer = null
+      appWindow.onBoundsChanged.addListener(=>
         bounds = appWindow.innerBounds
         Preferences.set({
           window_width: bounds.width
@@ -34,10 +35,10 @@ chrome.app.runtime.onLaunched.addListener(=>
         # Set initial zoom ratio
         win.document.body.style.zoom = (values.zoom_ratio / 10)
 
-        # Set GitHub API base URL
-        base = values.github_base
-        win.Libs.GitHubFactory.apiBase = base
-        win.console.warn("GitHub API will be substituted by #{base}") if base?
+        # # Set GitHub API base URL
+        # base = values.github_base
+        # win.Libs.GitHubFactory.apiBase = base
+        # win.console.warn("GitHub API will be substituted by #{base}") if base?
       )
       return
     )

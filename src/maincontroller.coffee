@@ -27,6 +27,7 @@ class MainController extends WindowController
   # Private variables / constants
   #
 
+  SCAN_TIMEOUT = 2000
   PLACES = ["local", "googledrive", "dropbox", "onedrive"]
   tabSet = null
   tabNextId = 1
@@ -47,16 +48,54 @@ class MainController extends WindowController
     @$(".open-latest").click(=> @_openSketch())
     for p in PLACES
       do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
-    @$(".sketch-build").click(=> @_buildSketch())
-    @$(".sketch-run").click(=> @_runSketch())
+    noBoard = !(App.sketch?.board)
+    @$(".sketch-build").click(=> @_buildSketch()).prop("disabled", noBoard)
+    @$(".sketch-run").click(=> @_runSketch()).prop("disabled", noBoard).next().prop("disabled", noBoard)
     tabSet or= @$("#editor-tabs").scrollTabs({
       left_arrow_size: 18
       right_arrow_size: 18
       click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
     })
     App.log.detail({"MainController#tabSet": tabSet})
-    @_newSketch() unless App.sketch?
-    @_activeEditor?.activate()
+    @$(".board-scan").click(=> @_refreshBoardConnections()) unless noBoard
+    @$(".board-name").prop("disabled", true)
+    @$(".board-list").prop("disabled", true)
+    Promise.resolve(
+    ).then(=>
+      return Preferences.get("catalog_editor")
+    ).then((values) =>
+      @$("#cateditor-link")[if values.catalog_editor then "show" else "hide"]()
+    )
+    Promise.resolve(
+    ).then(=>
+      return @_newSketch() unless App.sketch?
+    ).then(=>
+      return @_activeEditor?.activate()
+    ).then(=>
+      el = @$(".board-name")
+      tt = []
+      board = App.sketch?.board
+      unless board?
+        el.text("")
+        return
+      el.prop("disabled", false)
+      @$(".board-list").prop("disabled", false)
+      v = board?.friendlyName
+      el.text(v)
+      tt.push("#{I18n.getMessage("Board")}: #{v}") if v?
+      return Promise.resolve(
+      ).then(=>
+        return board?.loadFirmware()
+      ).then((f) =>
+        v = f?.friendlyName
+        tt.push("#{I18n.getMessage("Firmware")}: #{v}") if v?
+        return board?.loadFirmRevision()
+      ).then((r) =>
+        v = r?.friendlyName
+        tt.push("#{I18n.getMessage("Version")}: #{v}") if v?
+        el[0].title = tt.join("\n")
+      ) # return Promise.resolve().then()...
+    ) # Promise.resolve().then()...
     return
 
   ###*
@@ -69,6 +108,7 @@ class MainController extends WindowController
     @$(".open-latest").unbind("click")
     @$(".open-#{p}").unbind("click") for p in PLACES
     @$(".sketch-run").unbind("click")
+    @$(".board-scan").unbind("click")
     super
     return
 
@@ -92,6 +132,49 @@ class MainController extends WindowController
   ###*
   @private
   @method
+    Refresh board connection list
+  @return {Promise}
+    Promise object
+  ###
+  _refreshBoardConnections: ->
+    (tmpl = @$("#board-list-tmpl")).nextAll().remove()
+    tmpl.find(".placeholder").eq(0).text(I18n.getMessage("Scanning"))
+    return Promise.resolve(
+    ).then(=>
+      return App.sketch.board.enumerate().timeout(SCAN_TIMEOUT)
+    ).then((boards) =>
+      return I18n.rejectPromise("No_board") unless boards?.length > 0
+      tmpl.hide()
+      for b in boards
+        li = tmpl.clone().show()
+        li[0].id = ""
+        ph = li.find(".placeholder")
+        ph.eq(0).text(b.friendlyName)
+        ph.eq(1).text(b.path or "")
+        li.appendTo(tmpl.parent())
+        do (b) =>
+          li.click(=>
+          )
+    ).catch((error) =>
+      tmpl.text(error).show()
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Set sketch
+  @param {Sketch/null} sketch
+    Sketch instance
+  @return {undefined}
+  ###
+  _setSketch: (sketch) ->
+    App.sketch = sketch
+    sketch?.addEventListener("change", (@_sketchChangeListener or= @_sketchChange.bind(this)))
+    return
+
+  ###*
+  @private
+  @method
     Open new sketch
   @return {Promise}
     Promise object
@@ -103,7 +186,7 @@ class MainController extends WindowController
     ).then(=>
       return Sketch.createNew()
     ).then((sketch) =>
-      App.sketch = sketch
+      @_setSketch(sketch)
       @_addEditor(new SketchEditor(@$, sketch), true)
       for item in sketch.items
         ec = Editor.findEditor(item) if item.path != ""
@@ -153,7 +236,7 @@ class MainController extends WindowController
           null
       @_editors = []
       @$("#editor-tabs").empty()
-      App.sketch = null
+      @_setSketch(null)
     ) # return Promise.resolve().then()...
 
   ###*
@@ -180,7 +263,7 @@ class MainController extends WindowController
     ).then((fs) =>
       return unless fs?
       return Sketch.open(fs).then((sketch) =>
-        App.sketch = sketch
+        @_setSketch(sketch)
         return  # Last PromiseValue
       ).catch((error) =>
         return global.bootbox.alert_p({
@@ -302,6 +385,14 @@ class MainController extends WindowController
     return if editor == @_activeEditor
     @_activeEditor?.deactivate()
     (@_activeEditor = editor).activate()
+    return
+
+  ###*
+  @private
+  @method
+    Sketch change handler
+  ###
+  _sketchChange: ->
     return
 
 module.exports = MainController

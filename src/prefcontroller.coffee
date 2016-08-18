@@ -40,22 +40,28 @@ class PrefController extends WindowController
     )
     Preferences.get({
       zoom_ratio: 10
+      device_filter: true
       beta_firmware: false
       log_verbosity: 0
       reset_all: false
+      catalog_editor: false
     }).then((items) =>
       console.log(items)
       @$("#config-zoom-ratio").val("#{items.zoom_ratio}").change((event) =>
         value = parseInt(@$(event.target).val())
         Preferences.set({zoom_ratio: value})
-        bounds = @appWindow.innerBounds
         curRatio = (parseFloat(window.document.body.style.zoom) or 1)
         newRatio = value / 10
-        bounds.setSize(
+        bounds = @appWindow?.innerBounds
+        bounds?.setSize(
           bounds.width / curRatio * newRatio
           bounds.height / curRatio * newRatio
         )
         window.document.body.style.zoom = newRatio
+      )
+      @$("#config-device-filter").prop("checked", !!items.device_filter).click((event) =>
+        value = !!@$(event.target).prop("checked")
+        Preferences.set({device_filter: value})
       )
       @$("#config-beta-firmware").val("#{items.beta_firmware}").change((event) =>
         value = (@$(event.target).val() != "false")
@@ -69,6 +75,10 @@ class PrefController extends WindowController
         value = (@$(event.target).val() != "false")
         Preferences.set({reset_all: value})
         App.warn("All preferences will be cleared at the next boot!") if value
+      )
+      @$("#config-cateditor").prop("checked", !!items.catalog_editor).click((event) =>
+        value = !!@$(event.target).prop("checked")
+        Preferences.set({catalog_editor: value})
       )
     )
     @$("body").addClass("controller-pref")

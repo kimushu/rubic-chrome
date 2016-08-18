@@ -10,7 +10,7 @@ str2ab = require("./str2ab")
   Wakayama.rb board (Model)
 @extends Board
 ###
-class WakayamaRbBoard extends Board
+module.exports = class WakayamaRbBoard extends Board
   Board.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -509,8 +509,6 @@ class WakayamaRbBoard extends Board
     ###
     constructor: (@_wrbb, @_dir = "") ->
       return
-
-module.exports = WakayamaRbBoard
 
 # Post dependencies
 FifoBuffer = require("./fifobuffer")

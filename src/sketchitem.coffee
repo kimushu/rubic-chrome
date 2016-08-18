@@ -1,12 +1,14 @@
+"use strict"
 # Pre dependencies
 JSONable = require("./jsonable")
+require("./primitive")
 
 ###*
 @class SketchItem
   Item in sketch (Model)
 @extends JSONable
 ###
-class SketchItem extends JSONable
+module.exports = class SketchItem extends JSONable
   SketchItem.jsonable()
 
   #--------------------------------------------------------------------------------
@@ -51,6 +53,15 @@ class SketchItem extends JSONable
   )
 
   ###*
+  @property {boolean} hasCompilerOptions
+    Enable compiler options for this file
+  ###
+  @property("hasCompilerOptions",
+    get: -> @_hasCompilerOptions
+    set: (v) -> @_hasCompilerOptions = !!v; @_setModified()
+  )
+
+  ###*
   @property {string} compilerOptions
     The options for compiler
   ###
@@ -84,6 +95,7 @@ class SketchItem extends JSONable
     @_path = "#{obj?.path}"
     @_generatedFrom = obj?.generatedFrom?.map?((v) -> "#{v}") || []
     @_transfer = !!obj?.transfer
+    @_hasCompilerOptions = !!obj?.hasCompilerOptions
     @_compilerOptions = "#{obj?.compilerOptions || ""}"
     @_editor = null
     return
@@ -111,6 +123,7 @@ class SketchItem extends JSONable
       path: @_path
       generatedFrom: @_generatedFrom
       transfer: @_transfer
+      hasCompilerOptions: @_hasCompilerOptions
       compilerOptions: @_compilerOptions
     })
 
@@ -128,7 +141,5 @@ class SketchItem extends JSONable
     @_sketch?.modified = true
     return
 
-module.exports = SketchItem
-
 # Post dependencies
-EventTarget = require("./eventtarget")
+# (none)

@@ -1,6 +1,7 @@
 "use strict"
 # Pre dependencies
 JSONable = require("./jsonable")
+require("./primitive")
 
 ###*
 @class Engine
@@ -20,7 +21,7 @@ module.exports = class Engine extends JSONable
     Name of engine
   @readonly
   ###
-  @property("coreName", get: -> null)
+  @property("friendlyName", get: -> null)
 
   ###*
   @template

@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 # (none)
 
@@ -5,7 +6,7 @@
 @class UnJSONable
   Unserializable class to JSON
 ###
-class UnJSONable
+module.exports = class UnJSONable
   null
 
   #--------------------------------------------------------------------------------
@@ -19,8 +20,6 @@ class UnJSONable
   ###
   toJSON: ->
     return
-
-module.exports = UnJSONable
 
 # Post dependencies
 # (none)

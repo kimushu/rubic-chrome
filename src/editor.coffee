@@ -1,13 +1,14 @@
-# Dependencies
+"use strict"
+# Pre dependencies
 UnJSONable = require("./unjsonable")
-EventTarget = require("./eventtarget")
+require("./primitive")
 
 ###*
 @class Editor
   Base class for editors/viewers (View)
 @extends UnJSONable
 ###
-class Editor extends UnJSONable
+module.exports = class Editor extends UnJSONable
   null
 
   #--------------------------------------------------------------------------------
@@ -66,32 +67,38 @@ class Editor extends UnJSONable
   @property("uniqueId", get: -> @_uniqueId)
 
   #--------------------------------------------------------------------------------
-  # Event listeners
+  # Events
   #
 
   ###*
-  @event onActivated
-    Event target triggered when editor activated
-  @param {Editor} editor
+  @event activate
+    Editor activated
+  @param {Object} event
+    Event object
+  @param {Editor} event.target
     An editor instance
   ###
-  @property("onActivated", get: -> @_onActivated or= new EventTarget())
+  @event("activate")
 
   ###*
-  @event onDeactivated
-    Event target triggered when editor deactivated
-  @param {Editor} editor
+  @event deactivate
+    Editor deactivated
+  @param {Object} event
+    Event object
+  @param {Editor} event.target
     An editor instance
   ###
-  @property("onDeactivated", get: -> @_onDeactivated or= new EventTarget())
+  @event("deactivate")
 
   ###*
-  @event onClose
-    Event target triggered when editor closed
-  @param {Editor} editor
+  @event close
+    Editor closed
+  @param {Object} event
+    Event object
+  @param {Editor} event.target
     An editor instance
   ###
-  @property("onClosed", get: -> @_onClosed or= new EventTarget())
+  @event("close")
 
   #--------------------------------------------------------------------------------
   # Private variables
@@ -172,7 +179,7 @@ class Editor extends UnJSONable
   ###
   activate: ->
     @$(@element).show() if @element?
-    @onActivated.dispatchEvent(this)
+    @dispatchEvent({type: "activate"})
     return
 
   ###*
@@ -183,7 +190,7 @@ class Editor extends UnJSONable
   ###
   deactivate: ->
     @$(@element).hide() if @element?
-    @onDeactivated.dispatchEvent(this)
+    @dispatchEvent({type: "deactivate"})
     return
 
   ###*
@@ -225,4 +232,5 @@ class Editor extends UnJSONable
     @_uniqueId = "Editor_ID_#{nextUniqueId++}"
     return
 
-module.exports = Editor
+# Post dependencies
+# (none)

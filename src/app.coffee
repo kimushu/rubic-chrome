@@ -1,12 +1,14 @@
+"use strict"
 # Pre dependencies
 Preferences = require("./preferences")
 sprintf = require("./sprintf")
+require("./primitive")
 
 ###*
 @class App
   Application top class (Not instanciatable)
 ###
-class App
+module.exports = class App
   null
 
   # Version emulation for browser view
@@ -83,8 +85,6 @@ class App
         break unless result
       return true if result
     return false
-
-module.exports = App
 
 # Post dependencies
 # (none)

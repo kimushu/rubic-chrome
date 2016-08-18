@@ -1,5 +1,6 @@
 "use strict"
 # Pre dependencies
+require("./primitive")
 Engine = require("./engine")
 
 ###*
@@ -62,6 +63,7 @@ module.exports = class MrubyEngine extends Engine
       return Promise.resolve()
 
     # rb->mrb compile
+    item.hasCompilerOptions = true
     items = []
     mrb = new SketchItem({path: paths.mrb})
     mrb.generatedFrom = [paths.rb]

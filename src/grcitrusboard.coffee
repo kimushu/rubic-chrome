@@ -8,7 +8,7 @@ I18n = require("./i18n")
   GR-CITRUS board (Model)
 @extends WakayamaRbBoard
 ###
-class GrCitrusBoard extends WakayamaRbBoard
+module.exports = class GrCitrusBoard extends WakayamaRbBoard
   Board.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -117,8 +117,6 @@ class GrCitrusBoard extends WakayamaRbBoard
       image: {
       }
     } # return {}
-
-module.exports = GrCitrusBoard
 
 # Post dependencies
 # (none)

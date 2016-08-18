@@ -1,13 +1,15 @@
+"use strict"
 # Pre dependencies
 JSONable = require("./jsonable")
 strftime = require("./strftime")
+require("./primitive")
 
 ###*
 @class Sketch
   Sketch (Model)
 @extends JSONable
 ###
-class Sketch extends JSONable
+module.exports = class Sketch extends JSONable
   Sketch.jsonable()
 
   #--------------------------------------------------------------------------------
@@ -27,7 +29,7 @@ class Sketch extends JSONable
   ###
   @property("modified",
     get: -> @_modified
-    set: (v) -> @_setModified() if !!v
+    set: (v) -> @_modify() if (@_modified = !!v)
   )
 
   ###*
@@ -58,14 +60,9 @@ class Sketch extends JSONable
   @property("bootItem",
     get: -> @_bootItem
     set: (v) ->
-      found = null
-      for item in @_items
-        if item.path == v
-          found = item
-          break
+      found = @_items.find((item) => item.path == v)
       throw Error("No item `#{v}'") unless found?
-      return if @_bootItem == v
-      @_bootItem = v
+      @_modify("_bootItem", v)
       return
   )
 
@@ -75,23 +72,46 @@ class Sketch extends JSONable
   ###
   @property("board",
     get: -> @_board
-    set: (v) ->
-      return if @_board == v
-      @_board?.onChange?.removeListener?(@_setModifiedCaller)
-      @_board = v
-      @_board?.onChange?.addListener?(@_setModifiedCaller)
-      @_setModified()
+    set: (v) -> @_modify("_board", v)
   )
 
   #--------------------------------------------------------------------------------
-  # Event listeners
+  # Events
   #
 
   ###*
-  @event onChange
-    Changed event target
+  @event change
+    Sketch changed (excludes each item's change)
+  @param {Object} event
+    Event object
+  @param {Sketch} event.target
+    Sketch instance
   ###
-  @property("onChange", get: -> @_onChange or= new EventTarget())
+  @event("change")
+
+  ###*
+  @event addItem
+    SketchItem added
+  @param {Object} event
+    Event object
+  @param {Sketch} event.target
+    Sketch instance
+  @param {SketchItem} event.item
+    Added item
+  ###
+  @event("addItem")
+
+  ###*
+  @event addItem
+    SketchItem added
+  @param {Object} event
+    Event object
+  @param {Sketch} event.target
+    Sketch instance
+  @param {SketchItem} event.item
+    Item removed
+  ###
+  @event("removeItem")
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -131,6 +151,8 @@ class Sketch extends JSONable
       # FIXME>>>
       sketch.addItem(i = new SketchItem({path: "main.rb"}))
       sketch.bootItem = "main.rb"
+      sketch.addItem(i = new SketchItem({path: "submodule1.rb"}))
+      sketch.addItem(i = new SketchItem({path: "submodule2.rb"}))
     #   sketch.board = new Board()
     #   return i.setup()
     # ).then(=>
@@ -223,7 +245,8 @@ class Sketch extends JSONable
     return false if @getItem(item.path)?
     item.setSketch(this)
     @_items.push(item)
-    @_setModified()
+    @_modify()
+    @dispatchEvent({type: "addItem", item: item})
     return true
 
   ###*
@@ -232,15 +255,17 @@ class Sketch extends JSONable
   @param {SketchItem/string} item
     Item or path to remove
   @return {boolean}
-    Result (true=success, false=not_fond)
+    Result (true=success, false=not_found)
   ###
   removeItem: (item) ->
-    item = item.path unless typeof(item) == "string"
-    for value, index in @_items
-      if value.path == item
-        @_items.splice(index, 1)
-        @_setModified()
-        return true
+    path = item
+    path = item.path unless typeof(item) == "string"
+    index = @_items.findIndex((value) => item.path == path)
+    return false if index < 0
+    itemRemoved = @_items[index]
+    @_items.splice(index, 1)
+    @_modify()
+    @dispatchEvent({type: "removeItem", item: itemRemoved})
     return false
 
   ###*
@@ -276,7 +301,12 @@ class Sketch extends JSONable
     @_items = (SketchItem.parseJSON(item) for item in (obj?.items or []))
     @_bootItem = "#{obj?.bootItem || ""}"
     @_board = Board.parseJSON(obj.board) if obj?.board?
-    @_setModifiedCaller = (=> @_setModified)
+    @_modify = (key, value) =>
+      if key?
+        return if @[key] == value
+        @[key] = value
+      @_modified = true
+      @dispatchEvent({type: "change"})
     return
 
   ###*
@@ -294,18 +324,6 @@ class Sketch extends JSONable
   #--------------------------------------------------------------------------------
   # Private methods
   #
-
-  ###*
-  @private
-  @method
-    Set modified flag
-  @return {undefined}
-  ###
-  _setModified: ->
-    return if @_modified
-    @_modified = true
-    @onChange.dispatchEvent(this)
-    return
 
   ###*
   @private
@@ -335,10 +353,7 @@ class Sketch extends JSONable
         # No migration needed from >= 0.9.x
         return src
 
-module.exports = Sketch
-
 # Post dependencies
-EventTarget = require("./eventtarget")
 I18n = require("./i18n")
 AsyncFs = require("./asyncfs")
 App = require("./app")

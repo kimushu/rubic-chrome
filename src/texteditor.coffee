@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 Editor = require("./editor")
 
@@ -6,7 +7,7 @@ Editor = require("./editor")
   Base class for text editors (View)
 @extends Editor
 ###
-class TextEditor extends Editor
+module.exports = class TextEditor extends Editor
   null
 
   #--------------------------------------------------------------------------------
@@ -58,6 +59,7 @@ class TextEditor extends Editor
   ###
   activate: ->
     aceEditor.setSession(@_aceSession)
+    aceEditor.focus()
     super()
     return
 
@@ -170,8 +172,6 @@ class TextEditor extends Editor
       reader.onerror = => reject(I18n.error("Conversion_failed"))
       reader.readAsArrayBuffer(new Blob([text]))
     ) # return new Promise()
-
-module.exports = TextEditor
 
 # Post dependencies
 I18n = require("./i18n")
