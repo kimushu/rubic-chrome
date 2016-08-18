@@ -12,6 +12,7 @@
     "less": "^2.7.1",
     "less-plugin-cache": "^1.0.0",
     "less-plugin-clean-css": "^1.5.1",
+    "node-uuid": "^1.4.7",
     "uglifyjs": "^2.4.10"
   }
 }
