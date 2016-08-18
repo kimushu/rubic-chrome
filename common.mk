@@ -26,6 +26,9 @@ ECHO_M     = @echo -e "\033[1;35m\# "$1"\033[0m"
 ECHO_C     = @echo -e "\033[1;36m\# "$1"\033[0m"
 ECHO_W     = @echo -e "\033[1;37m\# "$1"\033[0m"
 
+TEST0      = test $${PIPESTATUS[0]} -eq 0
+TEST0_RM   = $(TEST0) || (rm -f $@; false)
+
 .PHONY: all clean clobber
 all:
 	$(call ECHO_B,"Build finished for target \`$@'")
