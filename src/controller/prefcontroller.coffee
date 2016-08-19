@@ -40,7 +40,7 @@ module.exports = class PrefController extends WindowController
       @$("body")[if state then "addClass" else "removeClass"]("show-testers")
     )
     Preferences.get({
-      zoom_ratio: 10
+      zoom_ratio_x10: 10
       device_filter: true
       beta_firmware: false
       log_verbosity: 0
@@ -50,7 +50,7 @@ module.exports = class PrefController extends WindowController
       console.log(items)
       @$("#config-zoom-ratio").val("#{items.zoom_ratio}").change((event) =>
         value = parseInt(@$(event.target).val())
-        Preferences.set({zoom_ratio: value})
+        Preferences.set({zoom_ratio_x10: value})
         curRatio = (parseFloat(window.document.body.style.zoom) or 1)
         newRatio = value / 10
         bounds = @appWindow?.innerBounds

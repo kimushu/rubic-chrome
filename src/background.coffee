@@ -14,8 +14,7 @@ chrome.app.runtime.onLaunched.addListener((launchData) =>
     return Preferences.get({
       window_width: 640
       window_height: 480
-      zoom_ratio: 10
-      github_base: null
+      zoom_ratio_x10: 10
     })
   ).then((values) =>
     options = {
@@ -33,12 +32,7 @@ chrome.app.runtime.onLaunched.addListener((launchData) =>
       win = appWindow.contentWindow
       win.addEventListener("load", =>
         # Set initial zoom ratio
-        win.document.body.style.zoom = (values.zoom_ratio / 10)
-
-        # # Set GitHub API base URL
-        # base = values.github_base
-        # win.Libs.GitHubFactory.apiBase = base
-        # win.console.warn("GitHub API will be substituted by #{base}") if base?
+        win.document.body.style.zoom = (values.zoom_ratio_x10 / 10)
       )
       return
     )

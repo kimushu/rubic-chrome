@@ -156,3 +156,9 @@ Use_this_board:
     "Use this board"
 Author:
     "Author"
+Zoom_1_0:
+    "x1.0 (No zoom)"
+Zoom_1_5:
+    "x1.5 (Zoom)"
+Zoom_2_0:
+    "x2.0 (Zoom)"
