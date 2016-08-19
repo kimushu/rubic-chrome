@@ -1,5 +1,7 @@
 api/
 dist/
 node_modules/
+*.swp
+*.dep
 /*.zip
 Gemfile.lock
