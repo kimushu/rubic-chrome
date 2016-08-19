@@ -42,33 +42,29 @@ module.exports = class MainController extends WindowController
   @inheritdoc Controller#onActivated
   ###
   onActivated: ->
-    super
-    @$(".when-main > .editor-body").hide()
-    @$("body").addClass("controller-main")
-    @$(".sketch-new").click(=> @_newSketch())
-    @$(".open-latest").click(=> @_openSketch())
-    for p in PLACES
-      do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
-    noBoard = !(App.sketch?.board)
-    @$(".sketch-build").click(=> @_buildSketch()).prop("disabled", noBoard)
-    @$(".sketch-run").click(=> @_runSketch()).prop("disabled", noBoard).next().prop("disabled", noBoard)
-    tabSet or= @$("#editor-tabs").scrollTabs({
-      left_arrow_size: 18
-      right_arrow_size: 18
-      click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
-    })
-    App.log.verbose({"MainController#tabSet": tabSet})
-    @$(".board-scan").click(=> @_refreshBoardConnections()) unless noBoard
-    @$(".board-name").prop("disabled", true)
-    @$(".board-list").prop("disabled", true)
-    Promise.resolve(
+    return super(
     ).then(=>
+      @$(".when-main > .editor-body").hide()
+      @$("body").addClass("controller-main")
+      @$(".sketch-new").click(=> @_newSketch())
+      @$(".open-latest").click(=> @_openSketch())
+      for p in PLACES
+        do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
+      noBoard = !(App.sketch?.board)
+      @$(".sketch-build").click(=> @_buildSketch()).prop("disabled", noBoard)
+      @$(".sketch-run").click(=> @_runSketch()).prop("disabled", noBoard).next().prop("disabled", noBoard)
+      tabSet or= @$("#editor-tabs").scrollTabs({
+        left_arrow_size: 18
+        right_arrow_size: 18
+        click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
+      })
+      App.log.verbose({"MainController#tabSet": tabSet})
+      @$(".board-scan").click(=> @_refreshBoardConnections()) unless noBoard
+      @$(".board-name").prop("disabled", true)
+      @$(".board-list").prop("disabled", true)
       return Preferences.get("catalog_editor")
     ).then((values) =>
       @$("#cateditor-link")[if values.catalog_editor then "show" else "hide"]()
-    )
-    Promise.resolve(
-    ).then(=>
       return @_newSketch() unless App.sketch?
     ).then(=>
       return @_activeEditor?.activate()
@@ -96,8 +92,7 @@ module.exports = class MainController extends WindowController
         tt.push("#{I18n.getMessage("Version")}: #{v}") if v?
         el[0].title = tt.join("\n")
       ) # return Promise.resolve().then()...
-    ) # Promise.resolve().then()...
-    return
+    ) # return super().then()...
 
   ###*
   @protected
@@ -110,8 +105,7 @@ module.exports = class MainController extends WindowController
     @$(".open-#{p}").unbind("click") for p in PLACES
     @$(".sketch-run").unbind("click")
     @$(".board-scan").unbind("click")
-    super
-    return
+    return super()
 
   #--------------------------------------------------------------------------------
   # Private methods
@@ -302,11 +296,13 @@ module.exports = class MainController extends WindowController
     force = !!force
     return Promise.reject(Error("No sketch to build")) unless (sketch = App.sketch)?
     return Promise.reject(Error("No board")) unless (board = sketch.board)?
-    return Promise.reject(Error("No engine")) unless (engine = board?.engine)?
+    firmware = null
     return Promise.resolve(
     ).then(=>
       return @_saveSketch()
     ).then(=>
+      return board.loadFirmware()
+    ).then((firmware) =>
       spin = @modalSpin()
       return sketch.items.reduce(
         (promise, item) =>

@@ -47,17 +47,18 @@ module.exports = class TutorialController extends WindowController
   @inheritdoc Controller#onActivated
   ###
   onActivated: ->
-    super
-    @$("body").addClass("controller-tutorial")
-    return
+    return super(
+    ).then(=>
+      @$("body").addClass("controller-tutorial")
+      return
+    ) # return super().then()
 
   ###*
   @inheritdoc Controller#onDeactivated
   ###
   onDeactivated: ->
     @$("body").removeClass("controller-tutorial")
-    super
-    return
+    return super()
 
 # Post dependencies
 I18n = require("util/i18n")

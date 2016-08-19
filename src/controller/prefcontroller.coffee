@@ -34,29 +34,31 @@ module.exports = class PrefController extends WindowController
   @inheritdoc Controller#onActivated
   ###
   onActivated: ->
-    super
-    @$("#config-for-testers").prop("checked", false).click((event) =>
-      state = @$(event.target).prop("checked")
-      @$("body")[if state then "addClass" else "removeClass"]("show-testers")
-    )
-    Preferences.get({
-      zoom_ratio_x10: 10
-      device_filter: true
-      beta_firmware: false
-      log_verbosity: 0
-      reset_all: false
-      catalog_editor: false
-    }).then((items) =>
-      console.log(items)
-      @$("#config-zoom-ratio").val("#{items.zoom_ratio}").change((event) =>
+    return super(
+    ).then(=>
+      @$("#config-for-testers").prop("checked", false).click((event) =>
+        state = @$(event.target).prop("checked")
+        @$("body")[if state then "addClass" else "removeClass"]("show-testers")
+      )
+      return Preferences.get({
+        zoom_ratio_x10: 10
+        device_filter: true
+        beta_firmware: false
+        log_verbosity: 0
+        reset_all: false
+        catalog_editor: false
+      })
+    ).then((items) =>
+      App.info.verbose({"PrefController#onActivated": items})
+      @$("#config-zoom-ratio").val("#{items.zoom_ratio_x10}").change((event) =>
         value = parseInt(@$(event.target).val())
         Preferences.set({zoom_ratio_x10: value})
         curRatio = (parseFloat(window.document.body.style.zoom) or 1)
         newRatio = value / 10
         bounds = @appWindow?.innerBounds
         bounds?.setSize(
-          bounds.width / curRatio * newRatio
-          bounds.height / curRatio * newRatio
+          Math.round(bounds.width / curRatio * newRatio)
+          Math.round(bounds.height / curRatio * newRatio)
         )
         window.document.body.style.zoom = newRatio
       )
@@ -81,9 +83,10 @@ module.exports = class PrefController extends WindowController
         value = !!@$(event.target).prop("checked")
         Preferences.set({catalog_editor: value})
       )
-    )
-    @$("body").addClass("controller-pref")
-    return
+    ).then(=>
+      @$("body").addClass("controller-pref")
+      return
+    ) # return super().then()...
 
   ###*
   @protected
@@ -96,8 +99,7 @@ module.exports = class PrefController extends WindowController
     @$("#config-beta-firmware").unbind("change")
     @$("#config-log-verbosity").unbind("change")
     @$("#config-reset-all").unbind("change")
-    super
-    return
+    return super()
 
   #--------------------------------------------------------------------------------
   # Private methods

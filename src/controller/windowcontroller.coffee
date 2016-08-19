@@ -29,21 +29,23 @@ module.exports = class WindowController extends Controller
   @inheritdoc Controller#onActivated
   ###
   onActivated: ->
-    super
-    @$(".show-left").click(=> @$("body").removeClass("left-hidden"))
-    @$(".hide-left").click(=> @$("body").addClass("left-hidden"))
-    act = (c) => return =>
-      @$(".hide-left").click()
-      c.instance.activate()
-    @$(".activate-main").click(act(MainController))
-    @$(".activate-pref").click(act(PrefController))
-    @$(".activate-tutorial").click(act(TutorialController))
-    @$(".activate-about").click(act(AboutController))
-    @$(".activate-board").click(act(BoardController))
-    @$(".fold-toggle").click((event) =>
-      @$(event.target).parents(".fold-header").toggleClass("fold-opened")
-    )
-    return
+    return super(
+    ).then(=>
+      @$(".show-left").click(=> @$("body").removeClass("left-hidden"))
+      @$(".hide-left").click(=> @$("body").addClass("left-hidden"))
+      act = (c) => return =>
+        @$(".hide-left").click()
+        c.instance.activate()
+      @$(".activate-main").click(act(MainController))
+      @$(".activate-pref").click(act(PrefController))
+      @$(".activate-tutorial").click(act(TutorialController))
+      @$(".activate-about").click(act(AboutController))
+      @$(".activate-board").click(act(BoardController))
+      @$(".fold-toggle").click((event) =>
+        @$(event.target).parents(".fold-header").toggleClass("fold-opened")
+      )
+      return
+    ) # return super().then()
 
   ###*
   @inheritdoc Controller#onDeactivated
@@ -56,8 +58,7 @@ module.exports = class WindowController extends Controller
     @$(".activate-tutorial").unbind("click")
     @$(".activate-about").unbind("click")
     @$(".fold-toggle").unbind("click")
-    super
-    return
+    return super()
 
 # Post dependencies
 MainController = require("controller/maincontroller")
