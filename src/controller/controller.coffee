@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 UnJSONable = require("util/unjsonable")
 require("util/primitive")
@@ -5,8 +6,9 @@ require("util/primitive")
 ###*
 @class Controller
   Base class of controller (Controller)
+@extends UnJSONable
 ###
-class Controller extends UnJSONable
+module.exports = class Controller extends UnJSONable
   null
 
   #--------------------------------------------------------------------------------
@@ -36,40 +38,52 @@ class Controller extends UnJSONable
   @property("$", get: -> @window.$)
 
   #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  DELAY_AFTER_LOADING = 1000
+
+  #--------------------------------------------------------------------------------
   # Public methods
   #
 
   ###*
   @method
     Activate controller
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   activate: (args...) ->
-    return if @window.controller == this
-    @window.controller?.deactivate()
-    @window.controller = this
-    App.info({"Controller#activate": this})
-    if @window.loaded?
-      Promise.resolve().then(=>
-        @onActivated(args...)
+    return Promise.resolve() if @window.controller == this
+    return Promise.resolve(
+    ).then(=>
+      return @window.controller?.deactivate()
+    ).then(=>
+      body = @$("body")
+      return unless body.hasClass("loading")
+      return Promise.delay(DELAY_AFTER_LOADING).then(=>
+        body.removeClass("loading")
       )
-    else
-      @$(@window).load(=>
-        @window.loaded = true
-        @onActivated(args...)
-      )
-    return
+    ).then(=>
+      @window.controller = this
+      App.info.verbose({"Controller#activate": this})
+      return @onActivated(args...)
+    ) # return Promise.resolve().then()...
 
   ###*
   @method
     Deactivate controller
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   deactivate: ->
-    App.info.detail({"Controller#deactivate": this})
-    @onDeactivated()
-    @window.controller = null
-    return
+    return Promise.resolve(
+    ).then(=>
+      App.info.verbose({"Controller#deactivate": this})
+      return @onDeactivated()
+    ).then(=>
+      @window.controller = null
+    ) # return Promise.resolve().then()...
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -89,25 +103,27 @@ class Controller extends UnJSONable
   @protected
   @template
   @method
-    Event listener for activate
-  @return {undefined}
+    Handler for activate
+  @return {Promise}
+    Promise object
   ###
   onActivated: ->
     unless (doc = @window.document).translated
       doc.translated = true
       console.log("Translating document (#{I18n.lang})")
       I18n.translateDocument(doc)
-    return
+    return Promise.resolve()
 
   ###*
   @protected
   @template
   @method
-    Event listener for deactivate
-  @return {undefined}
+    Handler for deactivate
+  @return {Promise}
+    Promise object
   ###
   onDeactivated: ->
-    return
+    return Promise.resolve()
 
   ###*
   @protected
@@ -145,9 +161,6 @@ class Controller extends UnJSONable
         return this
     }
 
-module.exports = Controller
-
 # Post dependencies
-# (none)
 App = require("app/app")
 I18n = require("util/i18n")
