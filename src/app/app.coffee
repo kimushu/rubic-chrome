@@ -1,7 +1,5 @@
 "use strict"
 # Pre dependencies
-Preferences = require("app/preferences")
-sprintf = require("util/sprintf")
 require("util/primitive")
 
 ###*
@@ -41,20 +39,14 @@ module.exports = class App
   ###
   @classProperty("version", value: chrome?.runtime?.getManifest?()["version"] or VER_EMULATION)
 
-  LOG = (type, verbosity, args) ->
-    return if Preferences.logVerbosity < verbosity
-    fn = global.console[type].bind(global.console)
-    return fn(sprintf(args...)) if typeof(args[0]) == "string"
-    return fn(args...)
-
-  @log          = -> return LOG("log", 1, arguments)
-  @log.detail   = -> return LOG("log", 2, arguments)
-  @info         = -> return LOG("info", 1, arguments)
-  @info.detail  = -> return LOG("info", 2, arguments)
-  @warn         = -> return LOG("warn", 1, arguments)
-  @warn.detail  = -> return LOG("warn", 2, arguments)
-  @error        = -> return LOG("error", 1, arguments)
-  @error.detail = -> return LOG("error", 2, arguments)
+  for type in ["log", "info", "warn", "error"]
+    Object.defineProperty(
+      (@[type] = console[type].bind(console))
+      "verbose"
+      get: ->
+        return this if Preferences.logVerbosity >= 1
+        return (-> return)
+    )
 
   @info("Rubic/%s %s", @version, window?.navigator.userAgent)
 
@@ -87,4 +79,4 @@ module.exports = class App
     return false
 
 # Post dependencies
-# (none)
+Preferences = require("app/preferences")
