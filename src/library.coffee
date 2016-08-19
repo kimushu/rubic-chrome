@@ -1,4 +1,5 @@
 do ->
+  global.localStorage = undefined
   global.Libs or= {}
 
   global.Libs.JsZip = require("jszip")
