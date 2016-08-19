@@ -426,6 +426,7 @@ img_files = \
 	rubic_cube2x2_128.png \
 	rubic_text_white.png \
 	rubic_text_black.png \
+	rubic_loading.png \
 	boards/no_image_48.png \
 	boards/peridot_64x64.png \
 	boards/wrbb_64x64.png \
