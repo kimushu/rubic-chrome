@@ -13,7 +13,9 @@ require("ui/bootbox-promise")
 require("controller/windowcontroller")  # Needed to solve circular dependency
 $(->
   # Controller must be initiated after window.onload
-  require("controller/maincontroller").instance.activate()
+  require("app/preferences").initCache().then(->
+    require("controller/maincontroller").instance.activate()
+  )
 )
 
 # Boards
