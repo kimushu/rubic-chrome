@@ -59,18 +59,18 @@ module.exports = class TextEditor extends Editor
   @inheritdoc Editor#activate
   ###
   activate: ->
-    aceEditor.setSession(@_aceSession)
-    aceEditor.focus()
-    super()
-    return
+    return super(
+    ).then(=>
+      aceEditor.setSession(@_aceSession)
+      aceEditor.focus()
+    ) # return super().then()
 
   ###*
   @inheritdoc Editor#deactivate
   ###
   deactivate: ->
-    super()
     aceEditor.setSession(aceEmptySession)
-    return
+    return super()
 
   ###*
   @inheritdoc Editor#focus

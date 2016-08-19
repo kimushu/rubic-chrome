@@ -76,9 +76,10 @@ module.exports = class SketchEditor extends Editor
   @inheritdoc Editor#activate
   ###
   activate: ->
-    jqTreeElement.focus()
-    super()
-    return
+    return super(
+    ).then(=>
+      return
+    )
 
   #--------------------------------------------------------------------------------
   # Private methods

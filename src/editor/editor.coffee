@@ -185,23 +185,25 @@ module.exports = class Editor extends UnJSONable
   @template
   @method
     Activate editor
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   activate: ->
     @$(@element).show() if @element?
     @dispatchEvent({type: "activate"})
-    return
+    return Promise.resolve()
 
   ###*
   @template
   @method
     Deactivate editor
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   deactivate: ->
     @$(@element).hide() if @element?
     @dispatchEvent({type: "deactivate"})
-    return
+    return Promise.resolve()
 
   ###*
   @template
