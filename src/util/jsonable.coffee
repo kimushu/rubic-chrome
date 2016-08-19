@@ -6,7 +6,7 @@ require("./primitive")
 @class JSONable
   Serializable class to JSON
 ###
-class JSONable
+module.exports = class JSONable
   null
 
   #--------------------------------------------------------------------------------
@@ -80,8 +80,6 @@ class JSONable
         @[k] = v for k, v of o
         return this
     }
-
-module.exports = JSONable
 
 # Post dependencies
 # (none)

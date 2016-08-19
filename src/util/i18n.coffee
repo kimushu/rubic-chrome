@@ -6,7 +6,7 @@ JSONable = require("util/jsonable")
 @class I18n
   Internationalization helper class
 ###
-class I18n extends JSONable
+module.exports = class I18n extends JSONable
   I18n.jsonable()
   lang = chrome?.i18n.getUILanguage()
 
@@ -143,8 +143,6 @@ class I18n extends JSONable
     return super().extends({
       content: @_obj
     })
-
-module.exports = I18n
 
 # Post dependencies
 # (none)

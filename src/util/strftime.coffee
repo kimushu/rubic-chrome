@@ -1,3 +1,4 @@
+"use strict"
 Z2 = (value) -> return "0#{value.toString(10)}".substr(-2)
 S2 = (value) -> return " #{value.toString(10)}".substr(-2)
 RE = /%([CdDeHImMnRStTuwyY%])/g
@@ -22,8 +23,7 @@ RP = (fmt, date) ->
     when "Y" then return date.getFullYear().toString(10)
     when "%" then return "%"
 
-strftime = (format, date) ->
+module.exports = strftime = (format, date) ->
   date or= new Date()
   return format.replace(RE, (match, fmt) -> RP(fmt, date))
 
-module.exports = strftime

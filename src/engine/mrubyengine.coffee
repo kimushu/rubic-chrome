@@ -31,7 +31,10 @@ module.exports = class MrubyEngine extends Engine
   @property("fileTypes", get: -> [
     {
       suffix: "rb"
-      name: {"en": "Ruby script", "ja": "Ruby スクリプト"}
+      name: {en: "Ruby script", ja: "Ruby スクリプト"}
+      template: {
+        en: "#!mruby\n"
+      }
     }
   ])
 

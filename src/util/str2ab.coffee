@@ -1,8 +1,9 @@
+"use strict"
 # Pre dependencies
 # (none)
 
 ###*
-@method
+@method str2ab
   Convert string to ArrayBuffer
 @param {string} source
   Source data
@@ -13,7 +14,7 @@
 @return {ArrayBuffer} return.PromiseValue
   Converted data
 ###
-str2ab = (source, encoding = "utf8") ->
+module.exports = str2ab = (source, encoding = "utf8") ->
   return new Promise((resolve, reject) ->
     return reject(TypeError("source is not a string")) unless typeof(source) == "string"
     if Blob? and FileReader?
@@ -43,8 +44,6 @@ str2ab = (source, encoding = "utf8") ->
           array[o++] = 0x80 | (c & 0x3f)
       resolve(array.buffer.slice(0, o))
   ) # return new Promise()
-
-module.exports = str2ab
 
 # Post dependencies
 # (none)

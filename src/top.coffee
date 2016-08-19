@@ -11,7 +11,10 @@ require("ui/bootbox-promise")
 
 # Load main controller
 require("controller/windowcontroller")  # Needed to solve circular dependency
-require("controller/maincontroller").instance.activate()
+$(->
+  # Controller must be initiated after window.onload
+  require("controller/maincontroller").instance.activate()
+)
 
 # Boards
 require("board/peridotboard")

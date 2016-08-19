@@ -27,10 +27,16 @@ module.exports = class JavaScriptEngine extends Engine
     {
       suffix: "js"
       name: "JavaScript"  # TODO: how to distinguish ES6 or CommonJS?
+      template: {
+        en: "\"use strict\";\n"
+      }
     },
     {
       suffix: "coffee"
       name: "CoffeeScript"
+      template: {
+        en: "\"use strict\"^n"
+      }
     }
   ])
 
@@ -38,8 +44,8 @@ module.exports = class JavaScriptEngine extends Engine
   # Private constants
   #
 
-  COFFEE_SUFFIX_RE  = /\.coffee$/i
   JS_SUFFIX         = ".js"
+  COFFEE_SUFFIX_RE  = /\.coffee$/i
   COFFEE_ENCODING   = "utf8"
 
   #--------------------------------------------------------------------------------

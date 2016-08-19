@@ -8,7 +8,7 @@ require("util/primitive")
   Script execution engine for MicroPython (Model)
 @extends Engine
 ###
-class MicroPythonEngine extends Engine
+module.exports = class MicroPythonEngine extends Engine
   Engine.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -16,19 +16,24 @@ class MicroPythonEngine extends Engine
   #
 
   ###*
-  @inheritdoc Engine#coreName
+  @inheritdoc Engine#friendlyName
   ###
-  @classProperty("coreName", get: -> "MicroPython")
+  @classProperty("friendlyName", get: -> "MicroPython")
 
   ###*
-  @inheritdoc Engine#langName
+  @inheritdoc Engine#languageName
   ###
-  @classProperty("langName", get: -> "Python 3")
+  @classProperty("languageName", get: -> "Python3")
 
   ###*
-  @inheritdoc Engine#suffixes
+  @inheritdoc Engine#fileTypes
   ###
-  @classProperty("suffixes", get: -> ["py"])
+  @classProperty("fileTypes", get: -> [
+    {
+      suffix: "py"
+      name: {en: "Python script", ja: "Python スクリプト"}
+    }
+  ])
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -46,8 +51,6 @@ class MicroPythonEngine extends Engine
   ###
   build: (sketch, item) ->
     return Promise.resolve()
-
-module.exports = MicroPythonEngine
 
 # Post dependencies
 # (none)

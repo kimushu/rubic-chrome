@@ -1,12 +1,13 @@
+"use strict"
 # Pre dependencies
 WindowController = require("controller/windowcontroller")
 
 ###*
 @class AboutController
   Controller for about view (Controller, Singleton)
-@extends Controller
+@extends WindowController
 ###
-class AboutController extends WindowController
+module.exports = class AboutController extends WindowController
   null
   instance = null
 
@@ -123,8 +124,6 @@ class AboutController extends WindowController
   constructor: (window) ->
     super(window)
     return
-
-module.exports = AboutController
 
 # Post dependencies
 App = require("app/app")

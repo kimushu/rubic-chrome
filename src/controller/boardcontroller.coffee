@@ -5,7 +5,7 @@ WindowController = require("controller/windowcontroller")
 ###*
 @class BoardController
   Controller for board-catalog view (Controller, Singleton)
-@extends Controller
+@extends WindowController
 ###
 module.exports = class BoardController extends WindowController
   null

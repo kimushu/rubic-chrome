@@ -71,12 +71,22 @@ module.exports = class Editor extends UnJSONable
   #
 
   ###*
+  @event changeTitle
+    Title changed
+  @param {Object} event
+    Event object
+  @param {Editor} event.target
+    Editor instance
+  ###
+  @event("changeTitle")
+
+  ###*
   @event activate
     Editor activated
   @param {Object} event
     Event object
   @param {Editor} event.target
-    An editor instance
+    Editor instance
   ###
   @event("activate")
 
@@ -86,7 +96,7 @@ module.exports = class Editor extends UnJSONable
   @param {Object} event
     Event object
   @param {Editor} event.target
-    An editor instance
+    Editor instance
   ###
   @event("deactivate")
 
@@ -96,7 +106,7 @@ module.exports = class Editor extends UnJSONable
   @param {Object} event
     Event object
   @param {Editor} event.target
-    An editor instance
+    Editor instance
   ###
   @event("close")
 

@@ -1,11 +1,13 @@
+"use strict"
 # Pre dependencies
 Controller = require("controller/controller")
 
 ###*
 @class WindowController
   Base controller for window.html (Controller)
+@extends Controller
 ###
-class WindowController extends Controller
+module.exports = class WindowController extends Controller
   null
 
   #--------------------------------------------------------------------------------
@@ -56,8 +58,6 @@ class WindowController extends Controller
     @$(".fold-toggle").unbind("click")
     super
     return
-
-module.exports = WindowController
 
 # Post dependencies
 MainController = require("controller/maincontroller")

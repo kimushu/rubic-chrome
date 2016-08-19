@@ -1,12 +1,13 @@
+"use strict"
 # Pre dependencies
 WindowController = require("controller/windowcontroller")
 
 ###*
 @class MainController
   Controller for main view (Controller, Singleton)
-@extends Controller
+@extends WindowController
 ###
-class MainController extends WindowController
+module.exports = class MainController extends WindowController
   instance = null
 
   #--------------------------------------------------------------------------------
@@ -56,7 +57,7 @@ class MainController extends WindowController
       right_arrow_size: 18
       click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
     })
-    App.log.detail({"MainController#tabSet": tabSet})
+    App.log.verbose({"MainController#tabSet": tabSet})
     @$(".board-scan").click(=> @_refreshBoardConnections()) unless noBoard
     @$(".board-name").prop("disabled", true)
     @$(".board-list").prop("disabled", true)
@@ -362,6 +363,7 @@ class MainController extends WindowController
       tabSet.addTab("""
       <li id="#{id}">#{editor.title}</li>
       """)
+      # editor.addEventListener("changetitle", (@_changeTitleListener or= @_refreshTabs.bind(this)))
     if activate and @_activeEditor != editor
       @_activeEditor?.deactivate()
       (@_activeEditor = editor).activate()
@@ -394,8 +396,6 @@ class MainController extends WindowController
   ###
   _sketchChange: ->
     return
-
-module.exports = MainController
 
 # Post dependencies
 I18n = require("util/i18n")

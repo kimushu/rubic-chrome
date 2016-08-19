@@ -31,7 +31,7 @@ module.exports = class LuaEngine extends Engine
   @property("fileTypes", get: -> [
     {
       suffix: "lua"
-      name: {"en": "Lua script", "ja": "Lua スクリプト"}
+      name: {en: "Lua script", ja: "Lua スクリプト"}
     }
   ])
 

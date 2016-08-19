@@ -1,3 +1,4 @@
+"use strict"
 RE = /%([#0 +-]*)(\*|\d*)((?:\.\d+)?)([diuoxXeEfFgGcs%])/g
 RP = (values, match, flags, width, prec, type) ->
   for c in flags.split("")
@@ -68,7 +69,6 @@ RP = (values, match, flags, width, prec, type) ->
     v = " #{v}" while v.length < width
   return v
 
-sprintf = (format, values...) ->
+module.exports = sprintf = (format, values...) ->
   return format.replace(RE, (args...) -> RP(values, args...))
 
-module.exports = sprintf

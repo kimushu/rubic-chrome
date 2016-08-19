@@ -1,12 +1,13 @@
+"use strict"
 # Pre dependencies
 WindowController = require("controller/windowcontroller")
 
 ###*
 @class TutorialController
   Controller for tutorial view (Controller, Singleton)
-@extends Controller
+@extends WindowController
 ###
-class TutorialController extends WindowController
+module.exports = class TutorialController extends WindowController
   null
   instance = null
 
@@ -57,8 +58,6 @@ class TutorialController extends WindowController
     @$("body").removeClass("controller-tutorial")
     super
     return
-
-module.exports = TutorialController
 
 # Post dependencies
 I18n = require("util/i18n")

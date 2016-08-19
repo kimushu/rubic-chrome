@@ -1,3 +1,4 @@
+"use strict"
 # Pre dependencies
 # (none)
 
@@ -8,14 +9,12 @@ TR = ArrayBuffer.transfer or (oldBuffer, newByteLength = oldBuffer.byteLength) -
   new Uint8Array(newBuffer).set(new Uint8Array(oldBuffer, 0, copyByteLength))
   return newBuffer
 
-SYM = Symbol or ((name) -> "__sym_#{name}__")
-
 MIN_CAPACITY = 256
 
-class FifoBuffer
-  SB = SYM("Buffer")
-  SF = SYM("FirstPart")
-  SS = SYM("SecondPart")
+module.exports = class FifoBuffer
+  SB = Symbol("Buffer")
+  SF = Symbol("FirstPart")
+  SS = Symbol("SecondPart")
 
   Object.defineProperty(@prototype, "byteLength", get: ->
     return (@[SF]?.byteLength or 0) + (@[SS]?.byteLength or 0)
@@ -122,8 +121,6 @@ class FifoBuffer
     @[SF] = null
     @[SS] = null
     return
-
-module.exports = FifoBuffer
 
 # Post dependencies
 # (none)

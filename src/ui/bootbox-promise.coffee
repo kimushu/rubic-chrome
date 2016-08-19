@@ -1,3 +1,5 @@
+"use strict"
+
 if global.bootbox?.alert?
   global.bootbox.alert_p = (arg) ->
     return new Promise((resolve) ->

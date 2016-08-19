@@ -1,12 +1,13 @@
+"use strict"
 # Pre dependencies
 WindowController = require("controller/windowcontroller")
 
 ###*
 @class PrefController
   Controller for preference view (Controller, Singleton)
-@extends Controller
+@extends WindowController
 ###
-class PrefController extends WindowController
+module.exports = class PrefController extends WindowController
   null
   instance = null
 
@@ -112,8 +113,6 @@ class PrefController extends WindowController
   constructor: (window) ->
     super(window)
     return
-
-module.exports = PrefController
 
 # Post dependencies
 I18n = require("util/i18n")
