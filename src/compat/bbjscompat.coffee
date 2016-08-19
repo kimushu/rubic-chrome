@@ -48,24 +48,22 @@ Promise::tap or= (handler) ->
     (value) ->
       pass = -> Promise.resolve(value)
       return Promise.resolve().then(->
-        return handler()
+        return handler(value)
       ).then(pass, pass)
   )
 
 # http://bluebirdjs.com/docs/api/timeout.html
-unless Promise.TimeoutError
-  class TimeoutError
-    constructor: (message) ->
-      return new TimeoutError(message) unless this instanceof TimeoutError
-      message = "timeout error" unless typeof(message) == "string"
-      Object.defineProperty(this, "message", value: message)
-      Object.defineProperty(this, "name", value: "TimeoutError")
-      if Error.captureStackTrace?
-        Error.captureStackTrace(this, @constructor)
-      else
-        Error.call(this)
-      return
-  Promise.TimeoutError = TimeoutError
+Promise.TimeoutError or= class TimeoutError
+  constructor: (message) ->
+    return new TimeoutError(message) unless this instanceof TimeoutError
+    message = "timeout error" unless typeof(message) == "string"
+    Object.defineProperty(this, "message", value: message)
+    Object.defineProperty(this, "name", value: "TimeoutError")
+    if Error.captureStackTrace?
+      Error.captureStackTrace(this, @constructor)
+    else
+      Error.call(this)
+    return
 
 # http://bluebirdjs.com/docs/api/timeout.html
 Promise::timeout or= (ms, error) ->
