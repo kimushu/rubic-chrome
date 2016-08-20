@@ -177,6 +177,58 @@ module.exports = class AsyncFs extends UnJSONable
   ###*
   @static
   @method
+    Choose file from local
+  @param {boolean} [writable=false]
+    Request writable file
+  @param {function(Error/null,Object):undefined} [callback]
+    Callback function when Promise is not used
+  @return {undefined/Promise}
+    Promise object when callback is omitted
+  @return {Object} return.PromiseValue
+    Information of chosen file
+  @return {AsyncFs} return.PromiseValue.fs
+    New fs object for chosen file
+  @return {string} return.PromiseValue.name
+    Name of chosen file
+  ###
+  @chooseFile: (writable, callback) ->
+    return invokeCallback(callback, @chooseDirectory(writable)) if callback?
+    writable = !!writable
+    return new Promise((resolve, reject) =>
+      chrome.fileSystem.chooseEntry(
+        {type: if writable then "openWritableFile" else "openFile"}
+        (entry) =>
+          unless entry?
+            error = chrome.runtime.lastError
+            return reject(Error(error?.message or error))
+          return resolve(entry)
+      )
+    ).then((entry) =>
+      dummyDirEntry = {
+        name: undefined
+        getDirectory: (path, options, success, error) ->
+          return error(new PseudoFileError("NOT_FOUND_ERR"))
+        getFile: (path, options, success, error) ->
+          return error(
+            new PseudoFileError("NOT_FOUND_ERR")
+          ) unless path == entry.name
+          return error(
+            new PseudoFileError("NO_MODIFICATION_ALLOWED_ERR")
+          ) if options.create and !writable
+          return error(
+            new PseudoFileError("PATH_EXISTS_ERR")
+          ) if options.create and options.exclusive
+          return success(entry)
+      }
+      return {
+        fs: new Html5Fs(dummyDirEntry)
+        name: entry.name
+      } # Last PromiseValue
+    ) # return new Promise().then()
+
+  ###*
+  @static
+  @method
     Choose directory from local
   @param {function(Error/null,AsyncFs):undefined} [callback]
     Callback function when Promise is not used
@@ -295,6 +347,24 @@ module.exports = class AsyncFs extends UnJSONable
   ###
   opendirfsImpl: (path) ->
     return I18n.rejectPromise("Not_supported")
+
+  #--------------------------------------------------------------------------------
+  # Internal class
+  #
+
+  class PseudoFileError extends FileError
+    constructor: (id) ->
+      Object.defineProperty(this, "code", value: FileError[id])
+      name = "_#{id}"
+        .replace(/_ERR$/, "_ERROR").toLowerCase()
+        .replace(/_([a-z])/g, (m, c) -> c.toUpperCase())
+      Object.defineProperty(this, "name", value: name)
+      Object.defineProperty(this, "message", value: "")
+      if Error.captureStackTrace?
+        Error.captureStackTrace(this, @constructor)
+      else
+        Error.call(this)
+      return
 
 # Post dependencies
 I18n = require("util/i18n")
