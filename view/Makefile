@@ -1,6 +1,7 @@
 include ../common.mk
 
 all: html
+release: all
 clean: clean-html
 clobber: clobber-html
 

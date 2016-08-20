@@ -21,6 +21,8 @@ endef
 
 all: $(mrbc_sout) $(mrbc_mout)
 
+release: all
+
 clean:
 	$(Q)rm -f $(mrbc_sout) $(mrbc_mout)
 

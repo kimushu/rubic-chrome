@@ -46,7 +46,9 @@ define compile_coffee
 	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) $< $1 > $@ || (rm -f $@; false)
 endef
 
-all: $(bkg_min) $(top_min) $(lib_min) $(stub_min) $(mani_out)
+all: $(bkg_min) $(top_out) $(lib_min) $(stub_min) $(mani_out)
+
+release: all $(top_min)
 
 clean:
 	$(Q)rm -f $(bkg_dep) $(bkg_dep).new $(bkg_out)
