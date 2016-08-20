@@ -26,13 +26,15 @@ module.exports = class LuaEngine extends Engine
   @property("languageName", get: -> "Lua")
 
   ###*
-  @inheritdoc Engine#fileTypes
+  @inheritdoc Engine#fileHandlers
   ###
-  @property("fileTypes", get: -> [
-    {
-      suffix: "lua"
-      name: {en: "Lua script", ja: "Lua スクリプト"}
-    }
+  @property("fileHandlers", get: -> @_fileHandlers or= [
+    new FileHandler(this, "lua",
+      description: new I18n(
+        en: "Lua script"
+        ja: "Lua スクリプト"
+      )
+    )
   ])
 
   #--------------------------------------------------------------------------------
@@ -53,4 +55,4 @@ module.exports = class LuaEngine extends Engine
     return Promise.resolve()
 
 # Post dependencies
-# (none)
+FileHandler = require("engine/filehandler")

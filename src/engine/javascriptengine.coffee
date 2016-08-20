@@ -21,27 +21,22 @@ module.exports = class JavaScriptEngine extends Engine
   @property("languageName", get: -> "JavaScript/CoffeeScript")
 
   ###*
-  @inheritdoc Engine#suffixes
+  @inheritdoc Engine#fileHandlers
   ###
-  @property("fileTypes", get: -> [
-    {
-      suffix: "js"
-      name: "JavaScript"  # TODO: how to distinguish ES6 or CommonJS?
-      template: {
-        en: "\"use strict\";\n"
-      }
-    },
-    {
-      suffix: "coffee"
-      name: "CoffeeScript"
-      template: {
-        en: "\"use strict\"^n"
-      }
-    }
+  @property("fileHandlers", get: -> @_fileHandlers or= [
+    new FileHandler(this, "js",
+      description: new I18n("JavaScript") # TODO: how to distinguish ES6 or CommonJS?
+      template: new I18n("\"use strict\";\n")
+    )
+    new FileHandler(this, "coffee",
+      description: new I18n("CoffeeScript")
+      template: new I18n("\"use strict\"\n")
+      hasCompilerOptions: true
+    )
   ])
 
   #--------------------------------------------------------------------------------
-  # Private constants
+  # Private variables / constants
   #
 
   JS_SUFFIX         = ".js"
@@ -92,4 +87,5 @@ module.exports = class JavaScriptEngine extends Engine
     ) # return Promise.resolve().then()...
 
 # Post dependencies
+FileHandler = require("engine/filehandler")
 SketchItem = require("sketch/sketchitem")

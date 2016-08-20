@@ -18,21 +18,24 @@ module.exports = class MicroPythonEngine extends Engine
   ###*
   @inheritdoc Engine#friendlyName
   ###
-  @classProperty("friendlyName", get: -> "MicroPython")
+  @property("friendlyName", get: -> "MicroPython")
 
   ###*
   @inheritdoc Engine#languageName
   ###
-  @classProperty("languageName", get: -> "Python3")
+  @property("languageName", get: -> "Python3")
 
   ###*
-  @inheritdoc Engine#fileTypes
+  @inheritdoc Engine#fileHandlers
   ###
-  @classProperty("fileTypes", get: -> [
-    {
-      suffix: "py"
-      name: {en: "Python script", ja: "Python スクリプト"}
-    }
+  @property("fileHandlers", get: -> @_fileHandlers or= [
+    new FileHandler(this, "py",
+      description: new I18n(
+        en: "Python script"
+        ja: "Python スクリプト"
+      )
+      template: new I18n("#!micropython\n")
+    )
   ])
 
   #--------------------------------------------------------------------------------

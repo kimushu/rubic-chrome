@@ -33,10 +33,10 @@ module.exports = class Engine extends JSONable
 
   ###*
   @template
-  @property {Object[]} fileTypes
-    Array of file type definition
+  @property {FileHandler[]} fileHandlers
+    Array of file handlers
   ###
-  @property("fileTypes", get: -> [])
+  @property("fileHandlers", get: -> [])
 
   #--------------------------------------------------------------------------------
   # Public methods

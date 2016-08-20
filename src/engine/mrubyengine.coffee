@@ -26,16 +26,23 @@ module.exports = class MrubyEngine extends Engine
   @property("languageName", get: -> "mruby")
 
   ###*
-  @inheritdoc Engine#fileTypes
+  @inheritdoc Engine#fileHandlers
   ###
-  @property("fileTypes", get: -> [
-    {
-      suffix: "rb"
-      name: {en: "Ruby script", ja: "Ruby スクリプト"}
-      template: {
-        en: "#!mruby\n"
-      }
-    }
+  @property("fileHandlers", get: -> @_fileHandlers or= [
+    new FileHandler(this, "rb",
+      description: new I18n(
+        en: "Ruby script"
+        ja: "Ruby スクリプト"
+      )
+      template: new I18n("#!mruby\n")
+      hasCompilerOptions: true
+    )
+    new FileHandler(this, "mrb",
+      description: new I18n(
+        en: "Precompiled mruby executable"
+        ja: "コンパイル済み mruby 実行ファイル"
+      )
+    )
   ])
 
   ###*
@@ -46,10 +53,14 @@ module.exports = class MrubyEngine extends Engine
   @property("version", get: -> @_version)
 
   #--------------------------------------------------------------------------------
-  # Private constants
+  # Private variables / constants
   #
 
-  RUBY_ENCODING   = "utf8"
+  RUBY_ENCODING = "utf8"
+  RB_SUFFIX_RE  = /\.rb$/i
+  MRB_SUFFIX    = ".mrb"
+  MRB_SUFFIX_RE = /\.mrb$/i
+  DUMP_SUFFIX   = ".dump"
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -157,14 +168,14 @@ module.exports = class MrubyEngine extends Engine
   ###
   _parseName: (path) =>
     result = {path: path}
-    base = path.replace(/\.rb$/i, =>
+    base = path.replace(RB_SUFFIX_RE, =>
       result.rb = path
       return ""
     )
     if result.rb?
-      result.mrb = base + ".mrb"
-      result.dump = base + ".dump"
-    else if path.match(/\.mrb$/i)
+      result.mrb = base + MRB_SUFFIX
+      result.dump = base + DUMP_SUFFIX
+    else if path.match(MRB_SUFFIX_RE)
       result.mrb = path
     return result
 
@@ -193,4 +204,6 @@ module.exports = class MrubyEngine extends Engine
     return e or new Error(text)
 
 # Post dependencies
+FileHandler = require("engine/filehandler")
+I18n = require("util/i18n")
 SketchItem = require("sketch/sketchitem")
