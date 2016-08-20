@@ -48,7 +48,19 @@ module.exports = class Firmware extends JSONable
     List of engines
   @readonly
   ###
-  @property("engines", get: -> n for n in @_engines)
+  @property("engines", get: -> (e for e in @_engines))
+
+  ###*
+  @property {FileHandler[]) fileHandlers
+    List of file handlers by all engines
+  @readonly
+  ###
+  @property("fileHandlers", get: ->
+    return @_fileHandlers or= @_engines.reduce(
+      (handlers, engine) => handlers.concat(engine.fileHandlers)
+      []
+    )
+  )
 
   ###*
   @property {boolean} beta
@@ -79,7 +91,7 @@ module.exports = class Firmware extends JSONable
     @_friendlyName  = I18n.parseJSON(obj.friendlyName)
     @_rubicVersion  = obj.rubicVersion?.toString()
     @_author        = I18n.parseJSON(obj.author)
-    @_engines       = Engine.parseJSON(e) for e in (obj.engines or [])
+    @_engines       = (Engine.parseJSON(e) for e in (obj.engines or []))
     @_beta          = !!obj.beta
     @_obsolete      = !!obj.obsolete
     return
