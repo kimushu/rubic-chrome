@@ -1,4 +1,7 @@
 "use strict"
+#--------------------------------------------------------------------------------
+# Promise-based wrapper for Bootbox.js
+#
 
 global.bootbox.CancellationError or= class CancellationError
   constructor: (message) ->
