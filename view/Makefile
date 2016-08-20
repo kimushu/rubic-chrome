@@ -5,7 +5,7 @@ clean: clean-html
 clobber: clobber-html
 
 dwld_dir  = $(VIEW_DIR)/downloads
-modules   = jqy twbs fawe ace spin jqsp bbox jqst cana jstr
+modules   = jqy twbs fawe ace spin jqsp bbox bsnt jqst cana jstr
 
 .PHONY: info
 info:
@@ -258,6 +258,33 @@ $(bbox_out): $(bbox_src)
 $(bbox_src):
 	$(call ECHO_C,"Downloading $(bbox_name) script ($(bbox_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(bbox_url)"
+
+#--------------------------------------------------------------------------------
+# Bootstrap Notify
+#
+
+bsnt_name = Bootstrap Notify
+bsnt_ver  = 3.1.3
+bsnt_url  = https://github.com/mouse0270/bootstrap-notify/releases/download/$(bsnt_ver)/bootstrap-notify.min.js
+bsnt_src  = $(dwld_dir)/$(notdir $(bsnt_url))
+bsnt_out  = $(DIST_DIR)/$(notdir $(bsnt_src))
+
+.PHONY: bsnt clean-bsnt clobber-bsnt
+bsnt: $(bsnt_out)
+
+clean-bsnt:
+	$(Q)rm -f $(bsnt_out)
+
+clobber-bsnt: clean-bsnt
+	$(Q)rm -f $(bsnt_src)
+
+$(bsnt_out): $(bsnt_src)
+	$(call ECHO_W,"Locating $(bsnt_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $< $@
+
+$(bsnt_src):
+	$(call ECHO_C,"Downloading $(bsnt_name) source ($(bsnt_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(bsnt_url)"
 
 #--------------------------------------------------------------------------------
 # jQuery-ScrollTabs
