@@ -11,8 +11,8 @@ module.exports = class AsyncFs extends UnJSONable
   null
 
   invokeCallback = (callback, promise) ->
-    promise.then((value...) ->
-      callback(null, value...)
+    promise.then((value) ->
+      callback(null, value)
       return
     ).catch((error) ->
       callback(error)
@@ -23,8 +23,6 @@ module.exports = class AsyncFs extends UnJSONable
   SEP         = "/"
   SEP_RE      = /\/+/
   SEP_LAST_RE = /\/+$/
-
-  window.AsyncFs = AsyncFs  # For debugging
 
   #--------------------------------------------------------------------------------
   # Original properties
@@ -193,8 +191,10 @@ module.exports = class AsyncFs extends UnJSONable
       chrome.fileSystem.chooseEntry(
         {type: "openDirectory"}
         (entry) =>
-          return reject(Error(chrome.runtime.lastError)) unless entry?
-          return resolve(entry)
+          unless entry?
+            error = chrome.runtime.lastError
+            return reject(Error(error?.message or error))
+          return resolve(new Html5Fs(entry))
       )
     ) # return new Promise()
 
