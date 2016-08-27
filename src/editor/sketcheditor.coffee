@@ -63,7 +63,7 @@ module.exports = class SketchEditor extends Editor
     e = "select_node.jstree"
     jqTreeElement.unbind(e).on(e, (event, data) =>
       isFile = (data.node.type == "file")
-      $(".explorer-open").prop("disabled", !isFile).next().prop("disabled", !isFile)
+      $(".explorer-open").prop("disabled", !isFile)
       $(".explorer-rename").prop("disabled", !isFile)
       $(".explorer-remove").prop("disabled", !isFile)
     )
