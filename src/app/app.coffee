@@ -50,6 +50,9 @@ module.exports = class App
 
   @info("Rubic/%s %s", @version, window?.navigator.userAgent)
 
+  # Object disclosure for debugging
+  @log("Application: %o", App)
+
   ###*
   @static
   @method
