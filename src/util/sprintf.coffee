@@ -17,7 +17,7 @@ RP = (values, match, flags, width, prec, type) ->
   if width == ""
     width = 0
   else if width == "*"
-    width = parseInt(values.shift()) || 0
+    width = parseInt(values.shift()) or 0
   else
     width = parseInt(width)
   prec = if prec == "" then null else parseInt(prec.substr(1))

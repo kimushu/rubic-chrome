@@ -53,21 +53,21 @@ module.exports = class SketchItem extends JSONable
   )
 
   ###*
-  @property {boolean} hasCompilerOptions
-    Enable compiler options for this file
-  ###
-  @property("hasCompilerOptions",
-    get: -> @_hasCompilerOptions
-    set: (v) -> @_hasCompilerOptions = !!v; @_setModified()
-  )
-
-  ###*
   @property {string} compilerOptions
     The options for compiler
   ###
   @property("compilerOptions",
     get: -> @_compilerOptions
-    set: (v) -> @_compilerOptions = "#{v || ""}"; @_setModified()
+    set: (v) -> @_compilerOptions = "#{v or ""}"; @_setModified()
+  )
+
+  ###*
+  @property {Engine} engine
+    The engine instance associated to this file
+  ###
+  @property("engine",
+    get: -> @_engine
+    set: (v) -> @_engine = v
   )
 
   ###*
@@ -93,10 +93,9 @@ module.exports = class SketchItem extends JSONable
   ###
   constructor: (obj, @_sketch) ->
     @_path = "#{obj?.path}"
-    @_generatedFrom = obj?.generatedFrom?.map?((v) -> "#{v}") || []
+    @_generatedFrom = obj?.generatedFrom?.map?((v) -> "#{v}") or []
     @_transfer = !!obj?.transfer
-    @_hasCompilerOptions = !!obj?.hasCompilerOptions
-    @_compilerOptions = "#{obj?.compilerOptions || ""}"
+    @_compilerOptions = "#{obj?.compilerOptions or ""}"
     @_editor = null
     return
 
@@ -123,7 +122,6 @@ module.exports = class SketchItem extends JSONable
       path: @_path
       generatedFrom: @_generatedFrom
       transfer: @_transfer
-      hasCompilerOptions: @_hasCompilerOptions
       compilerOptions: @_compilerOptions
     })
 

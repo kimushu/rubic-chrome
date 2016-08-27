@@ -132,9 +132,9 @@ module.exports = class GitHubFetcher
                 replace("$host", window.location.host).
                 replace("$owner", @owner).
                 replace("$repo", @repo).
-                replace("$branch", @branch || "").
-                replace("$tag", @tag || "").
-                replace("$ref", @ref || "").
+                replace("$branch", @branch or "").
+                replace("$tag", @tag or "").
+                replace("$ref", @ref or "").
                 replace("$path", path)
       return getter(url)
     ).then((content) =>

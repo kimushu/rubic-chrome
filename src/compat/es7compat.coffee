@@ -1,14 +1,14 @@
 # https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
 Array::includes or= (searchElement, fromIndex) ->
   o = Object(this)
-  len = parseInt(o.length) || 0
+  len = parseInt(o.length) or 0
   return false if len == 0
-  n = parseInt(fromIndex) || 0
+  n = parseInt(fromIndex) or 0
   k = if n > 0 then n else len + n
   k = 0 if k < 0
   while k < len
     currentElement = o[k]
-    return true if searchElement == currentElement ||
+    return true if searchElement == currentElement or
       (searchElement != searchElement && currentElement != currentElement)
     ++k
   return false

@@ -110,8 +110,8 @@ module.exports = class FirmCatalog
     JSON object
   ###
   constructor: (@_boardClass, obj = {}) ->
-    @_lastFetched = parseInt(obj.lastFetched || 0)
-    @_lastModified = parseInt(obj.lastModified || 0)
+    @_lastFetched = parseInt(obj.lastFetched or 0)
+    @_lastModified = parseInt(obj.lastModified or 0)
     @_items = ({
       firmware: Firmware.parseJSON(i.firmware)
       revisions: (FirmRevision.parseJSON(r) for r in (i.revisions or []))
