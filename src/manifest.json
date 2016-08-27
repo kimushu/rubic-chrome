@@ -11,6 +11,9 @@
     "128": "images/rubic_cube2x2_128.png"
   },
   "permissions": [
+    "https://github.com/",
+    "https://api.github.com/",
+    "https://raw.githubusercontent.com/",
     "serial",
     "storage",
     "unlimitedStorage",
