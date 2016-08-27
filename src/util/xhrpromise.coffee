@@ -41,7 +41,10 @@ module.exports = class XhrPromise
     return new Promise((resolve, reject) ->
       xhr = new XMLHttpRequest()
       xhr.onload = -> resolve(xhr)
-      xhr.onerror = -> reject(xhr)
+      xhr.onerror = ->
+        error = Error(xhr.statusText)
+        error.xhr = xhr
+        reject(error)
       xhr.responseType = type
       xhr.timeout = options.timeout
       xhr.open(options.method, url, true, options.user, options.password)
