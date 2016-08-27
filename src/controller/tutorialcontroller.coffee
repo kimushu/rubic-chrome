@@ -44,9 +44,9 @@ module.exports = class TutorialController extends WindowController
   #
 
   ###*
-  @inheritdoc Controller#onActivated
+  @inheritdoc Controller#activate
   ###
-  onActivated: ->
+  activate: ->
     return super(
     ).then(=>
       @$("body").addClass("controller-tutorial")
@@ -54,9 +54,9 @@ module.exports = class TutorialController extends WindowController
     ) # return super().then()
 
   ###*
-  @inheritdoc Controller#onDeactivated
+  @inheritdoc Controller#deactivate
   ###
-  onDeactivated: ->
+  deactivate: ->
     @$("body").removeClass("controller-tutorial")
     return super()
 

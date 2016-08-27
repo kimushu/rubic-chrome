@@ -31,7 +31,8 @@ module.exports = class BoardController extends WindowController
 
   UPDATE_TIMEOUT = 5000
   AUTO_PAGE_TRANSITION = 500
-  PAGES = ["catalog", "features", "iodef", "savecfg"]
+  PAGES = ["catalog", "features", "iodef", "savecfg", "noboard"]
+  setupDone = false
   tabSet = null
 
   #--------------------------------------------------------------------------------
@@ -54,48 +55,110 @@ module.exports = class BoardController extends WindowController
   #
 
   ###*
-  @inheritdoc Controller#onActivated
+  @inheritdoc Controller#activate
   ###
-  onActivated: (tab) ->
-    super
-    @_board = App.sketch?.board
-    tab or= "catalog" unless tabSet?
-    tabSet or= @$("#board-tabs").scrollTabs({
-      left_arrow_size: 18
-      right_arrow_size: 18
-      click_callback: @_tabClick.bind(@)
-    })
-    for page in PAGES
-      do (id = "board-#{page}") =>
-        @$("#page-board-#{page}")[0].dataset.page = page
-        @$(".activate-#{id}").unbind("click").click(=>
-          @$("#page-#{id}").click()
-        )
-    @$("#page-board-iodef").hide()    # TODO
-    @$("#page-board-savecfg").hide()  # TODO
-    @_lastTabPage = null
-    @$("#page-board-#{tab}").click() if tab?
-    @_refreshCatalog()
-    @$(".catalog-refresh").unbind("click").click(=>
-      @_refreshCatalog(true).then(=>
-        @_refreshFeatures()
-      )
-    )
-    @$("body").addClass("controller-board")
-    return
+  activate: (initialPage = "catalog") ->
+    $ = @$
+    return super(
+    ).then(=>
+      # Setup jquery-scrollTabs (only once)
+      return if tabSet?
+      tabSet = $("#board-tabs").scrollTabs({
+        left_arrow_size: 18
+        right_arrow_size: 18
+      })
+    ).then(=>
+      # Setup other HTML elements (only once)
+      return if setupDone
+      setupDone = true
+      $(".main-outer.when-board > .editor-body").hide()
+      $(".board-page-select").click(@_pageSelect.bind(this))
+      $(".board-page-select[data-page=iodef]").hide()   # TODO: for future use
+      $(".board-page-select[data-page=savecfg]").hide() # TODO: for future use
+      $(".board-catalog-refresh").click(@_refreshCatalog.bind(this, true))
+    ).then(=>
+      # Initialize variables
+      @_board = App.sketch?.board
+    ).then(=>
+      # Select initial tab
+      @_lastTabPage = null  # Do not use animation
+      $(".board-page-select[data-page=#{initialPage}]").click()
+    ).then(=>
+      # Refresh catalog (updated only if cache is old)
+      @_refreshCatalog(false)
+    ).then(=>
+      # Show this controller
+      $("body").addClass("controller-board")
+    ) # return super().then()...
 
   ###*
-  @inheritdoc Controller#onDeactivated
+  @inheritdoc Controller#deactivate
   ###
-  onDeactivated: ->
-    App.sketch?.board = @_board
-    @$("body").removeClass("controller-board")
-    outer = @$(".main-outer.when-board")
-    header = outer.children(".config-header")
-    header.find("a").unbind("click")
-    @$(".board-use-this").unbind("click")
-    super
-    return
+  deactivate: ->
+    notify = new Notifier({
+      icon: "glyphicon glyphicon-warning-sign"
+    }, {
+      type: "warning"
+      allow_dismiss: true
+      placement: {from: "top", align: "center"}
+      delay: 2
+      offset: {x: 20, y: 50}
+      showProgressbar: true
+    })
+    return Promise.resolve(
+    ).then(=>
+      return false if @_board?
+      notify.show(
+        message: I18n.getMessage("Board_is_not_selected")
+      ) # Do not wait until notification closing
+      return true
+    ).then((skip) =>
+      return true if skip
+      return @_board.loadFirmware().catch(=> return)
+    ).then((firmware) =>
+      return true if firmware == true
+      return false if firmware?
+      notify.show(
+        message: I18n.getMessage("Firmware_is_not_selected")
+      ) # Do not wait until notification closing
+      return true
+    ).then((skip) =>
+      return true if skip
+      return @_board.loadFirmRevision().catch(=> return)
+    ).then((firmRevision) =>
+      return true if firmRevision == true
+      return firmRevision if firmRevision?
+      notify.show(
+        message: I18n.getMessage("Firmware_revision_is_not_selected")
+      ) # Do not wait until notification closing
+      return true
+    ).then((firmRevision) =>
+      return true if firmRevision == true
+      return firmRevision.checkCacheAvailability(
+      ).then((available) =>
+        return true if available
+        msg = I18n.getMessage("Downloading_firmware")
+        spin = @modalSpin().show()
+        return firmRevision.download(
+          false
+          (url) =>
+            return spin.html("#{msg}\n#{url}") if url?
+            return spin.html(I18n.getMessage("Saving_firmware"))
+        ).catch((error) =>
+          App.error(error)
+          notify.show(
+            message: I18n.getMessage("Firmware_download_failed")
+          ) # Do not wait until notification closing
+          return
+        ).finally(=>
+          spin.hide()
+        ) # return firmRevision.download().then()...
+      ) # return firmRevision.checkCacheAvailability().then()
+    ).then(=>
+      App.sketch?.board = @_board
+      @$("body").removeClass("controller-board")
+      return super()
+    ) # return Promise.resolve().then()...
 
   #--------------------------------------------------------------------------------
   # Private methods
@@ -104,40 +167,46 @@ module.exports = class BoardController extends WindowController
   ###*
   @private
   @method
-    Tab click callback
-  @param {DOMElement} element
-    Element
+    Page select handler
   @param {Event} event
-    Event
-  @return {undefined}
+    DOM Event
+  @return {Promise}
+    Promise object
   ###
-  _tabClick: (event) ->
-    page = event.target.dataset.page
-    return unless page
-    newTabPage = page
-    oldTabPage = @_lastTabPage
-    return if newTabPage == oldTabPage
-    el = @$(".when-board > .editor-body").removeClass("slidein-rtl slidein-ltr")
-    el.not("#board-#{oldTabPage}").hide()
-    el.not("#board-#{newTabPage}").css("zIndex", 0)
-    el.filter("#board-#{newTabPage}").css("zIndex", 1)
-    page = "noboard" unless page == "catalog" or @_board?
-    el = @$("#board-#{page}")
-    if oldTabPage?
-      oldTabPos = PAGES.indexOf(oldTabPage)
-      newTabPos = PAGES.indexOf(newTabPage)
-      if newTabPos < oldTabPos
-        # Left -> Right animation
-        el.addClass("slidein-ltr")
+  _pageSelect: (event) ->
+    $ = @$
+    return Promise.resolve(
+    ).then(=>
+      page = event.target.dataset.page
+      return unless page
+      page = "noboard" unless page == "catalog" or @_board?
+      return if @_lastTabPage == page # No tab change
+      pageElements = $(".main-outer.when-board > .editor-body")
+      pageElements.removeClass("slidein-rtl slidein-ltr")
+      newElement = $("#board-page-#{page}")
+
+      if @_lastTabPage
+        # with animation
+        oldElement = $("#board-page-#{@_lastTabPage}")
+        oldElement.css("zIndex", 0)
+        newElement.css("zIndex", 1)
+        oldPos = PAGES.indexOf(@_lastTabPage)
+        newPos = PAGES.indexOf(page)
+        if newPos < oldPos
+          # To left page (ltr)
+          newElement.addClass("slidein-ltr")
+        else
+          # To right page (rtl)
+          newElement.addClass("slidein-rtl")
+        newElement.one("animationend", => oldElement.hide())
       else
-        # Left <- Right animation
-        el.addClass("slidein-rtl")
-    @_lastTabPage = newTabPage
-    el.show()
-    el.on("animationend", =>
-      @$("#board-#{oldTabPage}").hide()
-    )
-    return
+        newElement.siblings(".editor-body").hide()
+
+      # Show new page
+      newElement.show()
+      @_lastTabPage = page
+      return
+    ) # return Promise.resolve().then()
 
   ###*
   @private
@@ -149,51 +218,89 @@ module.exports = class BoardController extends WindowController
     Promise object
   ###
   _refreshCatalog: (force = false) ->
-    (tmpl = @$("#board-catalog-tmpl")).hide().siblings().remove()
-    @_boardCatalog = null
+    $ = @$
+    tmpl = null
     return Promise.resolve(
     ).then(=>
+      # Load from cache
       return BoardCatalog.load(false)
-    ).then((catalog) =>
-      @_boardCatalog = catalog
+    ).then((@_boardCatalog) =>
+      # Clear DOM elements
+      (tmpl = $("#board-catalog-tmpl")).hide().siblings().remove()
+      # Update
       return @_boardCatalog.update(force).timeout(
         UPDATE_TIMEOUT
       # ).catch(=>
       #   # TODO: warning
       )
+    ).tap(
+      # Print BoardCatalog instance (for debugging, verbose mode only)
+      App.log.verbose
     ).then(=>
-      App.log(@_boardCatalog)
       for board in @_boardCatalog.boardClasses
         id = "board-#{board.name}"
-        li = @$("##{id}")
+        li = $("##{id}")
         (li = tmpl.clone()).appendTo(tmpl.parent()) unless li[0]
         li[0].id = id
         li[0].dataset.name = board.name
         li.find(".media-object")[0].src = board.images[0]
         li.find(".media-heading .placeholder").text(board.friendlyName)
         ph = li.find(".media-body > p .placeholder")
-        @$(ph[0]).text(@_boardCatalog.getDescription(board))
-        @$(ph[1]).text(board.author)
-        @$(ph[2]).attr("href", board.website)
+        ph.eq(0).text(@_boardCatalog.getDescription(board))
+        ph.eq(1).text(board.author)
+        ph.eq(2).attr("href", board.website)
         li.show()
         li.addClass("board-selected") if @_board?.constructor.name == board.name
-      @$(".board-use-this").unbind("click").click((event) =>
-        li = @$(event.target).parents(".media")
-        name = li.data("name")
-        li.siblings().removeClass("board-selected")
-        li.addClass("board-selected")
-        for board in Board.subclasses
-          continue unless board.name == name
-          if @_board?.constructor != board
-            # overwrite confirmation
-            @_board = new board()
-          @$("#feature-board").text(@_board.constructor.friendlyName)
-          @_refreshFeatures()
-          Promise.delay(AUTO_PAGE_TRANSITION).then(=>
-            @$("li#page-board-features").click()
-          ) if AUTO_PAGE_TRANSITION?
-          break
-      ) # @$(".board-use-this").unbind()...
+      $(".board-use-this").unbind("click").click(@_boardSelect.bind(this))
+      @_refreshFeatures()
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Board select handler
+  @param {Event} event
+    DOM event
+  @return {Promise}
+    Promise object
+  ###
+  _boardSelect: (event) ->
+    $ = @$
+    li = null
+    boardClass = null
+    return Promise.resolve(
+    ).then(=>
+      li = $(event.target).parents(".media").eq(0)
+      name = li.data("name")
+      boardClass = Board.subclasses.find((item) => item.name == name)
+      return Promise.reject("Board class not found") unless boardClass?
+      return "ok" if !@_board? or @_board?.constructor == boardClass
+      return global.bootbox.dialog_p({
+        title: I18n.getMessage("Confirm_board_change_title")
+        message: I18n.getMessage("Confirm_board_change_message")
+        closeButton: false
+        buttons: {
+          ok: {
+            label: I18n.getMessage("Yes")
+            className: "btn-danger"
+          }
+          cancel: {
+            label: I18n.getMessage("No")
+            className: "btn-success"
+          }
+        }
+      })  # return global.bootbox.dialog_p()
+    ).then((result) =>
+      return unless result == "ok"
+      li.siblings().removeClass("board-selected")
+      li.addClass("board-selected")
+      if !@_board? or @_board?.constructor != boardClass
+        @_board = new boardClass()
+      return @_refreshFeatures().then(=>
+        return Promise.delay(AUTO_PAGE_TRANSITION).then(=>
+          $(".board-page-select[data-page=features]").click()
+        ) if AUTO_PAGE_TRANSITION?
+      )
     ) # return Promise.resolve().then()...
 
   ###*
@@ -206,6 +313,7 @@ module.exports = class BoardController extends WindowController
     Promise object
   ###
   _refreshFeatures: (from) ->
+    @$("#feature-board").text(@_board?.constructor.friendlyName or "")
     promises = []
     from = {hwrev: 0, fw: 1, fwrev: 2}[from] or 0
     promises.push(@_refreshBoardRevs()) if from <= 0
@@ -223,11 +331,14 @@ module.exports = class BoardController extends WindowController
     Array of items
   @param {function(string)} callback
     Callback when item clicked
+  @param {Promise}
+    Promise object (fulfilled when refresh completes)
   ###
   _refreshList: (prefix, list, callback) ->
-    (tmpl = @$("##{prefix}-tmpl")).hide().siblings().remove()
+    $ = @$
+    (tmpl = $("##{prefix}-tmpl")).hide().siblings().remove()
     na = list?.length == 0
-    (sel = @$("##{prefix}-sel")).find(".placeholder").text(
+    (sel = $("##{prefix}-sel")).find(".placeholder").text(
       if na then "N/A" else "(#{I18n.getMessage("Select_one")})"
     )
     sel.prop("disabled", na)
@@ -244,14 +355,13 @@ module.exports = class BoardController extends WindowController
         li.find(".placeholder").text(item.text)
         li.find(".label-danger").hide() unless item.obsolete
         li.find(".label-warning").hide() unless item.beta
-        li.find(".dl-required").hide() unless item.download
         (a = li.children("a")).click(=>
           sel.find(".placeholder").html(a.html())
           callback(item.id)
         )
         li.show()
         a.click() if item.selected
-    return
+    return Promise.resolve()
 
   ###*
   @private
@@ -263,14 +373,13 @@ module.exports = class BoardController extends WindowController
   _refreshBoardRevs: ->
     revs = @_board?.boardRevisions or []
     list = ({text: val, id: idx} for val, idx in revs)
-    selIdx = revs.indexOf(@_board.boardRevision)
+    selIdx = revs.indexOf(@_board?.boardRevision)
     list[selIdx].selected = true if selIdx >= 0
     list = null if list?.length <= 1
-    @_refreshList("brdrev", list, (idx) =>
+    return @_refreshList("brdrev", list, (idx) =>
       @_board.boardRevision = revs[parseInt(idx)]
       @_refreshFeatures("fw")
     )
-    return Promise.resolve()
 
   ###*
   @private
@@ -280,7 +389,9 @@ module.exports = class BoardController extends WindowController
     Promise object
   ###
   _refreshFirms: ->
-    @_firmCatalog = @_boardCatalog?.getFirmCatalog(@_board?.constructor)
+    boardClass = @_board?.constructor
+    return unless boardClass?
+    @_firmCatalog = @_boardCatalog?.getFirmCatalog(boardClass)
     list = []
     for id in (@_firmCatalog?.getFirmwareIDs() or [])
       do (id) =>
@@ -292,12 +403,11 @@ module.exports = class BoardController extends WindowController
           beta: !!f.beta
           selected: (@_board.firmwareId == id)
         }) if f?
-    @_refreshList("fw", list, (id) =>
+    return @_refreshList("fw", list, (id) =>
       if @_board.firmwareId != id
         @_board.setFirmware(@_firmCatalog.getFirmware(id))
       return @_refreshFeatures("fwrev")
     )
-    return Promise.resolve()
 
   ###*
   @private
@@ -308,25 +418,37 @@ module.exports = class BoardController extends WindowController
   ###
   _refreshFwRevs: ->
     list = []
-    for id in (@_firmCatalog?.getFirmRevisionIDs(@_board.firmwareId) or [])
-      do (id) =>
-        r = @_firmCatalog.getFirmRevision(id)
-        list.push({
-          id: id
-          text: r.friendlyName.toString()
-          obsolete: !!r.obsolete
-          beta: !!r.beta
-          selected: (@_board.firmRevisionId == id)
-        }) if r?
-    @_refreshList("fwrev", list, (id) =>
+    firmwareId = @_board?.firmwareId
+    if firmwareId?
+      for id in (@_firmCatalog?.getFirmRevisionIDs(firmwareId) or [])
+        do (id) =>
+          r = @_firmCatalog.getFirmRevision(id)
+          list.push({
+            id: id
+            text: r.friendlyName.toString()
+            obsolete: !!r.obsolete
+            beta: !!r.beta
+            selected: (@_board.firmRevisionId == id)
+          }) if r?
+    dlReq = @$("#fwrev-dl-required").hide()
+    return @_refreshList("fwrev", list, (id) =>
       if @_board.firmRevisionId != id
         @_board.setFirmRevision(@_firmCatalog.getFirmRevision(id))
-      return
+
+      return @_board.loadFirmRevision(
+      ).then((firmRevision) =>
+        return firmRevision.checkCacheAvailability()
+      ).then((available) =>
+        if available
+          dlReq.hide()
+        else
+          dlReq.show()
+      )
     )
-    return Promise.resolve()
 
 # Post dependencies
 I18n = require("util/i18n")
 App = require("app/app")
 Board = require("board/board")
 BoardCatalog = require("firmware/boardcatalog")
+Notifier = require("ui/notifier")

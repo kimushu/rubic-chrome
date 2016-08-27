@@ -26,20 +26,30 @@ module.exports = class AboutController extends WindowController
   )
 
   #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  setupDone = false
+
+  #--------------------------------------------------------------------------------
   # Protected methods
   #
 
   ###*
   @protected
-  @inheritdoc Controller#onActivated
+  @inheritdoc Controller#activate
   ###
-  onActivated: ->
+  activate: ->
     return super(
     ).then(=>
-      @$("#rubic-version").text(App.version)
-      @$(".main-outer.when-about").scrollTop(0).
+      return if setupDone
+      setupDone = true
+      $ = @$
+
+      $("#rubic-version").text(App.version)
+      $(".main-outer.when-about").scrollTop(0).
         find(".fold-header.fold-opened").removeClass("fold-opened")
-      @$(".license-mit:not(.replaced)").each((i, e) =>
+      $(".license-mit:not(.replaced)").each((i, e) =>
         e.innerText =
           """
           The MIT License (MIT)
@@ -65,7 +75,7 @@ module.exports = class AboutController extends WindowController
           THE SOFTWARE.
           """
       ).addClass("replaced")
-      @$(".license-bsdnew:not(.replaced)").each((i, e) =>
+      $(".license-bsdnew:not(.replaced)").each((i, e) =>
         e.innerText =
           """
           The BSD 3-clause License
@@ -99,16 +109,18 @@ module.exports = class AboutController extends WindowController
           THE POSSIBILITY OF SUCH DAMAGE.
           """
       ).addClass("replaced")
-      @$("body").addClass("controller-about")
+    ).then(=>
+      $("body").addClass("controller-about")
       return
     ) # return super().then()...
 
   ###*
   @protected
-  @inheritdoc Controller#onDeactivated
+  @inheritdoc Controller#deactivate
   ###
-  onDeactivated: ->
-    @$("body").removeClass("controller-about")
+  deactivate: ->
+    $ = @$
+    $("body").removeClass("controller-about")
     return super()
 
   #--------------------------------------------------------------------------------

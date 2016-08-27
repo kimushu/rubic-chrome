@@ -11,6 +11,12 @@ module.exports = class WindowController extends Controller
   null
 
   #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  setupDone = false
+
+  #--------------------------------------------------------------------------------
   # Protected methods
   #
 
@@ -26,38 +32,42 @@ module.exports = class WindowController extends Controller
     return
 
   ###*
-  @inheritdoc Controller#onActivated
+  @inheritdoc Controller#activate
   ###
-  onActivated: ->
+  activate: ->
+    $ = @$
     return super(
     ).then(=>
-      @$(".show-left").click(=> @$("body").removeClass("left-hidden"))
-      @$(".hide-left").click(=> @$("body").addClass("left-hidden"))
-      act = (c) => return =>
-        @$(".hide-left").click()
-        c.instance.activate()
-      @$(".activate-main").click(act(MainController))
-      @$(".activate-pref").click(act(PrefController))
-      @$(".activate-tutorial").click(act(TutorialController))
-      @$(".activate-about").click(act(AboutController))
-      @$(".activate-board").click(act(BoardController))
-      @$(".fold-toggle").click((event) =>
-        @$(event.target).parents(".fold-header").toggleClass("fold-opened")
+      # Setup common HTML elements (only once)
+      return if setupDone
+      setupDone = true
+
+      # navbar-top left
+      $(".show-left").click(=> $("body").removeClass("left-hidden"))
+      $(".hide-left").click(=> $("body").addClass("left-hidden"))
+
+      # Menu items
+      activate = (_class) =>
+        $(".hide-left").click()
+        _class.instance.activate()
+      $(".activate-main").click(activate.bind(this, MainController))
+      $(".activate-pref").click(activate.bind(this, PrefController))
+      $(".activate-tutorial").click(activate.bind(this, TutorialController))
+      $(".activate-about").click(activate.bind(this, AboutController))
+      $(".activate-board").click(activate.bind(this, BoardController))
+
+      # Folding
+      $(".fold-toggle").click((event) =>
+        $(event.target).parents(".fold-header").eq(0)
+          .toggleClass("fold-opened")
       )
       return
     ) # return super().then()
 
   ###*
-  @inheritdoc Controller#onDeactivated
+  @inheritdoc Controller#deactivate
   ###
-  onDeactivated: ->
-    @$(".show-left").unbind("click")
-    @$(".hide-left").unbind("click")
-    @$(".activate-main").unbind("click")
-    @$(".activate-pref").unbind("click")
-    @$(".activate-tutorial").unbind("click")
-    @$(".activate-about").unbind("click")
-    @$(".fold-toggle").unbind("click")
+  deactivate: ->
     return super()
 
 # Post dependencies

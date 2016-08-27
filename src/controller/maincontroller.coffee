@@ -30,8 +30,9 @@ module.exports = class MainController extends WindowController
 
   SCAN_TIMEOUT = 2000
   PLACES = ["local", "googledrive", "dropbox", "onedrive"]
-  tabSet = null
-  tabNextId = 1
+
+  setupDone = false   # Flag for first HTML setup
+  tabSet = null       # jquery-scrollTabs instance for editor tabs
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -39,33 +40,65 @@ module.exports = class MainController extends WindowController
 
   ###*
   @protected
-  @inheritdoc Controller#onActivated
+  @inheritdoc Controller#activate
   ###
-  onActivated: ->
+  activate: ->
+    $ = @$
+    sketch = null
     return super(
     ).then(=>
-      @$(".when-main > .editor-body").hide()
-      @$("body").addClass("controller-main")
-      @$(".sketch-new").click(=> @_newSketch())
-      @$(".open-latest").click(=> @_openSketch())
-      for p in PLACES
-        do (p) => @$(".open-#{p}").click(=> @_openSketch(p))
-      noBoard = !(App.sketch?.board)
-      @$(".sketch-build").click(=> @_buildSketch()).prop("disabled", noBoard)
-      @$(".sketch-run").click(=> @_runSketch()).prop("disabled", noBoard).next().prop("disabled", noBoard)
-      tabSet or= @$("#editor-tabs").scrollTabs({
+      # Setup jquery-scrollTabs (only once)
+      return if tabSet?
+      tabSet = $("#editor-tabs").scrollTabs({
         left_arrow_size: 18
         right_arrow_size: 18
         click_callback: (=> f = @_tabClick.bind(@); (ev) -> f(this, ev))()
       })
-      App.log.verbose({"MainController#tabSet": tabSet})
-      @$(".board-scan").click(=> @_refreshBoardConnections()) unless noBoard
-      @$(".board-name").prop("disabled", true)
-      @$(".board-list").prop("disabled", true)
-      return Preferences.get("catalog_editor")
-    ).then((values) =>
-      @$("#cateditor-link")[if values.catalog_editor then "show" else "hide"]()
+      return
+    ).then(=>
+      # Setup other HTML elements (only once)
+      return if setupDone
+      setupDone = true
+      $(".sketch-new")          .click(@_newSketch.bind(this))
+      $(".sketch-open-latest")  .click(@_openSketch.bind(this))
+      $(".sketch-open-local")   .click(@_openSketch.bind(this, "local"))
+      $(".sketch-save-over")    .click(@_saveSketch.bind(this))
+      $(".sketch-saveas-local") .click(@_saveSketch.bind(this, "local"))
+      $(".sketch-build")        .click(@_buildSketch.bind(this))
+      $(".sketch-run")          .click(@_runSketch.bind(this))
+    ).then(=>
+      $(".when-main > .editor-body").hide()
+      $("body").addClass("controller-main")
+    ).then(=>
       return @_newSketch() unless App.sketch?
+    ).then(=>
+      return unless (sketch = App.sketch)?
+      return unless sketch.items.length == 0
+      return sketch.board?.loadFirmware().catch(=>
+        return
+      )
+    ).then((firmware) =>
+      fileHandler = null
+      for h in (firmware?.fileHandlers or [])
+        if h.suffix?
+          fileHandler = h
+          break
+      return unless fileHandler?
+      spin = @modalSpin().text(I18n.getMessage("Generating_source_codes")).show()
+      return Promise.all([Promise.delay(1000), Promise.resolve(
+      ).then(=>
+        main = "main.#{fileHandler.suffix}"
+        item = new SketchItem({path: main, transfer: false})
+        sketch.addItem(item)
+        sketch.setupItems()
+        editorClass = Editor.findEditor(item)
+        @_addEditor(new editorClass(@$, sketch, item)) if editorClass?
+        return
+      ).catch((error) =>
+        App.error(error)
+      )]).finally(
+        spin.hide()
+      ) # return Promise.all().finally()
     ).then(=>
       return @_activeEditor?.activate()
     ).then(=>
@@ -96,15 +129,11 @@ module.exports = class MainController extends WindowController
 
   ###*
   @protected
-  @inheritdoc Controller#onDeactivated
+  @inheritdoc Controller#deactivate
   ###
-  onDeactivated: ->
-    @$("body").removeClass("controller-main")
-    @$(".sketch-new").unbind("click")
-    @$(".open-latest").unbind("click")
-    @$(".open-#{p}").unbind("click") for p in PLACES
-    @$(".sketch-run").unbind("click")
-    @$(".board-scan").unbind("click")
+  deactivate: ->
+    $ = @$
+    $("body").removeClass("controller-main")
     return super()
 
   #--------------------------------------------------------------------------------
@@ -120,7 +149,7 @@ module.exports = class MainController extends WindowController
   ###
   constructor: (window) ->
     super(window)
-    @_editors = {}
+    @_editors = []
     @_activeEditor = null
     return
 
@@ -219,19 +248,27 @@ module.exports = class MainController extends WindowController
             className: "btn-success"
           }
         }
-      })
+      })  # return global.bootbox.dialog_p()
     ).then((result) =>
       return Promise.reject(Error("Cancelled")) unless result == "ok"
       return if dryrun
-      for e in @_editors
-        try
-          e.deactivate()
-          e.close()
-        catch e
-          null
-      @_editors = []
-      @$("#editor-tabs").empty()
-      @_setSketch(null)
+      return @_editors.reduce(
+        (promise, editor) =>
+          return promise.then(=>
+            return editor.deactivate()
+          ).then(=>
+            return editor.close()
+          ).catch(=>
+            App.warn("Cannot deactivate/close editor: %o", editor)
+          )
+        Promise.resolve()
+      ).then(=>
+        return if dryrun
+        @_editors = []
+        @$("#editor-tabs").empty()
+        @_setSketch(null)
+        return
+      ) # return @_editors.reduce().then()
     ) # return Promise.resolve().then()...
 
   ###*
@@ -399,5 +436,6 @@ Preferences = require("app/preferences")
 App = require("app/app")
 Sketch = require("sketch/sketch")
 AsyncFs = require("filesystem/asyncfs")
+SketchItem = require("sketch/sketchitem")
 SketchEditor = require("editor/sketcheditor")
 Editor = require("editor/editor")

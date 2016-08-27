@@ -31,9 +31,9 @@ module.exports = class PrefController extends WindowController
 
   ###*
   @protected
-  @inheritdoc Controller#onActivated
+  @inheritdoc Controller#activate
   ###
-  onActivated: ->
+  activate: ->
     return super(
     ).then(=>
       @$("#config-for-testers").prop("checked", false).click((event) =>
@@ -49,7 +49,7 @@ module.exports = class PrefController extends WindowController
         catalog_editor: false
       })
     ).then((items) =>
-      App.info.verbose({"PrefController#onActivated": items})
+      App.info.verbose({"PrefController#activate": items})
       @$("#config-zoom-ratio").val("#{items.zoom_ratio_x10}").change((event) =>
         value = parseInt(@$(event.target).val())
         Preferences.set({zoom_ratio_x10: value})
@@ -90,9 +90,9 @@ module.exports = class PrefController extends WindowController
 
   ###*
   @protected
-  @inheritdoc Controller#onDeactivated
+  @inheritdoc Controller#deactivate
   ###
-  onDeactivated: ->
+  deactivate: ->
     @$("body").removeClass("controller-pref show-testers")
     @$("#config-for-testers").unbind("click")
     @$("#config-zoom-ratio").unbind("change")

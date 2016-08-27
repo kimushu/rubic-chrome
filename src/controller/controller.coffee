@@ -53,8 +53,9 @@ module.exports = class Controller extends UnJSONable
   @return {Promise}
     Promise object
   ###
-  activate: (args...) ->
-    return Promise.resolve() if @window.controller == this
+  activate: ->
+    if @window.controller == this
+      return Promise.reject(Error("Already activated"))
     return Promise.resolve(
     ).then(=>
       return @window.controller?.deactivate()
@@ -67,7 +68,11 @@ module.exports = class Controller extends UnJSONable
     ).then(=>
       @window.controller = this
       App.info.verbose({"Controller#activate": this})
-      return @onActivated(args...)
+      unless (doc = @window.document).translated
+        doc.translated = true
+        console.log("Translating document (#{I18n.lang})")
+        I18n.translateDocument(doc)
+      return
     ) # return Promise.resolve().then()...
 
   ###*
@@ -80,7 +85,6 @@ module.exports = class Controller extends UnJSONable
     return Promise.resolve(
     ).then(=>
       App.info.verbose({"Controller#deactivate": this})
-      return @onDeactivated()
     ).then(=>
       @window.controller = null
     ) # return Promise.resolve().then()...
@@ -101,29 +105,41 @@ module.exports = class Controller extends UnJSONable
 
   ###*
   @protected
-  @template
   @method
-    Handler for activate
-  @return {Promise}
-    Promise object
+    Bind DOM event handlers
+  @param {string} sel
+    DOM selector for jQuery
+  @param {string} event
+    Event name
+  @param {Function} fn
+    Function (automatically binded to "this")
+  @param {Object[]} args
+    Additional arguments to Function#bind
+  @return {jQuery}
+    jQuery object
   ###
-  onActivated: ->
-    unless (doc = @window.document).translated
-      doc.translated = true
-      console.log("Translating document (#{I18n.lang})")
-      I18n.translateDocument(doc)
-    return Promise.resolve()
+  bindAction: (sel, event, fn, args...) ->
+    ((@_actions or= {})[sel] or= {})[event] = fn
+    return @$(sel).unbind(event).bind(event, fn.bind(this, args...))
 
   ###*
   @protected
-  @template
   @method
-    Handler for deactivate
-  @return {Promise}
-    Promise object
+    Unbind all DOM event handlers
+  @return {undefined}
   ###
-  onDeactivated: ->
-    return Promise.resolve()
+  unbindActions: ->
+    for sel, events of (@_actions or {})
+      @$(sel).unbind(event) for event, fn of events
+    @_actions = {}
+    return
+
+  ###*
+  @protected
+  @method
+    Setup HTML elements
+  @param {Object} map
+  ###
 
   ###*
   @protected
