@@ -14,7 +14,7 @@
       <div class="editor-header">
       </div>
       <!--begin-->
-      <div class="editor-body vert-scroll" id="board-features">
+      <div class="editor-body vert-scroll" id="board-page-features">
         <div class="col-md-12">
           <div class="panel panel-primary">
             <div class="panel-heading">
@@ -30,7 +30,7 @@
                     <div class="input-group">
                       <span class="form-control" id="feature-board"></span>
                       <span class="input-group-btn">
-                        <button class="btn btn-default i18n activate-board-catalog">{Change}</button>
+                        <button class="btn btn-default i18n board-page-select" data-page="catalog">{Change}</button>
                       </span>
                     </div>
                   </div>
@@ -78,9 +78,28 @@
                         <span class="caret"></span>
                       </button>
                       <ul class="dropdown-menu">
-                        <li id="fwrev-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger i18n">{Obsolete}</span><span class="label label-warning i18n">{Beta}</span><span class="dl-require"> <span class="glyphicon glyphicon-circle-arrow-down i18n" title="{Downloads_required}"></span></span></a></li>
+                        <li id="fwrev-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger i18n">{Obsolete}</span><span class="label label-warning i18n">{Beta}</span></a></li>
                       </ul>
                     </div>
+                  </div>
+                  <div class="col-sm-offset-4 col-sm-8 i18n" id="fwrev-dl-required">
+                    <span class="glyphicon glyphicon-info-sign"></span> {Firmware_download_required}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-primary" style="display: none;">
+            <div class="panel-heading">
+              <h3 class="panel-title i18n"><b>{Firmware_information}</b></h3>
+            </div>
+            <div class="panel-body">
+              <div class="form-horizontal">
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Included_script_engines}</label>
+                  </div>
+                  <div class="col-sm-8">
                   </div>
                 </div>
               </div>

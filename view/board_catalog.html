@@ -14,13 +14,18 @@
     <div class="main-outer when-board bottom-hidden">
       <div class="editor-header">
         <ul class="scroll_tabs_theme_compact" id="board-tabs">
-          <li class="i18n" id="page-board-catalog">{Select_board}</li>
-          <li class="i18n" id="page-board-features">{Select_features}</li>
-          <li class="i18n" id="page-board-iodef">{Configure_io_pins}</li>
-          <li class="i18n" id="page-board-savecfg">{Save_your_settings}</li>
+          <li class="i18n board-page-select" data-page="catalog">{Select_board}</li>
+          <li class="i18n board-page-select" data-page="features">{Select_features}</li>
+          <li class="i18n board-page-select" data-page="iodef">{Configure_io_pins}</li>
+          <li class="i18n board-page-select" data-page="savecfg">{Save_your_settings}</li>
         </ul>
       </div>
-      <div class="editor-body vert-scroll" id="board-catalog">
+      <div class="editor-body" id="board-page-noboard">
+        <div class="col-md-12">
+          <h4 class="i18n spin-text">{Select_board_before}</h4>
+        </div>
+      </div>
+      <div class="editor-body vert-scroll" id="board-page-catalog">
         <div class="col-md-12">
           <ul class="media-list">
             <li class="media" id="board-catalog-tmpl">
@@ -38,11 +43,6 @@
               </div>
             </li>
           </ul>
-        </div>
-      </div>
-      <div class="editor-body" id="board-noboard">
-        <div class="col-md-12">
-          <h4 class="i18n spin-text">{Select_board_before}</h4>
         </div>
       </div>
       <!--include(feature_config.html)-->
