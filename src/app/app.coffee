@@ -53,6 +53,26 @@ module.exports = class App
   # Object disclosure for debugging
   @log("Application: %o", App)
 
+  @popupSuccess: @_popupMessage.bind(this, "success", "log", null)
+  @popupInfo:    @_popupMessage.bind(this, "info", "info", "info")
+  @popupWarning: @_popupMessage.bind(this, "warning", "warning", "warning")
+  @popupError:   @_popupMessage.bind(this, "danger", "error", "warning")
+
+  @_popupMessage: (ntype, etype, icon, message, title) ->
+    this[etype]("Popup message: %o", {message: message, title: title})
+    return new Notifier({
+      icon: if icon? then "glyphicon glyphicon-#{icon}-sign" else undefined
+      title: title
+      message: message
+    }, {
+      type: ntype
+      allow_dismiss: true
+      placement: {from: "top", align: "center"}
+      delay: 2
+      offset: {x: 20, y: 50}
+      showProgressbar: true
+    }).show()
+
   ###*
   @static
   @method
@@ -83,3 +103,4 @@ module.exports = class App
 
 # Post dependencies
 Preferences = require("app/preferences")
+Notifier = require("ui/notifier")
