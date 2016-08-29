@@ -53,13 +53,8 @@ module.exports = class App
   # Object disclosure for debugging
   @log("Application: %o", App)
 
-  @popupSuccess: @_popupMessage.bind(this, "success", "log", null)
-  @popupInfo:    @_popupMessage.bind(this, "info", "info", "info")
-  @popupWarning: @_popupMessage.bind(this, "warning", "warning", "warning")
-  @popupError:   @_popupMessage.bind(this, "danger", "error", "warning")
-
   @_popupMessage: (ntype, etype, icon, message, title) ->
-    this[etype]("Popup message: %o", {message: message, title: title})
+    this[etype]("Popup message: #{JSON.stringify({message: message, title: title})}")
     return new Notifier({
       icon: if icon? then "glyphicon glyphicon-#{icon}-sign" else undefined
       title: title
@@ -72,6 +67,11 @@ module.exports = class App
       offset: {x: 20, y: 50}
       showProgressbar: true
     }).show()
+
+  @popupSuccess: @_popupMessage.bind(this, "success", "log", null)
+  @popupInfo:    @_popupMessage.bind(this, "info", "info", "info")
+  @popupWarning: @_popupMessage.bind(this, "warning", "warn", "warning")
+  @popupError:   @_popupMessage.bind(this, "danger", "error", "warning")
 
   ###*
   @static
