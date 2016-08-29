@@ -119,6 +119,12 @@ module.exports = class Sketch extends JSONable
 
   SKETCH_CONFIG   = "sketch.json"
   SKETCH_ENCODING = "utf8"
+  arrayEqual = (a1, a2) ->
+    return true if a1 == a2
+    return false unless a1? and a2?
+    return false if a1.length != a2.length
+    (return false if v != a2[i]) for v, i in a1
+    return true
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -148,15 +154,6 @@ module.exports = class Sketch extends JSONable
       sketch = new Sketch()
       return sketch.save(dirFs)
     ).then(=>
-      # FIXME>>>
-      sketch.addItem(i = new SketchItem({path: "main.rb"}))
-      sketch.bootItem = "main.rb"
-      sketch.addItem(i = new SketchItem({path: "submodule1.rb"}))
-      sketch.addItem(i = new SketchItem({path: "submodule2.rb"}))
-    #   sketch.board = new Board()
-    #   return i.setup()
-    # ).then(=>
-      # <<<FIXME
       sketch._temporary = true
       return sketch
     ) # return AsyncFs.opentmpfs().then()...
@@ -181,7 +178,7 @@ module.exports = class Sketch extends JSONable
       return sketch
     ).catch(=>
       return I18n.rejectPromise("Invalid_sketch")
-    )
+    ) # return dirFs.readFile().then()...
 
   ###*
   @method
@@ -200,16 +197,18 @@ module.exports = class Sketch extends JSONable
       # Save all files in sketch
       (promise, item) =>
         return item.editor.save() if item.editor?
-        return unless newDirFs?
+        return promise unless newDirFs?
         # Relocate file
-        return oldDirFs.readFile(item.path).then((data) =>
+        return promise.then(=>
+          return oldDirFs.readFile(item.path)
+        ).then((data) =>
           return newDirFs.writeFile(item.path, data)
         )
       Promise.resolve()
     ).then(=>
       # Save sketch settings
       @_rubicVersion = App.version
-      return newDirFs.writeFile(SKETCH_CONFIG, JSON.stringify(this), SKETCH_ENCODING)
+      return @_dirFs.writeFile(SKETCH_CONFIG, JSON.stringify(this), SKETCH_ENCODING)
     ).then(=>
       # Successfully saved
       @_modified = false
@@ -223,6 +222,15 @@ module.exports = class Sketch extends JSONable
 
   ###*
   @method
+    Generate skeleton code
+  @return {Promise}
+    Promise object
+  ###
+  generateSkeleton: ->
+    return
+
+  ###*
+  @method
     Get item in sketch
   @param {string} path
     Path of item
@@ -232,6 +240,29 @@ module.exports = class Sketch extends JSONable
   getItem: (path) ->
     return item for item in @_items when item.path == path
     return null
+
+  ###*
+  @method
+    Add a new item
+  @param {SketchItem/string} item
+    Item or path to create
+  @param {ArrayBuffer/string} content
+    Content of new item
+  @param {string} [encoding="utf8"]
+    Encoding (for string content)
+  @return {Promise}
+    Promise object
+  @return {SketchItem} return.PromiseValue
+    Item instance created
+  ###
+  addNewItem: (item, content, encoding = "utf8") ->
+    item = new SketchItem({path: item}) if typeof(item) == "string"
+    return Promise.reject(Error("Already_exist")) unless @addItem(item)
+    options = {}
+    options.encoding = encoding if typeof(content) == "string"
+    return @_dirFs.writeFile(item.path, content, options).then(=>
+      return item # Last PromiseValue
+    )
 
   ###*
   @method
@@ -266,7 +297,7 @@ module.exports = class Sketch extends JSONable
     @_items.splice(index, 1)
     @_modify()
     @dispatchEvent({type: "removeItem", item: itemRemoved})
-    return false
+    return true
 
   ###*
   @method
@@ -284,6 +315,83 @@ module.exports = class Sketch extends JSONable
         @_items.splice(--index, 1) if exists == 0
     return
 
+  ###*
+  @method
+    Build sketch
+  @param {boolean} [force=false]
+    Force build all files
+  @param {function(string,number,Error)} [progress=null]
+    Hook function for show progress
+  @return {Promise}
+    Promise object
+  ###
+  build: (force = false, progress = null) ->
+    buildItems = (item for item in @_items when item.engine?)
+    done = 0
+    return buildItems.reduce(
+      (promise, item) =>
+        return promise.then(=>
+          engine = item.engine
+          progress?(item.path, (100 * done / buildItems.length))
+          return engine.build(this, item).catch((error) =>
+            progress?(item.path, null, error)
+            return Promise.reject(error)
+          )
+        ).then(=>
+          progress?(item.path, (100 * ++done / buildItems.length))
+          return
+        )
+      Promise.resolve()
+    ) # return buildItems.reduce()
+
+  ###*
+  @method
+    Transfer sketch (Rubic->Board)
+  @param {boolean} [force=false]
+    Force download all files
+  @param {function(string,number,Error)} [progress=null]
+    Hook function for show progress
+  @return {Promise}
+    Promise object
+  ###
+  transfer: (force = false, progress = null) ->
+    return Promise.reject(Error("No board")) unless @_board?
+    transferItems = (item for item in @_items when item.transfer)
+    boardFs = null
+    done = 0
+    writeData = null
+    return transferItems.reduce(
+      (promise, item) =>
+        return promise.then(=>
+          progress?(item.path, (100 * done / transferItems.length))
+          return @_dirFs.readFile(item.path).catch((error) =>
+            progress?(item.path, null, error)
+            return Promise.reject(error)
+          )
+        ).then((readData) =>
+          writeData = readData
+          return if force # Skip readback when force==true
+          return if item.alreadyTransfered
+          return boardFs.readFile(item.path).catch(=>
+            return  # Ignore errors on readFile()
+          )
+        ).then((compareData) =>
+          return if !force and item.alreadyTransfered
+          return if !force and compareData? and arrayEqual(
+            new Uint8Array(writeData)
+            new Uint8Array(compareData)
+          )
+          return boardFs.writeFile(item.path, data)
+        ).then(=>
+          progress?(item.path, (100 * ++done / transferItems.length))
+          return
+        )
+      @_board.requestFileSystem().then((fs) =>
+        boardFs = fs
+        return
+      )
+    ) # return transferItems.reduce()
+
   #--------------------------------------------------------------------------------
   # Protected methods
   #
@@ -295,12 +403,12 @@ module.exports = class Sketch extends JSONable
   @param {Object} obj
     JSON object
   ###
-  constructor: (obj) ->
+  constructor: (obj = {}) ->
     super(obj)
-    @_rubicVersion = "#{obj?.rubicVersion || ""}"
+    @_rubicVersion = obj.rubicVersion?.toString()
     @_items = (SketchItem.parseJSON(item) for item in (obj?.items or []))
-    @_bootItem = "#{obj?.bootItem || ""}"
-    @_board = Board.parseJSON(obj.board) if obj?.board?
+    @_bootItem = obj.bootItem?.toString()
+    @_board = Board.parseJSON(obj.board) if obj.board?
     @_modify = (key, value) =>
       if key?
         return if @[key] == value
