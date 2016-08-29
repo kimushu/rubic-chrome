@@ -57,8 +57,9 @@ module.exports = class BoardController extends WindowController
   ###*
   @inheritdoc Controller#activate
   ###
-  activate: (initialPage = "catalog") ->
+  activate: (initialPage) ->
     $ = @$
+    initialPage or= (@_lastTabPage or "catalog")
     return super(
     ).then(=>
       # Setup jquery-scrollTabs (only once)
@@ -95,43 +96,33 @@ module.exports = class BoardController extends WindowController
   @inheritdoc Controller#deactivate
   ###
   deactivate: ->
-    notify = new Notifier({
-      icon: "glyphicon glyphicon-warning-sign"
-    }, {
-      type: "warning"
-      allow_dismiss: true
-      placement: {from: "top", align: "center"}
-      delay: 2
-      offset: {x: 20, y: 50}
-      showProgressbar: true
-    })
     return Promise.resolve(
     ).then(=>
       return false if @_board?
-      notify.show(
-        message: I18n.getMessage("Board_is_not_selected")
-      ) # Do not wait until notification closing
-      return true
+      App.popupWarning(
+        I18n.getMessage("Board_is_not_selected")
+      )
+      return true # Do not wait until notification closing
     ).then((skip) =>
       return true if skip
       return @_board.loadFirmware().catch(=> return)
     ).then((firmware) =>
       return true if firmware == true
       return false if firmware?
-      notify.show(
-        message: I18n.getMessage("Firmware_is_not_selected")
-      ) # Do not wait until notification closing
-      return true
+      App.popupWarning(
+        I18n.getMessage("Firmware_is_not_selected")
+      )
+      return true # Do not wait until notification closing
     ).then((skip) =>
       return true if skip
       return @_board.loadFirmRevision().catch(=> return)
     ).then((firmRevision) =>
       return true if firmRevision == true
       return firmRevision if firmRevision?
-      notify.show(
-        message: I18n.getMessage("Firmware_revision_is_not_selected")
-      ) # Do not wait until notification closing
-      return true
+      App.popupWarning(
+        I18n.getMessage("Firmware_revision_is_not_selected")
+      )
+      return true # Do not wait until notification closing
     ).then((firmRevision) =>
       return true if firmRevision == true
       return firmRevision.checkCacheAvailability(
@@ -145,11 +136,10 @@ module.exports = class BoardController extends WindowController
             return spin.html("#{msg}\n#{url}") if url?
             return spin.html(I18n.getMessage("Saving_firmware"))
         ).catch((error) =>
-          App.error(error)
-          notify.show(
-            message: I18n.getMessage("Firmware_download_failed")
-          ) # Do not wait until notification closing
-          return
+          App.popupError(
+            I18n.getMessage("Firmware_download_failed")
+          )
+          return  # Do not wait until notification closing
         ).finally(=>
           spin.hide()
         ) # return firmRevision.download().then()...
@@ -451,4 +441,3 @@ I18n = require("util/i18n")
 App = require("app/app")
 Board = require("board/board")
 BoardCatalog = require("firmware/boardcatalog")
-Notifier = require("ui/notifier")
