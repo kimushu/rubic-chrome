@@ -56,10 +56,14 @@ module.exports = class PrefController extends WindowController
         curRatio = (parseFloat(window.document.body.style.zoom) or 1)
         newRatio = value / 10
         bounds = @appWindow?.innerBounds
+        newMinWidth = Math.round(bounds.minWidth / curRatio * newRatio)
+        newMinHeight = Math.round(bounds.minHeight / curRatio * newRatio)
+        bounds?.setMinimumSize(1, 1)
         bounds?.setSize(
           Math.round(bounds.width / curRatio * newRatio)
           Math.round(bounds.height / curRatio * newRatio)
         )
+        bounds?.setMinimumSize(newMinWidth, newMinHeight)
         window.document.body.style.zoom = newRatio
       )
       @$("#config-device-filter").prop("checked", !!items.device_filter).click((event) =>
