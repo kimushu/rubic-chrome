@@ -1,0 +1,83 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="right-hidden">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <!--begin-->
+    <div class="sidebar-left">
+      <ul class="list-group">
+        <li class="list-group-item btn-xs when-main">
+          <a href="#" class="i18n sketch-new"><span class="fa fa-fw fa-file"></span> {New_sketch}</a>
+        </li>
+        <li class="list-group-item btn-xs when-main">
+          <a class="i18n open-latest" href="#"><span class="fa-fw glyphicon glyphicon-open"></span> {Open_sketch}</a>
+        </li>
+        <ul class="list-sub-group when-main">
+          <li class="list-group-item btn-xs">
+            <a class="i18n open-local" href="#"><span class="fa fa-fw fa-laptop"></span> {Open_from_local}</a>
+          </li>
+          <li class="list-group-item btn-xs when-googledrive">
+            <a class="i18n open-googledrive" href="#"><span class="fa fa-fw"></span> {Open_from_Google_Drive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-dropbox">
+            <a class="i18n open-dropbox" href="#"><span class="fa fa-fw"></span> {Open_from_Dropbox}</a>
+          </li>
+          <li class="list-group-item btn-xs when-onedrive">
+            <a class="i18n open-onedrive" href="#" class=""><span class="fa fa-fw"></span> {Open_from_OneDrive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-no-cloud">
+            <a class="i18n activate-pref" href="#config-cloud-service"><span class="fa fa-fw fa-cloud"></span> {Open_from_cloud}</a>
+          </li>
+        </ul>
+        <li class="list-group-item btn-xs when-main when-sketch">
+          <a class="i18n save-latest" href="#"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_sketch}</a>
+        </li>
+        <ul class="list-sub-group when-main when-sketch">
+          <li class="list-group-item btn-xs">
+            <a class="i18n save-over" href="#"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_overwrite}</a>
+          </li>
+          <li class="list-group-item divider"></li>
+          <li class="list-group-item btn-xs">
+            <a class="i18n save-local" href="#"><span class="fa fa-fw fa-laptop"></span> {Save_to_local}</a>
+          </li>
+          <li class="list-group-item btn-xs when-googledrive">
+            <a class="i18n save-googledrive" href="#"><span class="fa fa-fw"></span> {Save_to_Google_Drive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-dropbox">
+            <a class="i18n save-dropbox" href="#"><span class="fa fa-fw"></span> {Save_to_Dropbox}</a>
+          </li>
+          <li class="list-group-item btn-xs when-onedrive">
+            <a class="i18n save-onedrive" href="#"><span class="fa fa-fw"></span> {Save_to_OneDrive}</a>
+          </li>
+          <li class="list-group-item btn-xs when-no-cloud">
+            <a class="i18n activate-pref" href="#config-cloud-service"><span class="fa fa-fw fa-cloud"></span> {Save_to_cloud}</a>
+          </li>
+        </ul>
+        <li class="list-group-item btn-xs when-main when-sketch">
+          <a class="i18n sketch-share" href="#"><span class="fa fa-fw fa-share-alt"></span> {Share_sketch}</a>
+        </li>
+        <li class="list-group-item divider when-main"></li>
+        <li class="list-group-item btn-xs when-not-main">
+          <a class="i18n activate-main" href="#"><span class="fa fa-fw fa-arrow-circle-left"></span> {Back_to_editor}</a>
+        </li>
+        <li class="list-group-item divider when-not-main"></li>
+        <li class="list-group-item btn-xs when-not-pref">
+          <a class="i18n activate-pref" href="#"><span class="fa fa-fw fa-gear"></span> {Preferences}</a>
+        </li>
+        <li class="list-group-item btn-xs when-not-tutorial">
+          <a class="i18n activate-tutorial" href="#"><span class="fa fa-fw fa-flag-o"></span> {Tutorial}</a>
+        </li>
+        <li class="list-group-item btn-xs when-not-about">
+          <a class="i18n activate-about" href="#"><span class="fa fa-fw fa-info-circle"></span> {About_this_app}</a>
+        </li>
+      </ul>
+    </div>
+    <!--end-->
+
+</body></html>

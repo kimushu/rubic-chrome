@@ -1,0 +1,101 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="right-hidden">
+    <!--begin-->
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+      <div class="container">
+        <div class="btn-group btn-group-xs">
+          <a class="btn hidden"></a>
+          <a class="btn btn-link i18n hide-left" title="{Hide_menu}"><span class="fa fa-bars fa-lg"></span></a>
+          <a class="btn btn-link i18n show-left" title="{Show_menu}"><span class="fa fa-bars fa-lg"></span></a>
+        </div>
+        <div class="btn-group btn-group-xs">
+          <img src="images/rubic_text_white.png" id="rubic-brand">
+        </div>
+        <div class="btn-group btn-group-xs when-main">
+          <button class="btn btn-default i18n dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{New} <span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="#" class="btn-xs i18n sketch-new">{New_sketch}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs when-main">
+          <button class="btn btn-default i18n" title="{Open_sketch/} ({Open_from_local/})"><span class="glyphicon glyphicon-open"></span> {Open}</button>
+          <button class="btn btn-default btn-thin dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&nbsp;<span class="caret"></span>&nbsp;</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="#" class="btn-xs i18n open-local"><span class="fa-fw glyphicon glyphicon-open"></span> {Open_from_local}</a>
+            </li>
+            <li class="when-googledrive">
+              <a href="#" class="btn-xs i18n open-googledrive"><span class="fa fa-fw"></span> {Open_from_Google_Drive}</a>
+            </li>
+            <li class="when-dropbox">
+              <a href="#" class="btn-xs i18n open-dropbox"><span class="fa fa-fw"></span> {Open_from_Dropbox}</a>
+            </li>
+            <li class="when-onedrive">
+              <a href="#" class="btn-xs i18n open-onedrive"><span class="fa fa-fw"></span> {Open_from_OneDrive}</a>
+            </li>
+            <li class="when-no-cloud">
+              <a href="#config-cloud-service" class="btn-xs i18n activate-pref"><span class="fa fa-fw fa-cloud"></span> {Open_from_cloud}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs when-main">
+          <button class="btn btn-default i18n" title="{Save_sketch}"><span class="glyphicon glyphicon-save"></span> {Save}</button>
+          <button class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs i18n save-over"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_overwrite}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n save-local"><span class="fa fa-fw fa-laptop"></span> {Save_to_local}</a>
+            </li>
+            <li class="when-googledrive">
+              <a href="#" class="btn-xs i18n save-googledrive"><span class="fa fa-fw"></span> {Save_to_Google_Drive}</a>
+            </li>
+            <li class="when-dropbox">
+              <a href="#" class="btn-xs i18n save-dropbox"><span class="fa fa-fw"></span> {Save_to_Dropbox}</a>
+            </li>
+            <li class="when-onedrive">
+              <a href="#" class="btn-xs i18n save-onedrive"><span class="fa fa-fw"></span> {Save_to_OneDrive}</a>
+            </li>
+            <li class="when-no-cloud">
+              <a href="#config-cloud-service" class="btn-xs i18n activate-pref"><span class="fa fa-fw fa-cloud"></span> {Save_to_cloud}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs pull-right when-board">
+          <button class="btn btn-default i18n catalog-refresh"><span class="fa fa-fw fa-refresh"></span> {Refresh_catalog}</button>
+        </div>
+        <div class="btn-group btn-group-xs pull-right when-main">
+          <button class="btn btn-danger i18n sketch-stop"><span class="fa fa-fw fa-stop"></span> {Stop}</button>
+        </div>
+        <div class="btn-group btn-group-xs pull-right when-main">
+          <button class="btn btn-primary i18n sketch-run" title="{Run_sketch} (Ctrl+R)"><span class="fa fa-fw fa-play"></span> {Run}</button>
+          <button class="btn btn-primary btn-thin dropdown-toggle" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs i18n sketch-run"><span class="fa fa-fw fa-play"></span> {Run}</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n sketch-debug"><span class="fa fa-fw fa-bug"></span> {Debug}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs pull-right when-main">
+          <button class="btn btn-default i18n sketch-build" title="{Build_sketch} (Ctrl+B)"><span class="fa fa-fw fa-cogs"></span> {Build}</button>
+        </div>
+      </div>
+    </div>
+    <!--end-->
+
+</body></html>

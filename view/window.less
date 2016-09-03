@@ -324,19 +324,38 @@ body.left-hidden .hide-left {
   height: 5px !important;
 }
 
+ul:not(.device-has-hidden) > li#device-list-hide,
+ul:not(.device-has-hidden) > li#device-list-showall,
+ul:not(.device-showall) > li#device-list-hide,
+ul.device-showall > li#device-list-showall,
+ul:not(.device-showall) > li.device-list-hidden {
+  display: none !important;
+}
+
+li:not(.device-list-hidden) .device-list-warn {
+  display: none;
+}
+
+.device-list-warn:after {
+  content: "_";
+  visibility: hidden;
+}
+
 body.controller-main .when-not-main, body:not(.controller-main) .when-main,
 body.controller-board .when-not-board, body:not(.controller-board) .when-board,
 body.controller-pref .when-not-pref, body:not(.controller-pref) .when-pref,
 body.controller-tutorial .when-not-tutorial, body:not(.controller-tutorial) .when-tutorial,
 body.controller-about .when-not-about, body:not(.controller-about) .when-about,
 body.controller-board .when-not-board, body:not(.controller-board) .when-board,
+body.board-connected .when-not-connected, body:not(.board-connected) .when-connected,
+body.no-sketch .when-sketch,
 body.cloud-googledrive .when-not-googledrive, body:not(.cloud-googledrive) .when-googledrive,
 body.cloud-dropbox .when-not-dropbox, body:not(.cloud-dropbox) .when-dropbox,
 body.cloud-onedrive .when-not-onedrive, body:not(.cloud-onedrive) .when-onedrive,
 body.cloud-googledrive .when-no-cloud,
 body.cloud-dropbox .when-no-cloud,
 body.cloud-onedrive .when-no-cloud {
-  display: none /*!important*/;
+  display: none !important;
 }
 
 .only-testers {

@@ -6,7 +6,7 @@ clean: clean-html
 clobber: clobber-html
 
 dwld_dir  = $(VIEW_DIR)/downloads
-modules   = jqy twbs fawe ace spin jqsp bbox bsnt jqst cana jstr
+modules   = jqy twbs fawe ace spin jqsp bbox bsnt jqst splt cana jstr
 
 .PHONY: info
 info:
@@ -333,6 +333,41 @@ $(jqst_key): $(jqst_tgz)
 $(jqst_tgz):
 	$(call ECHO_C,"Downloading $(jqst_name) tarball ($(jqst_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(jqst_url)"
+
+#--------------------------------------------------------------------------------
+# Split.js
+#
+
+splt_name = Split.js
+splt_ver  = 1.0.7
+splt_url  = https://github.com/nathancahill/Split.js/archive/v$(splt_ver).tar.gz
+splt_dir  = $(dwld_dir)/Split.js-$(splt_ver)
+splt_tgz  = $(splt_dir).tar.gz
+splt_key  = $(splt_dir)/.unpacked
+splt_src  = $(splt_dir)/split.min.js
+splt_out  = $(DIST_DIR)/$(notdir $(splt_src))
+
+.PHONY: splt clean-splt clobber-splt
+splt: $(splt_out)
+
+clean-splt:
+	$(Q)rm -f $(splt_out)
+
+clobber-splt: clean-splt
+	$(Q)rm -rf $(splt_dir)
+	$(Q)rm -f $(splt_tgz)
+
+$(splt_out): $(splt_key)
+	$(call ECHO_W,"Locating $(splt_name) script ($@)")
+	$(Q)mkdir -p $(dir $@) && cp $(splt_src) $@
+
+$(splt_key): $(splt_tgz)
+	$(call ECHO_W,"Unpacking $(splt_name) tarball ($<)")
+	$(Q)tar -C $(dir $<) -xf $< && touch $@
+
+$(splt_tgz):
+	$(call ECHO_C,"Downloading $(splt_name) tarball ($(splt_url))")
+	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(splt_url)"
 
 #--------------------------------------------------------------------------------
 # Canarium
