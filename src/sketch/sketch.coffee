@@ -72,12 +72,22 @@ module.exports = class Sketch extends JSONable
   ###
   @property("board",
     get: -> @_board
-    set: (v) -> @_modify("_board", v)
+    set: (v) -> @_board = v; @dispatchEvent({type: "boardchange"})
   )
 
   #--------------------------------------------------------------------------------
   # Events
   #
+
+  ###*
+  @event boardchange
+    Board changed
+  @param {Object} event
+    Event object
+  @param {Sketch} event.target
+    Sketch instance
+  ###
+  @event("boardchange")
 
   ###*
   @event change
@@ -99,7 +109,7 @@ module.exports = class Sketch extends JSONable
   @param {SketchItem} event.item
     Added item
   ###
-  @event("addItem")
+  @event("additem")
 
   ###*
   @event addItem
@@ -111,7 +121,7 @@ module.exports = class Sketch extends JSONable
   @param {SketchItem} event.item
     Item removed
   ###
-  @event("removeItem")
+  @event("removeitem")
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -227,6 +237,38 @@ module.exports = class Sketch extends JSONable
     Promise object
   ###
   generateSkeleton: ->
+    item = getItem(@_bootItem) if @_bootItem
+    return Promise.reject(Error("No board")) unless @_board?
+    return Promise.resolve(
+    ).then(=>
+      return @_board.loadFirmware()
+    ).then((firmware) =>
+      if item?
+        # Existing item
+        for engine in firmware.engines
+          for fileHandler in engine.fileHandlers
+            return fileHandler if fileHandler.supports(item.path)
+      else
+        # New item
+        for engine in firmware.engines
+          for fileHandler in engine.fileHandlers
+            return fileHandler if fileHandler.template? and fileHandler.suffix?
+      return Promise.reject(Error("No file handler")) unless fileHandler?
+    ).then((fileHandler) =>
+      return fileHandler if item?
+      # Create a new item
+      item = new SketchItem({path: "main.#{fileHandler.suffix}"})
+      @addItem(item)
+      @bootItem = item.path
+      return item.writeContent(
+        fileHandler.template.toString()
+        {encoding: SKETCH_ENCODING}
+      ).then(=>
+        return fileHandler
+      )
+    ).then((fileHandler) =>
+      # TODO
+    )
     return
 
   ###*
@@ -277,7 +319,7 @@ module.exports = class Sketch extends JSONable
     item.setSketch(this)
     @_items.push(item)
     @_modify()
-    @dispatchEvent({type: "addItem", item: item})
+    @dispatchEvent({type: "additem", item: item})
     return true
 
   ###*
@@ -296,24 +338,59 @@ module.exports = class Sketch extends JSONable
     itemRemoved = @_items[index]
     @_items.splice(index, 1)
     @_modify()
-    @dispatchEvent({type: "removeItem", item: itemRemoved})
+    @dispatchEvent({type: "removeitem", item: itemRemoved})
     return true
 
   ###*
   @method
     Setup items
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   setupItems: ->
-    index = 0
-    while index < @_items.length
-      item = @_items[index++]
-      sources = item.generatedFrom
-      if sources.length > 0
-        exists = 0
-        ++exists for src in sources when @_items.find((i) -> i.path == src)?
-        @_items.splice(--index, 1) if exists == 0
-    return
+    return Promise.resolve(
+    ).then(=>
+      index = 0
+      while index < @_items.length
+        item = @_items[index++]
+        sources = item.generatedFrom
+        if sources.length > 0
+          exists = 0
+          ++exists for src in sources when @_items.find((i) -> i.path == src)?
+          @_items.splice(--index, 1) if exists == 0
+      return
+    ).then(=>
+      return @_board?.loadFirmware()
+    ).then((firmware) =>
+      return unless firmware?
+      engines = firmware.engines
+      newItems = []
+      return @_items.reduce(
+        (promise, item) =>
+          return promise if engines.includes(item.engine)
+          return promise.then(=>
+            return engines.reduce(
+              (promise2, engine) =>
+                return promise2.catch((error) =>
+                  return Promise.reject(error) if error?
+                  return engine.setup(this, item).then(=>
+                    return engine
+                  )
+                )
+              Promise.reject()
+            ).then((engine) =>
+              App.log("Engine detected for #{item.path} (%o)", engine)
+              item.engine = engine
+            ).catch((error) =>
+              App.error("Error occured during setup (#{error})") if error?
+              item.engine = null
+            )
+          )
+        Promise.resolve()
+      ).then(=>
+        @_items.push(newItems...)
+      ) # return @_items.reduce().then()
+    ) # return Promise.resolve().then()...
 
   ###*
   @method
@@ -386,7 +463,7 @@ module.exports = class Sketch extends JSONable
           progress?(item.path, (100 * ++done / transferItems.length))
           return
         )
-      @_board.requestFileSystem().then((fs) =>
+      @_board.requestFileSystem("internal").then((fs) =>
         boardFs = fs
         return
       )

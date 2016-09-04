@@ -16,6 +16,15 @@ module.exports = class Controller extends UnJSONable
   #
 
   ###*
+  @property {boolean} activated
+    Is this controller activated
+  @readonly
+  ###
+  @property("activated",
+    get: -> @window.controller == this
+  )
+
+  ###*
   @static
   @property {AppWindow} appWindow
     The AppWindow instance
@@ -109,44 +118,6 @@ module.exports = class Controller extends UnJSONable
   ###*
   @protected
   @method
-    Bind DOM event handlers
-  @param {string} sel
-    DOM selector for jQuery
-  @param {string} event
-    Event name
-  @param {Function} fn
-    Function (automatically binded to "this")
-  @param {Object[]} args
-    Additional arguments to Function#bind
-  @return {jQuery}
-    jQuery object
-  ###
-  bindAction: (sel, event, fn, args...) ->
-    ((@_actions or= {})[sel] or= {})[event] = fn
-    return @$(sel).unbind(event).bind(event, fn.bind(this, args...))
-
-  ###*
-  @protected
-  @method
-    Unbind all DOM event handlers
-  @return {undefined}
-  ###
-  unbindActions: ->
-    for sel, events of (@_actions or {})
-      @$(sel).unbind(event) for event, fn of events
-    @_actions = {}
-    return
-
-  ###*
-  @protected
-  @method
-    Setup HTML elements
-  @param {Object} map
-  ###
-
-  ###*
-  @protected
-  @method
     Create modal spinner
   @param {Object} opts
     Options passed to Spinner
@@ -159,6 +130,8 @@ module.exports = class Controller extends UnJSONable
       _spinElement: jq("#modal-spin").spin({color: "#fff"})
       _textElement: jq("#modal-spin .spin-text")
       _depth: 0
+      _start: 0
+      _window: @_window
       html: (value) ->
         @_textElement.html(value)
         return this
@@ -167,16 +140,20 @@ module.exports = class Controller extends UnJSONable
         return this
       show: (opts) ->
         if ++@_depth == 1
+          @_start = Date.now()
           @_spinElement.modal(jq.extend({
             show: true
             backdrop: "static"
             keyboard: false
           }, opts))
         return this
-      hide: ->
+      hide: (atleast = 0) ->
         if (@_depth = Math.max(@_depth - 1, 0)) == 0
-          @_spinElement.modal("hide")
-        @_textElement.html("")
+          last = Math.max(0, atleast - (Date.now() - @_start))
+          hide = => @_spinElement.modal("hide")
+          @_window.setTimeout((=> @_spinElement.modal("hide")), last)
+        else
+          @_textElement.html("")
         return this
     }
 

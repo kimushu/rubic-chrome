@@ -60,7 +60,7 @@ module.exports = class JavaScriptEngine extends Engine
 
     # coffee->js compile
     js = new SketchItem({path: js_path})
-    js.generatedFrom = [src_path]
+    js.addGenerator(this)
     js.transfered = true
     return Promise.resolve([js])
 

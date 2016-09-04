@@ -25,11 +25,30 @@ module.exports = class Editor extends UnJSONable
   @editable: false
 
   ###*
+  @property {boolean} modified
+    Is item modified
+  ###
+  @property("modified",
+    get: -> @_modified
+    set: (v) ->
+      v = !!v
+      @dispatchEvent({type: "change"}) if !@_modified and v
+      @_modified = v
+  )
+
+  ###*
   @property {string} title
     Title of this editor
   @readonly
   ###
-  @property("title", get: -> @_item?.path)
+  @property("title", get: -> @_sketchItem?.path)
+
+  ###*
+  @property {Sketch} sketch
+    Sketch for this editor
+  @readonly
+  ###
+  @property("sketch", get: -> @_sketch)
 
   ###*
   @property {SketchItem} sketchItem
@@ -39,20 +58,6 @@ module.exports = class Editor extends UnJSONable
   @property("sketchItem", get: -> @_sketchItem)
 
   ###*
-  @property {Sketch} sketch
-    Sketch instance
-  @readonly
-  ###
-  @property("sketch", get: -> @_sketch)
-
-  ###*
-  @property {SketchItem} item
-    SketchItem instance
-  @readonly
-  ###
-  @property("item", get: -> @_item)
-
-  ###*
   @property {Element} element
     DOM Element for this editor
   @readonly
@@ -60,25 +65,37 @@ module.exports = class Editor extends UnJSONable
   @property("element", get: -> @_element)
 
   ###*
-  @property {string} uniqueId
-    Unique ID for editor management
-  @readonly
+  @property {string} id
+    ID for DOM element
   ###
-  @property("uniqueId", get: -> @_uniqueId)
+  @property("id",
+    get: -> @_id or ""
+    set: (v) -> @_id = v?.toString() or ""
+  )
 
   #--------------------------------------------------------------------------------
   # Events
   #
 
   ###*
-  @event changeTitle
+  @event change
+    Content changed
+  @param {Object} event
+    Event object
+  @param {Editor} event.target
+    Editor instance
+  ###
+  @event("change")
+
+  ###*
+  @event changetitle
     Title changed
   @param {Object} event
     Event object
   @param {Editor} event.target
     Editor instance
   ###
-  @event("changeTitle")
+  @event("changetitle")
 
   ###*
   @event activate
@@ -113,8 +130,6 @@ module.exports = class Editor extends UnJSONable
   #--------------------------------------------------------------------------------
   # Private variables
   #
-
-  nextUniqueId = 1
 
   #--------------------------------------------------------------------------------
   # Protected properties
@@ -168,8 +183,7 @@ module.exports = class Editor extends UnJSONable
   @return {Promise}
     Promise object
   ###
-  load: ->
-    return Promise.reject(Error("Pure method"))
+  load: null
 
   ###*
   @template
@@ -178,8 +192,7 @@ module.exports = class Editor extends UnJSONable
   @return {Promise}
     Promise object
   ###
-  save: ->
-    return Promise.reject(Error("Pure method"))
+  save: null
 
   ###*
   @template
@@ -235,13 +248,12 @@ module.exports = class Editor extends UnJSONable
     jQuery object
   @param {Sketch} _sketch
     Sketch instance
-  @param {SketchItem} _item
+  @param {SketchItem} _sketchItem
     SketchItem instance
   @param {Element} _element
     Element for this editor
   ###
-  constructor: (@$, @_sketch, @_item, @_element) ->
-    @_uniqueId = "Editor_ID_#{nextUniqueId++}"
+  constructor: (@$, @_sketch, @_sketchItem, @_element) ->
     return
 
 # Post dependencies

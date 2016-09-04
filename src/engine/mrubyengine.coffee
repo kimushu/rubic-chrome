@@ -73,20 +73,19 @@ module.exports = class MrubyEngine extends Engine
     paths = @_parseName(item.path)
     unless paths.rb
       # Not rb file
-      item.transfered = true if paths.mrb
-      return Promise.resolve()
+      return Promise.reject()
 
     # rb->mrb compile
-    item.hasCompilerOptions = true
+    item.engine = this
     items = []
     mrb = new SketchItem({path: paths.mrb})
-    mrb.generatedFrom = [paths.rb]
+    mrb.addGenerator(this)
     mrb.transfered = true
     items.push(mrb)
-    if item.compilerOptions.split(" ").includes("-v")
+    if item.compilerOptions?.split(" ").includes("-v")
       # rb->mrb compile with dump
       dump = new SketchItem({path: path.dump})
-      dump.generatedFrom = [paths.rb]
+      dump.addGenerator(this)
       dump.transfered = false
       items.push(dump)
     return Promise.resolve(items)
@@ -98,7 +97,7 @@ module.exports = class MrubyEngine extends Engine
     mrbc = new global.Libs.mrbc()
     paths = @_parseName(item.path)
     unless paths.rb
-      return Promise.resolve()
+      return Promise.reject(Error("Not supported"))
 
     # rb->mrb compile
     src_data = null
@@ -120,7 +119,7 @@ module.exports = class MrubyEngine extends Engine
     ).then((data) =>
       return sketch.dirFs.writeFile(paths.mrb, data)
     ).then(=>
-      return unless item.compilerOptions.split(" ").includes("-v")
+      return unless item.compilerOptions?.split(" ").includes("-v")
       # rb->mrb compile with dump
       return sketch.dirFs.writeFile(paths.dump, mrbc.readStdout())
     ).then(=>

@@ -32,7 +32,10 @@ module.exports = class TextEditor extends Editor
   @inheritdoc Editor#load
   ###
   load: ->
-    return @sketch.dirFs.readFile(@item.path).then((rawdata) =>
+    return Promise.resolve(
+    ).then(=>
+      return @sketchItem.readContent()
+    ).then((rawdata) =>
       return @convertForReading(rawdata)
     ).then((text) =>
       @_quiet(=>
@@ -40,20 +43,22 @@ module.exports = class TextEditor extends Editor
       )
       @modified = false
       return  # Last PromiseValue
-    ) # return @sketch.dirFs.readFile().then()...
+    ) # return Promise.resolve().then()...
 
   ###*
   @inheritdoc Editor#save
   ###
   save: ->
     return Promise.resolve() unless @constructor.editable
-    text = @_aceSession.getValue()
-    return @convertForWriting(text).then((rawdata) =>
-      return @sketch.dirFs.writeFile(@item.path, rawdata)
+    return Promise.resolve(
+    ).then(=>
+      return @convertForWriting(@_aceSession.getValue())
+    ).then((rawdata) =>
+      return @sketchItem.writeContent(rawdata)
     ).then(=>
       @modified = false
       return  # Last PromiseValue
-    ) # return @convertForWriting().then()...
+    ) # return Promise.resolve().then()...
 
   ###*
   @inheritdoc Editor#activate
@@ -108,13 +113,13 @@ module.exports = class TextEditor extends Editor
     jQuery object
   @param {Sketch} sketch
     Sketch instance
-  @param {SketchItem} item
+  @param {SketchItem} sketchItem
     SketchItem instance
   @param {string} _aceMode
     Ace mode name
   ###
-  constructor: ($, sketch, item, @_aceMode) ->
-    super($, sketch, item, (domElement or= $("#text-editor")[0]))
+  constructor: ($, sketch, sketchItem, @_aceMode) ->
+    super($, sketch, sketchItem, (domElement or= $("#text-editor")[0]))
     Ace or= window.ace
     unless aceEditor
       aceEditor = Ace.edit(domElement)

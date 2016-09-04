@@ -210,7 +210,10 @@ module.exports = class BoardController extends WindowController
   _refreshCatalog: (force = false) ->
     $ = @$
     tmpl = null
+    spin = null
     return Promise.resolve(
+    ).then(=>
+      spin = @modalSpin().show().text(I18n.getMessage("Updating_catalog"))
     ).then(=>
       # Load from cache
       return BoardCatalog.load(false)
@@ -220,27 +223,28 @@ module.exports = class BoardController extends WindowController
       # Update
       return @_boardCatalog.update(force).timeout(
         UPDATE_TIMEOUT
-      # ).catch(=>
-      #   # TODO: warning
+      ).catch((error) =>
+        App.error("Failed to update catalog (%o)", error)
+        App.popupError(I18n.getMessage("Failed_to_update_catalog"))
+        return  # Do not wait until popup close
       )
-    ).tap(
-      # Print BoardCatalog instance (for debugging, verbose mode only)
-      App.log.verbose
+    ).finally(=>
+      spin.hide(300)
     ).then(=>
       for board in @_boardCatalog.boardClasses
         id = "board-#{board.name}"
-        li = $("##{id}")
-        (li = tmpl.clone()).appendTo(tmpl.parent()) unless li[0]
-        li[0].id = id
-        li[0].dataset.name = board.name
-        li.find(".media-object")[0].src = board.images[0]
-        li.find(".media-heading .placeholder").text(board.friendlyName)
-        ph = li.find(".media-body > p .placeholder")
-        ph.eq(0).text(@_boardCatalog.getDescription(board))
-        ph.eq(1).text(board.author)
-        ph.eq(2).attr("href", board.website)
-        li.show()
-        li.addClass("board-selected") if @_board?.constructor.name == board.name
+        media = $("##{id}")
+        (media = tmpl.clone()).appendTo(tmpl.parent()) unless media[0]
+        media[0].id = id
+        media[0].dataset.name = board.name
+        media.find(".media-object")[0].src = board.images[0]
+        ph = media.find(".placeholder")
+        ph.eq(0).text(board.friendlyName)
+        ph.eq(1).text(@_boardCatalog.getDescription(board))
+        ph.eq(2).text(board.author)
+        ph.eq(3).attr("href", board.website)
+        media.show()
+        media.addClass("board-selected") if @_board?.constructor.name == board.name
       $(".board-use-this").unbind("click").click(@_boardSelect.bind(this))
       @_refreshFeatures()
     ) # return Promise.resolve().then()...
@@ -267,7 +271,7 @@ module.exports = class BoardController extends WindowController
       return "ok" if !@_board? or @_board?.constructor == boardClass
       return global.bootbox.dialog_p({
         title: I18n.getMessage("Confirm_board_change_title")
-        message: I18n.getMessage("Confirm_board_change_message")
+        message: I18n.getMessage("Confirm_board_change_message", boardClass.friendlyName)
         closeButton: false
         buttons: {
           ok: {
@@ -333,10 +337,7 @@ module.exports = class BoardController extends WindowController
     )
     sel.prop("disabled", na)
     grp = tmpl.parents("div.form-group").eq(0)
-    if list?
-      grp.show()
-    else
-      grp.hide()
+    grp.toggle(list?)
     return unless list?.length > 0
     for item in list
       do (item) =>
@@ -429,10 +430,7 @@ module.exports = class BoardController extends WindowController
       ).then((firmRevision) =>
         return firmRevision.checkCacheAvailability()
       ).then((available) =>
-        if available
-          dlReq.hide()
-        else
-          dlReq.show()
+        dlReq.toggle(!!available)
       )
     )
 

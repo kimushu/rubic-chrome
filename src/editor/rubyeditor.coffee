@@ -49,12 +49,12 @@ module.exports = class RubyEditor extends TextEditor
   @param {jQuery} $
     jQuery object
   @param {Sketch} sketch
-    Sketch instance
-  @param {SketchItem} item
+    Sketch
+  @param {SketchItem} sketchItem
     Sketch item
   ###
-  constructor: ($, sketch, item) ->
-    super($, sketch, item, "ace/mode/ruby")
+  constructor: ($, sketch, sketchItem) ->
+    super($, sketch, sketchItem, "ace/mode/ruby")
     return
 
 # Post dependencies
