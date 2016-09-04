@@ -69,11 +69,11 @@ module.exports = class FirmRevision extends JSONable
   @property("obsolete", get: -> @_obsolete)
 
   ###*
-  @property {string[]} assets
+  @property {string[]} assetNames
     List of asset files
   @readonly
   ###
-  @property("assets", get: -> (name for name, url of @_assets))
+  @property("assetNames", get: -> (name for name, url of @_assets))
 
   #--------------------------------------------------------------------------------
   # Private properties
@@ -99,10 +99,10 @@ module.exports = class FirmRevision extends JSONable
   @return {boolean} return.PromiseValue
     true if cached
   ###
-  findCache: ->
+  checkCacheAvailability: ->
     return Promise.resolve(true) if @_cache
     key = @_key
-    return Preferences(key).then((values) =>
+    return Preferences.get(key).then((values) =>
       return !!values[key]
     )
 
@@ -126,10 +126,11 @@ module.exports = class FirmRevision extends JSONable
     ).then((values) =>
       cache = values?[key]
       return if cache?
-      return @_assets.reduce(
+      return @assetNames.reduce(
         (promise, name) =>
           return promise.then(=>
-            return XhrPromise.getAsArrayBuffer(@_assets[path])
+            url = @_assets[name]
+            return XhrPromise.getAsArrayBuffer(url)
           ).then((xhr) =>
             zip.file(name, xhr.response, {compression: "DEFLATE"})
           )
@@ -139,7 +140,7 @@ module.exports = class FirmRevision extends JSONable
       ).then((cache) =>
         @_cache = cache
         return Preferences.set({"#{key}": cache})
-      ) # return @assets.reduce().then()...
+      ) # return @assetNames.reduce().then()...
     ).then(=>
       return  # Last PromiseValue
     ) # return Promise.resolve().then()...
@@ -157,7 +158,7 @@ module.exports = class FirmRevision extends JSONable
     @_lastModified  = parseInt(obj.lastModified)
     @_beta          = !!obj.beta
     @_obsolete      = !!obj.obsolete
-    @_assets        = obj.assets
+    @_assets        = obj.assets or {}
     return
 
   ###*
@@ -180,3 +181,4 @@ module.exports = class FirmRevision extends JSONable
 I18n = require("util/i18n")
 XhrPromise = require("util/xhrpromise")
 JsZip = global.Libs.JsZip
+Preferences = require("app/preferences")
