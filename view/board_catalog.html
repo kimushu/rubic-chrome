@@ -11,7 +11,7 @@
     <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
     <div class="sidebar-left"></div>
     <!--begin-->
-    <div class="main-outer when-board bottom-hidden">
+    <div class="controller-body when-board bottom-hidden">
       <div class="editor-header">
         <ul class="scroll_tabs_theme_compact" id="board-tabs">
           <li class="i18n board-page-select" data-page="catalog">{Select_board}</li>
@@ -27,22 +27,20 @@
       </div>
       <div class="editor-body vert-scroll" id="board-page-catalog">
         <div class="col-md-12">
-          <ul class="media-list">
-            <li class="media" id="board-catalog-tmpl">
-              <a class="pull-left"><img class="media-object icon-frame" src="" height="64" width="64"></a>
-              <div class="media-body">
-                <h4 class="media-heading"><span class="placeholder">(Board name)</span>
-                  <button class="board-use-this pull-right btn btn-info btn-xs i18n"><span class="glyphicon glyphicon-ok board-when-selected">&nbsp;</span>{Use_this_board}</button>
-                </h4>
-                <p class="i18n">
-                  <span class="placeholder">(Board Description)</span>
-                  <br>{Author}:
-                  <span class="placeholder">(author)</span>&nbsp;/&nbsp;
-                  <a href="#" class="placeholder" target="_blank">{Website}</a>
-                </p>
-              </div>
-            </li>
-          </ul>
+          <div class="media media-bordered" id="board-catalog-tmpl">
+            <div class="media-left">
+              <img class="media-object" src="" height="72" width="72">
+            </div>
+            <div class="media-body">
+              <h4 class="media-heading"><span class="placeholder">(Board name)</span>
+                <button class="board-use-this pull-right btn btn-info btn-xs i18n"><span class="glyphicon glyphicon-ok board-when-selected">&nbsp;</span>{Use_this_board}</button>
+              </h4>
+              <span class="placeholder">(Board Description)</span>
+              <br><span class="i18n">{Author}</span>:
+              <span class="placeholder">(author)</span>&nbsp;/&nbsp;
+              <a href="#" class="placeholder i18n" target="_blank">{Website}</a>
+            </div>
+          </div>
         </div>
       </div>
       <!--include(feature_config.html)-->

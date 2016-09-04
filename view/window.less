@@ -105,7 +105,7 @@ body.left-hidden .hide-left {
 }
 
 .sidebar-left,
-.main-outer,
+.controller-body,
 .sidebar-right {
   position: absolute;
   top: @navbar-height;
@@ -122,7 +122,7 @@ body.left-hidden .hide-left {
   border-left: #ccc solid 1px;
 }
 
-.main-outer {
+.controller-body {
   left: 0px;
   right: 0px;
   width: auto !important;
@@ -133,15 +133,23 @@ body.left-hidden .hide-left {
   transition-duration: 0.2s;
 }
 
+#welcome-page .list-group:first-child {
+  margin-top: 16px;
+}
+
+#welcome-page .list-group {
+  margin-bottom: 10px;
+}
+
 .vert-scroll {
   overflow-y: scroll;
 }
 
-.left-hidden .main-outer {
+.left-hidden .controller-body {
   margin-left: 0px !important;
 }
 
-.right-hidden .main-outer {
+.right-hidden .controller-body {
   margin-right: 0px !important;
 }
 
@@ -189,6 +197,7 @@ body.left-hidden .hide-left {
   right: 0px;
   width: 60%;
   border-left: 1px solid #bbb;
+  padding-top: 16px;
 }
 
 .explorer-footer {
@@ -393,9 +402,6 @@ body.cloud-onedrive .when-no-cloud {
 }
 
 .media.board-selected {
-  margin: 11px -4px -4px -4px;
-  padding: 4px;
-  border-radius: 4px;
   background-color: #d9edf7;
   transition: background-color 0.2s ease;
 }
@@ -430,10 +436,10 @@ body.cloud-onedrive .when-no-cloud {
   white-space: nowrap;
 }
 
-.icon-frame {
-  border: 1px #ccc solid;
-  -webkit-border-radius: 4px;
-  padding: 1px;
+.media-bordered {
+  border: 1px #ddd solid;
+  border-radius: 4px;
+  padding: 4px;
 }
 
 .label.label-bigger {
