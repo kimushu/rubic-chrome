@@ -85,6 +85,11 @@ module.exports = class PeridotBoard extends Board
 
   FPGAPIN = new I18n({en: "Pin name of FPGA", ja: "FPGAピン名"})
 
+  VID_PID_LIST = [
+    # VID)PID)
+    0x04036015  # FTDI FT240X
+  ]
+
   #--------------------------------------------------------------------------------
   # Public methods
   #
@@ -168,21 +173,34 @@ module.exports = class PeridotBoard extends Board
   @inheritdoc Board#enumerate
   ###
   enumerate: ->
-    return @_canarium.enumerate().then((boards) ->
-      return {friendlyName: b.name, path: b.path} for b in boards
+    return Canarium.enumerate().then((boards) ->
+      devices = []
+      for device in boards
+        if Preferences.os == "mac" and device.path.startsWith("/dev/tty.")
+          continue  # Drop TTY device (for Mac)
+        id = (parseInt(device.vendorId) << 16) + parseInt(device.productId)
+        devices.push({
+          friendlyName: device.name
+          path: device.path
+          productId: device.productId
+          vendorId: device.vendorId
+          hidden: !VID_PID_LIST.includes(id)
+        })
+      return devices
     )
 
   ###*
   @inheritdoc Board#connect
   ###
-  connect: (path, onDisconnected) ->
+  connect: (path) ->
     return @_canarium.open(path).then(=>
       @_canarium.onClosed = =>
         @_canarium.onClosed = null
         @_connected = false
-        onDisconnected()
+        @dispatchEvent({type: "disconnect"})
 
       @_connected = true
+      @dispatchEvent({type: "connect"})
       return
     ) # return @_canarium.open().then()
 
@@ -195,8 +213,8 @@ module.exports = class PeridotBoard extends Board
   ###*
   @inheritdoc Board#requestFileSystem
   ###
-  requestFileSystem: ->
-    return new PeridotFileSystem(@_canarium)
+  requestFileSystem: (storage) ->
+    return new PeridotFileSystem(@_canarium, "/mnt/#{storage}")
 
   ###*
   @inheritdoc Board#requestConsole
@@ -218,13 +236,38 @@ module.exports = class PeridotBoard extends Board
   class PeridotFileSystem extends AsyncFs
     null
 
-    constructor: (@_canarium) ->
+    ###*
+    @inheritdoc AsyncFs#getNameImpl
+    ###
+    getNameImpl: ->
+      return @_dir
+
+    ###*
+    @inheritdoc AsyncFs#readFileImpl
+    ###
+    readFileImpl: (path, options) ->
       return
 
-    readFile: (file, options, callback) ->
-      if typeof(options or= {}) == "function"
-        callback = options
-        options = {}
+    ###*
+    @inheritdoc AsyncFs#writeFileImpl
+    ###
+    writeFileImpl: (path, data, options) ->
+      return
+
+    ###*
+    @inheritdoc AsyncFs#unlinkImpl
+    ###
+    unlinkImpl: (path) ->
+      return
+
+    ###*
+    @inheritdoc AsyncFs#opendirfsImpl
+    ###
+    opendirfsImpl: (path) ->
+      return
+
+    constructor: (@_canarium, @_dir) ->
+      return
 
   class PeridotProgrammer extends Programmer
     null
@@ -234,3 +277,4 @@ module.exports = class PeridotBoard extends Board
 
 # Post dependencies
 Canarium = global.Canarium
+Preferences = require("app/preferences")
