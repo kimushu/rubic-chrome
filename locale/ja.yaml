@@ -20,6 +20,8 @@ Debug:
     "デバッグ"
 New_sketch:
     "新しいスケッチ"
+Desc_of_new_sketch:
+    "新しいスケッチを作成して作業を始めます。"
 Open_sketch:
     "スケッチを開く"
 Open_from_local:
@@ -63,13 +65,13 @@ Select_hardware:
 Show_all_hardwares:
     "すべての構成を表示"
 Edit_hardware:
-    "現在の構成を編集"
+    "ハードウェア構成を編集"
 Select_connection:
     "接続先を選択"
 Scan_connections:
     "再検索"
-Guide_view:
-    "ガイドの表示"
+Toolbox:
+    "ツールボックス"
 Hardware_info:
     "ハードウェア構成情報"
 Library_manual:
@@ -134,6 +136,8 @@ Init_cache_at_next_boot:
     "次回のRubic起動時にキャッシュを初期化する"
 Desc_of_init_cache:
     "キャッシュを初期化することにより、このPC上で初めてRubicを起動したときの状態に戻すことができます。すべての設定項目が初期値に戻りますのでご注意ください。"
+Cache_has_been_initialized:
+    "設定データ/キャッシュデータが初期化されました"
 Rubic_about:
     "Rubicは、Ruby/JavaScript/Luaなど多彩なスクリプト言語を使って手軽に組み込みボードの開発を行うための開発環境です。"
 Version:
@@ -254,6 +258,8 @@ Firmware:
     "ファームウェア"
 Firmware_revision:
     "ファームウェアのリビジョン"
+Revision:
+    "リビジョン"
 Board:
     "ボード"
 Scanning:
@@ -280,3 +286,69 @@ Open_with_editor:
     "エディタで開く"
 Add_existing_file:
     "既存ファイルの追加..."
+Stop:
+    "停止"
+Generating_source_codes:
+    "ソースコードを生成中..."
+Confirm_board_change_title:
+    "ボードの変更確認"
+Confirm_board_change_message:
+    "違う種類のボード($1)が選択されました。<br>ハードウェア構成の設定がリセットされますが、続行してよろしいですか？"
+Board_is_not_selected:
+    "ボードが選択されていません"
+Firmware_is_not_selected:
+    "ファームウェアが選択されていません"
+Firmware_revision_is_not_selected:
+    "ファームウェアのリビジョンが選択されていません"
+Firmware_download_required:
+    "ファームウェアのダウンロードが必要です"
+"Yes":
+    "はい"
+"No":
+    "いいえ"
+Downloading_firmware:
+    "ファームウェアをダウンロードしています..."
+Saving_firmware:
+    "ファームウェアを保存しています..."
+Firmware_download_failed:
+    "ファームウェアのダウンロードに失敗しました"
+Firmware_information:
+    "ファームウェアの情報"
+Included_script_engines:
+    "搭載スクリプト実行エンジン"
+Are_you_sure_to_replace_existing_file_1_with_new_one:
+    "ファイル($1)は既に存在します。置き換えますか？"
+Searching:
+    "検索中..."
+No_board_specified:
+    "ボードが指定されていません"
+Hide_unknown_devices:
+    "未対応デバイスを隠す"
+Show_all_devices:
+    "すべてのデバイスを表示"
+Connected_to_board_at_1:
+    "ボード($1)に接続されました"
+Disconnected_from_board_at_1:
+    "ボード($1)が切断されました"
+Disconnect:
+    "切断"
+Updating_catalog:
+    "カタログ情報の更新中"
+Failed_to_update_catalog:
+    "カタログ情報の更新に失敗しました"
+Welcome:
+    "ようこそ"
+Clear_sketch_history:
+    "スケッチ編集履歴をクリアする"
+Close_sketch:
+    "スケッチを閉じる"
+Get_board_info:
+    "ボードの情報を取得"
+Info:
+    "情報"
+Script_engine_config:
+    "スクリプト実行エンジンの設定"
+Script_to_execute_first:
+    "最初に実行するスクリプト"
+Failed_to_build_1:
+    "$1 のビルドに失敗しました"
