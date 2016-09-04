@@ -31,7 +31,7 @@ module.exports = class FifoBuffer
     return
 
   push: (data) ->
-    data = new Uint8Array(data) unless data typeof Uint8Array
+    data = new Uint8Array(data) unless data instanceof Uint8Array
     alen = data.byteLength
     return if alen == 0
 
