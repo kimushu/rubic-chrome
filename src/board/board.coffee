@@ -93,6 +93,15 @@ module.exports = class Board extends JSONable
   )
 
   ###*
+  @property {boolean} debuggable
+    Debug support
+  @readonly
+  ###
+  @property("debuggable",
+    get: -> false
+  )
+
+  ###*
   @property {boolean} connected
   ###
   @property("connected", get: -> @_connected)
@@ -144,6 +153,7 @@ module.exports = class Board extends JSONable
     Firmware instance
   ###
   loadFirmware: ->
+    return I18n.rejectPromise("Firmware_is_not_selected") unless @_firmwareId?
     return Promise.resolve(@_firmware) if @_firmware?
     return Promise.resolve(
     ).then(=>
