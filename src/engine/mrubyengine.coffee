@@ -109,7 +109,7 @@ module.exports = class MrubyEngine extends Engine
       src_data = data
       return mrbc.setup()
     ).then(=>
-      return mrbc.writeFile("/#{paths.rb}", paths.rb, RUBY_ENCODING)
+      return mrbc.writeFile("/#{paths.rb}", src_data, {encoding: RUBY_ENCODING})
     ).then(=>
       return mrbc.run("-o/#{paths.mrb}", "-g", (item.flags or [])...)
     ).then((status) =>
