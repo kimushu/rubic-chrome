@@ -21,13 +21,21 @@ Function::event = (type) ->
     a.splice(i, 1) if i >= 0
     return
   @prototype.dispatchEvent or= (event) ->
+    stop = false
     e = {}
-    e[k] = v for k, v of event
-    e.type = e.type.toLowerCase()
-    e.target = this
+    Object.defineProperty(e, "type", {value: event.type.toLowerCase()})
+    Object.defineProperty(e, "target", {value: this})
+    Object.defineProperty(e, "stopPropagation", {value: -> stop = true; return})
+    for k, v of event
+      Object.defineProperty(e, k, {value: v}) unless e.hasOwnProperty(k)
     l = (@__listeners__ or {})
     a = (l[e.type] or= [])
     for listener in a
-      return false if listener() == false
+      if typeof(listener) == "function"
+        fn = listener
+      else if typeof(listener?.handleEvent) == "function"
+        fn = listener.handleEvent.bind(listener)
+      fn?(e)
+      return false if stop
     return true
 
