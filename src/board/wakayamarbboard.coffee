@@ -153,16 +153,15 @@ module.exports = class WakayamaRbBoard extends Board
     return SerialPort.list().then((ports) =>
       devices = []
       for port in ports
-        id = (parseInt(port.vendorId) << 16) + parseInt(port.productId)
         if Preferences.os == "mac" and port.path.startsWith("/dev/tty.")
           continue  # Drop TTY device (for Mac)
-        if Preferences.deviceFilter and !VID_PID_LIST.includes(id)
-          continue  # Skip this device
+        id = (parseInt(port.vendorId) << 16) + parseInt(port.productId)
         devices.push({
           friendlyName: port.manufacturer
           path: port.path
           productId: port.productId
           vendorId: port.vendorId
+          hidden: !VID_PID_LIST.includes(id)
         })
       return devices
     )
@@ -178,7 +177,7 @@ module.exports = class WakayamaRbBoard extends Board
       serial.onReceived = @_receiveHandler.bind(this)
       @_serial = serial
       @_path = path
-      @onConnected.dispatchEvent(this)
+      @dispatchEvent({type: "connect"})
       return  # Last PromiseValue
     )
 
@@ -307,6 +306,7 @@ module.exports = class WakayamaRbBoard extends Board
   _send: (data) ->
     return Promise.resolve(
     ).then(=>
+      App.log.verbose("WakayamaRbBoard#_send(%o)", data)
       return str2ab(data) if typeof(data) == "string"
       return data
     ).then((ab) =>
@@ -328,6 +328,7 @@ module.exports = class WakayamaRbBoard extends Board
     return Promise.reject(Error("Already waiting")) if @_waiter?
     return Promise.resolve(
     ).then(=>
+      App.log.verbose("WakayamaRbBoard#_wait(%o)", expect)
       return str2ab(expect) if typeof(expect) == "string"
       return expect
     ).then((ab) =>
@@ -346,7 +347,7 @@ module.exports = class WakayamaRbBoard extends Board
     reject = @_waiter?.reject
     @_waiter = null
     reject?()
-    @onDisconnected.dispatchEvent(this)
+    @dispatchEvent({type: "disconnect"})
     return
 
   ###*
@@ -357,6 +358,7 @@ module.exports = class WakayamaRbBoard extends Board
     Received data
   ###
   _receiveHandler: (ab) ->
+    App.log.verbose("WakayamaRbBoard#_recv(%o)", ab)
     @_recvBuffer or= new FifoBuffer()
     oldLen = @_recvBuffer.byteLength
     @_recvBuffer.push(ab)
@@ -393,8 +395,9 @@ module.exports = class WakayamaRbBoard extends Board
     null
 
     HEX2BIN = []
-    HEX2BIN[i+0x30] = i for i in [0...10] by 1
-    HEX2BIN[i+0x37] = i for i in [10...16] by 1
+    (HEX2BIN[i+0x30] = i + 0) for i in [0...10] by 1
+    (HEX2BIN[i+0x41] = i + 10) for i in [0...6] by 1
+    (HEX2BIN[i+0x61] = i + 10) for i in [0...6] by 1
 
     ###*
     @inheritdoc AsyncFs#getNameImpl
@@ -513,6 +516,7 @@ module.exports = class WakayamaRbBoard extends Board
       return
 
 # Post dependencies
+App = require("app/app")
 FifoBuffer = require("util/fifobuffer")
 Preferences = require("app/preferences")
 SerialPort = global.Canarium.BaseComm.SerialWrapper
