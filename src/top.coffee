@@ -15,7 +15,7 @@ $(->
     # to solve circular dependency
     require("controller/windowcontroller")
 
-    # Load main controller
+    # Load first controller
     require("controller/maincontroller").instance.activate()
 
     # Boards

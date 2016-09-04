@@ -100,6 +100,8 @@ module.exports = class AsyncFs extends UnJSONable
     Write contents to file
   @param {string} file
     File path
+  @param {ArrayBuffer/string} data
+    Data to write
   @param {Object/string} [options]
     Options
   @param {function(Error/null):undefined} [callback]
@@ -262,7 +264,7 @@ module.exports = class AsyncFs extends UnJSONable
     The name of this directory
   ###
   getNameImpl: ->
-    return I18n.getMessage("Not_supported")
+    return
 
   ###*
   @protected
