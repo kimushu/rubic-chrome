@@ -64,6 +64,9 @@ module.exports = class Controller extends UnJSONable
       return unless body.hasClass("loading")
       return Promise.delay(DELAY_AFTER_LOADING).then(=>
         body.removeClass("loading")
+        if @window.reset_all
+          App.popupInfo(I18n.getMessage("Cache_has_been_initialized"))
+        return
       )
     ).then(=>
       @window.controller = this

@@ -6,11 +6,14 @@ chrome.app.runtime.onLaunched.addListener((launchData) =>
   MINIMUM_WIDTH   = 560
   MINIMUM_HEIGHT  = 240
 
+  reset_all = null
+
   Promise.resolve(
   ).then(=>
     return Preferences.get({reset_all: false})
   ).then((values) =>
-    return unless values.reset_all
+    reset_all = !!values.reset_all
+    return unless reset_all
     console.warn("Resetting all preferences")
     return Preferences.clear()
   ).then(=>
@@ -31,7 +34,6 @@ chrome.app.runtime.onLaunched.addListener((launchData) =>
       }
     }
     chrome.app.window.create("window.html", options, (appWindow) =>
-      boundsSaveTimer = null
       appWindow.onBoundsChanged.addListener(=>
         bounds = appWindow.innerBounds
         Preferences.set({
@@ -44,6 +46,7 @@ chrome.app.runtime.onLaunched.addListener((launchData) =>
         # Set initial zoom ratio
         win.document.body.style.zoom = (values.zoom_ratio_x10 / 10)
       )
+      win.reset_all = true if reset_all
       return
     )
   )
