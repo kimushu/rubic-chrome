@@ -165,25 +165,72 @@ module.exports = class SketchEditor extends Editor
     return
 
   _selectItem: (item) ->
-    div = @$(".explorer-right").empty()
-      .append('<div class="col-sm-12"></div>').children("div")
+    $ = @$
+    div = $(".explorer-right").empty()
+      .append('<div class="col-sm-12">').children("div")
+    body = null
+    tr = (titleId, value) =>
+      $("#template-tr-td2").children().clone().appendTo(body).children("td")
+        .eq(0).text(if titleId? then I18n.getMessage(titleId) else "").end()
+        .eq(1).text(value or "").end()
+    notConf = "(#{I18n.getMessage("Not_configured")})"
     if item?
-      # FIXME
+      # File
+      body = $("#template-panel-table").children().clone().appendTo(div)
+        .find(".panel-heading")
+          .text(I18n.getMessage("File_overview"))
+        .end()
+        .find("thead").remove().end()
+        .find("tbody")
+      dirs = item.path.split("/")
+      tr("Name", dirs.pop())
+      tr("Folder", dirs.join("/")) if dirs.length > 0
+      for fileHandler in (item.engine?.fileHandlers or [])
+        continue unless fileHandler.supports(item.path)
+        body = $("#template-panel-table").children().clone().appendTo(div)
+          .find(".panel-heading")
+            .text(I18n.getMessage("Script_engine_config"))
+          .end()
+          .find("thead").remove().end()
+          .find("tbody")
+        tr("Script_Engine", item.engine.friendlyName)
+        $("#template-input-text").children().clone().appendTo(
+          tr("Compiler_options", "").eq(1)
+        ) if fileHandler.hasCompilerOptions
     else
       # Root node (sketch)
-      div.append("""
-      <div class="panel panel-default">
-        <div class="panel-heading">#{I18n.getMessage("Script_engine_config")}</div>
-        <div class="panel-body">
-          <label>#{I18n.getMessage("Script_to_execute_first")}</label>
-          <div class="dropdown btn-group-justified">
-            <button class="btn btn-default dropdown-toggle" data-toggle="dropdown"></button>
-            <ul class="dropdown-menu">
-            </ul>
-          </div>
-        </div>
-      </div>
-      """)
+      body = $("#template-panel-table").children().clone().appendTo(div)
+        .find(".panel-heading").text(I18n.getMessage("Sketch_overview")).end()
+        .find("thead").remove().end()
+        .find("tbody")
+      tr("Name", @_sketch?.friendlyName)
+      tr("Board", @_board?.friendlyName or notConf)
+      switch @_sketch?.dirFs?.fsType
+        when AsyncFs.TEMPORARY
+          tr("Stored_location", I18n.getMessage("Draft"))
+        when AsyncFs.LOCAL
+          tr("Stored_location", I18n.getMessage("Storage_in_this_PC"))
+      body = $("#template-panel").children().clone().appendTo(div)
+        .find(".panel-heading").text(I18n.getMessage("Startup_file")).end()
+        .find(".panel-body")
+      ul = $("#template-dropdown").children().clone().appendTo(body)
+        .find("button")
+          .addClass("btn-sm").prop("disabled", !(@_sketch?.items?.length > 0))
+          .find(".placeholder")
+            .text(@_sketch?.bootItem or notConf)
+          .end()
+        .end()
+        .find("ul")
+      for item in (@_sketch?.items or [])
+        continue unless item.engine?
+        $('<li><a href="#">').appendTo(ul)
+          .find("a").text(item.path)[0].dataset.path = item.path
+      ul.find("li").click((event) =>
+        path = $(event.currentTarget)[0]?.dataset.path
+        return unless path?
+        @_sketch?.bootItem = path
+        ul.parent().find(".placeholder").text(path)
+      )
     return
 
   _refreshTree: ->
