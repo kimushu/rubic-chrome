@@ -35,6 +35,37 @@ module.exports = class AsyncFs extends UnJSONable
   ###
   @property("name", get: -> @getNameImpl())
 
+  ###*
+  @property {string} fsType
+    Filesystem type identifier
+  @readonly
+  ###
+  @property("fsType", get: -> @_fsType)
+
+  ###*
+  @static
+  @property {string} TEMPORARY
+    Filesystem type identifier for temporary storage
+  @readonly
+  ###
+  @classProperty("TEMPORARY", value: "TEMPORARY")
+
+  ###*
+  @static
+  @property {string} LOCAL
+    Filesystem type identifier for temporary storage
+  @readonly
+  ###
+  @classProperty("LOCAL", value: "LOCAL")
+
+  ###*
+  @static
+  @property {string} BOARD_INTERNAL
+    Filesystem type identifier for board internal storage
+  @readonly
+  ###
+  @classProperty("BOARD_INTERNAL", value: "BOARD_INTERNAL")
+
   #--------------------------------------------------------------------------------
   # Node.js compatible methods
   #
@@ -171,7 +202,7 @@ module.exports = class AsyncFs extends UnJSONable
       window.webkitRequestFileSystem(
         window.TEMPORARY
         5 * 1024 * 1024
-        (fs) => resolve(new Html5Fs(fs.root))
+        (fs) => resolve(new Html5Fs(fs.root, @TEMPORARY))
         reject
       )
     ) # return new Promise()
@@ -223,7 +254,7 @@ module.exports = class AsyncFs extends UnJSONable
           return success(entry)
       }
       return {
-        fs: new Html5Fs(dummyDirEntry)
+        fs: new Html5Fs(dummyDirEntry, @LOCAL)
         name: entry.name
       } # Last PromiseValue
     ) # return new Promise().then()
@@ -248,13 +279,23 @@ module.exports = class AsyncFs extends UnJSONable
           unless entry?
             error = chrome.runtime.lastError
             return reject(Error(error?.message or error))
-          return resolve(new Html5Fs(entry))
+          return resolve(new Html5Fs(entry, @LOCAL))
       )
     ) # return new Promise()
 
   #--------------------------------------------------------------------------------
   # Protected methods
   #
+
+  ###*
+  @protected
+  @method constructor
+    Constructor of AsyncFs class
+  @param {string} _fsType
+    Filesystem type identifier (AsyncFs.TEMPORARY etc.)
+  ###
+  constructor: (@_fsType) ->
+    return
 
   ###*
   @protected

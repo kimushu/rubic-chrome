@@ -513,6 +513,7 @@ module.exports = class WakayamaRbBoard extends Board
       Base directory
     ###
     constructor: (@_wrbb, @_dir = "") ->
+      super(AsyncFs.BOARD_INTERNAL)
       return
 
 # Post dependencies

@@ -266,7 +266,12 @@ module.exports = class PeridotBoard extends Board
     opendirfsImpl: (path) ->
       return
 
+    ###*
+    @method constructor
+      Constructor of PeridotFileSystem class
+    ###
     constructor: (@_canarium, @_dir) ->
+      super(AsyncFs.BOARD_INTERNAL)
       return
 
   class PeridotProgrammer extends Programmer

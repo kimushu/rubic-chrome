@@ -20,7 +20,8 @@ module.exports = class Html5Fs extends AsyncFs
   @param {DirectoryEntry} _dirEntry
     DirectoryEntry
   ###
-  constructor: (@_dirEntry) ->
+  constructor: (@_dirEntry, fsType) ->
+    super(fsType)
     return
 
   #--------------------------------------------------------------------------------
@@ -137,7 +138,7 @@ module.exports = class Html5Fs extends AsyncFs
       @_dirEntry.getDirectory(
         path
         {create: false}
-        (dirEntry) => resolve(new Html5Fs(dirEntry))
+        (dirEntry) => resolve(new Html5Fs(dirEntry, @fsType))
         reject
       ) # @_dirEntry.getDirectory()
     ) # return new Promise()
