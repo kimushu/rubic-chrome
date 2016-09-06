@@ -103,7 +103,11 @@ module.exports = class Html5Fs extends AsyncFs
                 blob = new Blob([data], {type: "text/plain;charset=#{options.encoding}"})
               else
                 blob = new Blob([data])
-              writer.onwriteend = => resolve()
+              truncated = false
+              writer.onwriteend = =>
+                return resolve() if truncated
+                truncated = true
+                writer.truncate(writer.position)
               writer.onerror = reject
               writer.write(blob)
             reject
