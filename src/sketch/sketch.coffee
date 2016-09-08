@@ -1,7 +1,6 @@
 "use strict"
 # Pre dependencies
 JSONable = require("util/jsonable")
-strftime = require("util/strftime")
 require("util/primitive")
 
 ###*
@@ -51,7 +50,7 @@ module.exports = class Sketch extends JSONable
     Array of items in sketch
   @readonly
   ###
-  @property("items", get: -> (item for item in @_items))
+  @property("items", get: -> Object.freeze(item for item in @_items))
 
   ###*
   @property {string} bootItem
@@ -75,19 +74,18 @@ module.exports = class Sketch extends JSONable
     set: (v) -> @_board = v; @dispatchEvent({type: "boardchange"})
   )
 
+  ###*
+  @property {Object} workspace
+    Workspace information
+  ###
+  @property("workspace",
+    get: -> @_workspace
+    set: (v) -> @_workspace = v
+  )
+
   #--------------------------------------------------------------------------------
   # Events
   #
-
-  ###*
-  @event boardchange
-    Board changed
-  @param {Object} event
-    Event object
-  @param {Sketch} event.target
-    Sketch instance
-  ###
-  @event("boardchange")
 
   ###*
   @event change
@@ -100,7 +98,27 @@ module.exports = class Sketch extends JSONable
   @event("change")
 
   ###*
-  @event addItem
+  @event save
+    Sketch saved
+  @param {Object} event
+    Event object
+  @param {Sketch} event.target
+    Sketch instance
+  ###
+  @event("save")
+
+  ###*
+  @event boardchange
+    Board changed
+  @param {Object} event
+    Event object
+  @param {Sketch} event.target
+    Sketch instance
+  ###
+  @event("boardchange")
+
+  ###*
+  @event additem
     SketchItem added
   @param {Object} event
     Event object
@@ -112,8 +130,8 @@ module.exports = class Sketch extends JSONable
   @event("additem")
 
   ###*
-  @event addItem
-    SketchItem added
+  @event removeitem
+    SketchItem being removed
   @param {Object} event
     Event object
   @param {Sketch} event.target
@@ -180,7 +198,7 @@ module.exports = class Sketch extends JSONable
     The instance of sketch
   ###
   @open: (dirFs) ->
-    dirFs.readFile(SKETCH_CONFIG, SKETCH_ENCODING).then((data) =>
+    return dirFs.readFile(SKETCH_CONFIG, SKETCH_ENCODING).then((data) =>
       obj = @_migrateAtOpen(JSON.parse(data))
       return Sketch.parseJSON(obj)
     ).then((sketch) =>
@@ -189,6 +207,24 @@ module.exports = class Sketch extends JSONable
     ).catch(=>
       return I18n.rejectPromise("Invalid_sketch")
     ) # return dirFs.readFile().then()...
+
+  ###*
+  @static
+  @method
+    Check if sketch exists
+  @param {AsyncFs} dirFs
+    File system object at the sketch directory
+  @return {Promise}
+    Promise object
+  @return {boolean} return.PromiseValue
+    True if sketch already exists
+  ###
+  @exists: (dirFs) ->
+    return dirFs.readFile(SKETCH_CONFIG, SKETCH_ENCODING).then(=>
+      return true
+    ).catch(=>
+      return false
+    )
 
   ###*
   @method
@@ -223,6 +259,7 @@ module.exports = class Sketch extends JSONable
       # Successfully saved
       @_modified = false
       newDirFs = null
+      @dispatchEvent({type: "save"})
       return  # Last PromiseValue
     ).finally(=>
       # Revert properties if failed
@@ -394,6 +431,40 @@ module.exports = class Sketch extends JSONable
 
   ###*
   @method
+    Add editor
+  @param {Editor} editor
+    Editor instance
+  @param {number} [position=null]
+    Position to be added (if null, append to last)
+  @return {boolean}
+    Result (true if successfully added)
+  ###
+  addEditor: (editor, position) ->
+    return false if @_editors.indexOf(editor) >= 0
+    last = @_editors.length
+    position = last unless position?
+    position = Math.max(Math.min(position, last), 0)
+    @_editors.splice(last, 0, editor)
+    @dispatchEvent({type: "addeditor", editor: editor, position: position})
+    return true
+
+  ###*
+  @method
+    Remove editor
+  @param {Editor} editor
+    Editor instance
+  @return {boolean}
+    Result (true if successfully removed)
+  ###
+  removeEditor: (editor) ->
+    position = @_editors.indexOf(editor)
+    return false if position < 0
+    @_editors.splice(position, 1)
+    @_dispatchEvent({type: "removeeditor", editor: editor, position: position})
+    return true
+
+  ###*
+  @method
     Build sketch
   @param {boolean} [force=false]
     Force build all files
@@ -486,6 +557,7 @@ module.exports = class Sketch extends JSONable
     @_items = (SketchItem.parseJSON(item) for item in (obj?.items or []))
     @_bootItem = obj.bootItem?.toString()
     @_board = Board.parseJSON(obj.board) if obj.board?
+    @_workspace = obj.workspace
     @_modify = (key, value) =>
       if key?
         return if @[key] == value
@@ -504,6 +576,7 @@ module.exports = class Sketch extends JSONable
       items: @_items
       bootItem: @_bootItem
       board: @_board
+      workspace: @_workspace
     })
 
   #--------------------------------------------------------------------------------
@@ -539,6 +612,7 @@ module.exports = class Sketch extends JSONable
         return src
 
 # Post dependencies
+strftime = require("util/strftime")
 I18n = require("util/i18n")
 AsyncFs = require("filesystem/asyncfs")
 App = require("app/app")
