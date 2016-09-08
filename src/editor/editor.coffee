@@ -25,6 +25,13 @@ module.exports = class Editor extends UnJSONable
   @editable: false
 
   ###*
+  @property {string} className
+    Class name of editor
+  @readonly
+  ###
+  @property("className", get: -> @constructor.name)
+
+  ###*
   @property {boolean} modified
     Is item modified
   ###
@@ -167,13 +174,16 @@ module.exports = class Editor extends UnJSONable
   @static
   @method
     Find suitable editor
-  @param {SketchItem} Item
-    SketchItem instance
+  @param {SketchItem/string} item
+    SketchItem instance or editor name
   @return {Function}
     Constructor of suitable editor class (if not found, returns undefined)
   ###
   @findEditor: (item) ->
-    return c for c in @subclasses when c.supports(item)
+    if typeof(item) == "string"
+      return c for c in @subclasses when c.name == item
+    else
+      return c for c in @subclasses when c.supports(item)
     return
 
   ###*

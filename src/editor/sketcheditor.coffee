@@ -20,7 +20,9 @@ module.exports = class SketchEditor extends Editor
     Title of this editor
   @readonly
   ###
-  @property("title", get: -> @sketch.friendlyName)
+  @property("title",
+    get: -> "[#{I18n.getMessage("Sketch")}] #{@sketch.friendlyName}"
+  )
 
   #--------------------------------------------------------------------------------
   # Private variables
@@ -80,6 +82,7 @@ module.exports = class SketchEditor extends Editor
       .click(@_removeItem.bind(this))
     @_refreshTree()
     jsTree.select_node(@_rootNodeId)
+    @sketch.addEventListener("save", this)
     @sketch.addEventListener("additem", this)
     @sketch.addEventListener("removeitem", this)
     return
@@ -97,6 +100,8 @@ module.exports = class SketchEditor extends Editor
   ###
   handleEvent: (event) ->
     switch event.type
+      when "save"
+        @dispatchEvent({type: "changetitle"})
       when "additem"
         @_refreshTree()
         for k, v of @_itemNodes
@@ -196,6 +201,8 @@ module.exports = class SketchEditor extends Editor
         tr("Script_Engine", item.engine.friendlyName)
         $("#template-input-text").children().clone().appendTo(
           tr("Compiler_options", "").eq(1)
+        ).val(item.compilerOptions).bind("input", (event) =>
+          item.compilerOptions = $(event.currentTarget).val()
         ) if fileHandler.hasCompilerOptions
     else
       # Root node (sketch)
