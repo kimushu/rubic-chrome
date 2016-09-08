@@ -54,7 +54,7 @@ module.exports = class App
   @log("Application: %o", App)
 
   @_popupMessage: (ntype, etype, icon, message, title) ->
-    this[etype]("Popup message: #{JSON.stringify({message: message, title: title})}")
+    this[etype]("Popup {message: %o, title: %o}", message, title)
     return new Notifier({
       icon: if icon? then "glyphicon glyphicon-#{icon}-sign" else undefined
       title: title
