@@ -17,7 +17,7 @@
     "serial",
     "storage",
     "unlimitedStorage",
-    {"fileSystem": ["directory", "write"]}
+    {"fileSystem": ["directory", "write", "retainEntries"]}
   ],
   "app": {
     "background": {"scripts": ["__BACKGROUND__"]}

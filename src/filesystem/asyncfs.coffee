@@ -10,20 +10,6 @@ UnJSONable = require("util/unjsonable")
 module.exports = class AsyncFs extends UnJSONable
   null
 
-  invokeCallback = (callback, promise) ->
-    promise.then((value) ->
-      callback(null, value)
-      return
-    ).catch((error) ->
-      callback(error)
-      return
-    )
-    return
-
-  SEP         = "/"
-  SEP_RE      = /\/+/
-  SEP_LAST_RE = /\/+$/
-
   #--------------------------------------------------------------------------------
   # Original properties
   #
@@ -65,6 +51,26 @@ module.exports = class AsyncFs extends UnJSONable
   @readonly
   ###
   @classProperty("BOARD_INTERNAL", value: "BOARD_INTERNAL")
+
+  #--------------------------------------------------------------------------------
+  # Private variables / constants
+  #
+
+  @_retainable: []
+
+  invokeCallback = (callback, promise) ->
+    promise.then((value) ->
+      callback(null, value)
+      return
+    ).catch((error) ->
+      callback(error)
+      return
+    )
+    return
+
+  SEP         = "/"
+  SEP_RE      = /\/+/
+  SEP_LAST_RE = /\/+$/
 
   #--------------------------------------------------------------------------------
   # Node.js compatible methods
@@ -184,6 +190,36 @@ module.exports = class AsyncFs extends UnJSONable
     return invokeCallback(callback, @opendirfs(path)) if callback?
     path = path.split(SEP_RE).join(SEP)
     return @opendirfsImpl(path)
+
+  ###*
+  @method
+    Retain filesystem
+  @return {Promise}
+    Promise object
+  @return {Object} return.PromiseValue
+    Object to describe retain information
+  ###
+  retainfs: ->
+    return @retainfsImpl().then((obj) =>
+      obj.__class__ = @constructor.name
+      return Object.freeze(obj)
+    )
+
+  ###*
+  @static
+  @method
+    Restore filesystem
+  @param {Object} retainInfo
+    Object to describe retain information
+  @return {Promise}
+    Promise object
+  @return {AsyncFs} return.PromiseValue
+    Restored filesystem object
+  ###
+  @restorefs: (retainInfo) ->
+    name = retainInfo.__class__
+    (return c.restorefs(retainInfo)) for c in @_retainable when c.name == name
+    return Promise.reject(Error("No retainable filesystem: #{name}"))
 
   ###*
   @static
@@ -319,7 +355,7 @@ module.exports = class AsyncFs extends UnJSONable
     Promise object
   ###
   mkdirImpl: (path, mode) ->
-    return I18n.rejectPromise("Not_supported")
+    return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
@@ -335,7 +371,7 @@ module.exports = class AsyncFs extends UnJSONable
     Read data
   ###
   readFileImpl: (path, options) ->
-    return I18n.rejectPromise("Not_supported")
+    return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
@@ -347,7 +383,7 @@ module.exports = class AsyncFs extends UnJSONable
     Promise object
   ###
   rmdirImpl: (path) ->
-    return I18n.rejectPromise("Not_supported")
+    return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
@@ -363,7 +399,7 @@ module.exports = class AsyncFs extends UnJSONable
     Promise object
   ###
   writeFileImpl: (path, data, options) ->
-    return I18n.rejectPromise("Not_supported")
+    return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
@@ -375,7 +411,7 @@ module.exports = class AsyncFs extends UnJSONable
     Promise object
   ###
   unlinkImpl: (path) ->
-    return I18n.rejectPromise("Not_supported")
+    return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
@@ -389,7 +425,31 @@ module.exports = class AsyncFs extends UnJSONable
     New fs object for directory
   ###
   opendirfsImpl: (path) ->
-    return I18n.rejectPromise("Not_supported")
+    return Promise.reject(Error("Not supported"))
+
+  ###*
+  @protected
+  @method
+    Implement of retainfs method
+  @return {Promise}
+    Promise object
+  @return {Object} return.PromiseValue
+    Object to describe retain information
+  ###
+  retainfsImpl: ->
+    return Promise.reject(Error("Not supported"))
+
+  ###*
+  @protected
+  @method
+    Register retainable subclass
+  @param {function} subclass
+    Constructor of subclass
+  @return {undefined}
+  ###
+  @retainable: (subclass) ->
+    @_retainable.push(subclass)
+    return
 
   #--------------------------------------------------------------------------------
   # Internal class
