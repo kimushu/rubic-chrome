@@ -20,6 +20,8 @@ Debug:
     "デバッグ"
 New_sketch:
     "新しいスケッチ"
+Create_new_sketch:
+    "新しいスケッチを作成する"
 Desc_of_new_sketch:
     "新しいスケッチを作成して作業を始めます。"
 Open_sketch:
@@ -224,6 +226,16 @@ No_cancel_the_operation:
     "いいえ、処理を中断します。"
 Saving_sketch:
     "スケッチを保存しています..."
+Sketch_overwrite_confirmation:
+    "スケッチ上書きの確認"
+Are_you_sure_to_overwrite_existing_sketch:
+    "既存のスケッチを上書きしてよろしいですか?"
+Yes_overwrite:
+    "はい、上書きします。"
+Sketch_was_saved:
+    "スケッチが保存されました。"
+Sketch_was_saved_in_draft:
+    "スケッチが下書きフォルダに保存されました。<br>永続的に保存するには、別の場所に保存し直してください。"
 Building_1:
     "$1 をビルドしています..."
 Transferring_1:
@@ -352,3 +364,35 @@ Script_to_execute_first:
     "最初に実行するスクリプト"
 Failed_to_build_1:
     "$1 のビルドに失敗しました"
+Sketch_overview:
+    "スケッチの概要"
+Name:
+    "名前"
+Not_configured:
+    "未設定"
+Startup_file:
+    "最初に実行するファイルの設定"
+Stored_location:
+    "保存先"
+Draft:
+    "下書き"
+Storage_in_this_PC:
+    "このPCのディスク内"
+File_overview:
+    "ファイルの概要"
+Folder:
+    "フォルダ"
+Compiler_options:
+    "コンパイラオプション"
+Sketch:
+    "スケッチ"
+Open_sketch_1:
+    "スケッチ「$1」を開く"
+Last_used_time:
+    "最後に使った日時"
+Unknown:
+    "不明"
+fsType_TEMPORARY:
+    "下書き"
+fsType_LOCAL:
+    "このPCのストレージ"
