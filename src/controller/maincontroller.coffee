@@ -1,6 +1,7 @@
 "use strict"
 # Pre dependencies
 WindowController = require("controller/windowcontroller")
+require("util/primitive")
 
 ###*
 @class MainController
@@ -30,8 +31,13 @@ module.exports = class MainController extends WindowController
 
   SCAN_TIMEOUT = 2000
   SCAN_PERIOD_MS = 1000
+  KEY_RECENT_SKETCHES_MAX = "recent_sketches.max"
+  DEF_RECENT_SKETCHES_MAX = 10
+  KEY_RECENT_SKETCHES_ITEMS = "recent_sketches.items"
+  KEY_DEFPLACE = "default_place"
   PLACES = ["local", "googledrive", "dropbox", "onedrive"]
   MIN_SAVE_SPIN = 400
+  TAB_SELECTOR = "li.editor-tab"
 
   firstActivation = true  # Flag for first activation
   tabSet = null           # jquery-scrollTabs instance for editor tabs
@@ -63,13 +69,13 @@ module.exports = class MainController extends WindowController
       $(".sketch-new")          .click(@_newSketch.bind(this))
       $(".sketch-open-latest")  .click(@_openSketch.bind(this, null))
       $(".sketch-open-local")   .click(@_openSketch.bind(this, "local"))
-      $(".sketch-save-over")    .click(@_saveSketch.bind(this, null))
-      $(".sketch-saveas-local") .click(@_saveSketch.bind(this, "local"))
+      $(".sketch-save-overwrite").click(@_saveSketch.bind(this, null))
+      $(".sketch-save-local")   .click(@_saveSketch.bind(this, "local"))
       $(".sketch-close")        .click(@_closeSketch.bind(this, false, false))
       $(".sketch-build")        .click(@_buildSketch.bind(this))
       $(".sketch-run")          .click(@_runSketch.bind(this))
       $(".sketch-stop").hide()  .click(@_stopSketch.bind(this))
-      $(".board-list") .parent().on("show.bs.dropdown", (event) =>
+      $(".board-list").parent().on("show.bs.dropdown", (event) =>
         # FIXME
         $("#board-list-tmpl").hide()
       ).on("hidden.bs.dropdown", (event) =>
@@ -108,38 +114,6 @@ module.exports = class MainController extends WindowController
       $("body").addClass("controller-main")
     ).then(=>
       return @_regenerate()
-      #   ).then(=>
-      #     return @_newSketch() unless App.sketch?
-      #   ).then(=>
-      #     return unless (sketch = App.sketch)?
-      #     return unless sketch.items.length == 0
-      #     return sketch.board?.loadFirmware().catch(=>
-      #       return
-      #     )
-      #   ).then((firmware) =>
-      #     fileHandler = null
-      #     for h in (firmware?.fileHandlers or [])
-      #       if h.suffix?
-      #         fileHandler = h
-      #         break
-      #     return unless fileHandler?
-      #     spin = @modalSpin().text(I18n.getMessage("Generating_source_codes")).show()
-      #     return Promise.all([Promise.delay(1000), Promise.resolve(
-      #     ).then(=>
-      #       main = "main.#{fileHandler.suffix}"
-      #       item = new SketchItem({path: main, transfer: false})
-      #       sketch.addItem(item)
-      #       sketch.setupItems()
-      #       editorClass = Editor.findEditor(item)
-      #       @_addEditor(new editorClass(@$, sketch, item)) if editorClass?
-      #       return
-      #     ).catch((error) =>
-      #       App.error(error)
-      #     )]).finally(
-      #       spin.hide()
-      #     ) # return Promise.all().finally()
-      #   ).then(=>
-      #     return @_activeEditor?.activate()
     ) # return super().then()...
 
   ###*
@@ -183,17 +157,38 @@ module.exports = class MainController extends WindowController
     noSketch = !@_sketch?
     $("body").toggleClass("no-sketch", noSketch)
     $(".when-main > .editor-body").hide()
-    if noSketch
-      # Welcome page
-      tabSet.clearTabs()
-      tabSet.addTab("<li id=\"editor-welcome\">#{I18n.getMessage("Welcome")}</li>")
-      $("#editor-welcome").click()
-      $("#welcome-page").show()
-      tmpl = $("#recent-sketch-tmpl").hide()
+    return Promise.resolve() unless noSketch
+
+    # Construct welcome page
+    tabSet.clearTabs()
+    tabSet.addTab("<li id=\"editor-welcome\">#{I18n.getMessage("Welcome")}</li>")
+    $("#editor-welcome").click()
+    tmpl = $("#recent-sketch-tmpl").children()
+    container = $("#recent-sketches").empty()
+    return @constructor._getRecentSketches(
+    ).then((items) =>
       $("#clear-recent-sketch").hide()
-    else
-      # Restore tabs
-    return Promise.resolve()
+      for item in items
+        break unless item.friendlyName?
+        do (item) =>
+          $("#clear-recent-sketch").show()
+          (a = tmpl.clone()).appendTo(container)
+          a.find(".placeholder")
+            .eq(0).text(I18n.getMessage("Open_sketch_1", item.friendlyName)).end()
+            .eq(1).html("""
+            #{I18n.getMessage("Stored_location")}: #{
+              I18n.getMessage("fsType_#{item.fsType}")
+            }&nbsp;&nbsp;/&nbsp;&nbsp;#{
+              I18n.getMessage("Last_used_time")}: #{
+              new Date(item.lastUsed).toLocaleString()
+            }
+            """).end()
+          a.click((event) =>
+            AsyncFs.restorefs(item.retainInfo).then((fs) => @_openSketch(null, fs))
+          ).show()
+      $("#welcome-page").show()
+      return
+    ) # return @constructor._getRecentSketches().then()
 
   ###*
   @private
@@ -249,19 +244,20 @@ module.exports = class MainController extends WindowController
     App.sketch?.removeEventListener("boardchange", this)
     @_board?.disconnect() if @_board?.connected
     @_sketch = App.sketch = sketch
+    App.log("Open sketch (%o)", @_sketch)
     @_sketch?.addEventListener("boardchange", this)
+    @_editors = []
+    tabSet.clearTabs()
     @_updateElementsForSketch()
     @_board = @_sketch?.board
     @_updateElementsForBoard()
     @_needRegenerate = false
-    @_editors = []
-    tabSet.clearTabs()
     return
 
   ###*
   @private
   @method
-    Open new sketch
+    Open new sketch (without updating recent sketch list)
   @return {Promise}
     Promise object
   ###
@@ -273,10 +269,7 @@ module.exports = class MainController extends WindowController
       return Sketch.createNew()
     ).then((sketch) =>
       @_setSketch(sketch)
-      @_addEditor(new SketchEditor(@$, sketch), true)
-      # for item in sketch.items
-      #   ec = Editor.findEditor(item) if item.path != ""
-      #   @_addEditor(new ec(@$, sketch, item)) if ec?
+      @_addEditor(new SketchEditor(@$, sketch), null, true)
       return
     ) # return Promise.resolve().then()...
 
@@ -336,28 +329,42 @@ module.exports = class MainController extends WindowController
   ###*
   @private
   @method
-    Open sketch
+    Open sketch (with updating recent sketch list)
+  @param {"latest"/"local"} [place="latest"]
+    Place to lookup sketches
+  @param {AsyncFs} [fs=null]
+    Filesystem object to open
   @return {Promise}
     Promise object
   ###
-  _openSketch: (place) ->
-    key = "default_place"
+  _openSketch: (place = "latest", fs = null) ->
     return Promise.resolve(
     ).then(=>
-      return {"#{key}": place} if place? and place != "latest"
-      return Preferences.get({"#{key}": "local"})
-    ).then((value) =>
-      place = value[key]
-      return @_closeSketch(true)
-    ).then(=>
-      switch(place)
-        when "local"
-          return AsyncFs.chooseDirectory().catch(=> return)
-      return Promise.reject(Error("Unsupported place: `#{place}'"))
+      return fs if fs?
+      return Promise.resolve(
+      ).then(=>
+        return {"#{KEY_DEFPLACE}": place} if place != "latest"
+        return Preferences.get({"#{KEY_DEFPLACE}": "local"})
+      ).then((value) =>
+        place = value[KEY_DEFPLACE]
+        return @_closeSketch(true)
+      ).then(=>
+        switch(place)
+          when "local"
+            return AsyncFs.chooseDirectory().catch(=> return)
+        return Promise.reject(Error("Unsupported place (#{place})"))
+      ) # return Promise.resolve().then()...
     ).then((fs) =>
       return unless fs?
       return Sketch.open(fs).then((sketch) =>
         @_setSketch(sketch)
+        return Promise.resolve(
+        ).then(=>
+          return @_restoreWorkspace()
+        ).then(=>
+          return @constructor._updateRecentSketch(sketch)
+        )
+      ).then(=>
         return  # Last PromiseValue
       ).catch((error) =>
         return global.bootbox.alert_p({
@@ -370,22 +377,119 @@ module.exports = class MainController extends WindowController
   ###*
   @private
   @method
-    Save sketch (overwrite)
+    Save sketch
+  @param {"overwrite"/"local"} [place="overwrite"]
   @return {Promise}
     Promise object
   ###
-  _saveSketch: ->
-    sketch = App.sketch
-    return Promise.reject(Error("No sketch to save")) unless sketch?
+  _saveSketch: (place = "overwrite") ->
+    return Promise.reject(Error("No sketch to save")) unless @_sketch?
     spin = @modalSpin().text(I18n.getMessage("Saving_sketch")).show()
+    oldFriendlyName = @_sketch.friendlyName?.toString()
+    oldFsType = @_sketch.dirFs.fsType
     return Promise.resolve(
     ).then(=>
-      return sketch.setupItems()
+      return @_sketch.setupItems()
     ).then(=>
-      return sketch.save()
+      return if place == "overwrite"
+      newDirFs = null
+      return Promise.resolve(
+      ).then(=>
+        switch place
+          when "local"
+            return AsyncFs.chooseDirectory()
+        return Promise.reject(Error("Unsupported place (#{place})"))
+      ).then((dirFs) =>
+        newDirFs = dirFs
+        return Sketch.exists(newDirFs)
+      ).then((exists) =>
+        return "yes" unless exists
+        return global.bootbox.dialog_p({
+          title: I18n.getMessage("Sketch_overwrite_confirmation")
+          message: I18n.getMessage("Are_you_sure_to_overwrite_existing_sketch")
+          closeButton: false
+          buttons: {
+            yes: {
+              label: I18n.getMessage("Yes_overwrite")
+              className: "btn-danger"
+            }
+            no: {
+              label: I18n.getMessage("No_cancel_the_operation")
+              className: "btn-success"
+            }
+          }
+        })  # return global.bootbox.dialog_p()
+      ).then((confirm) =>
+        return Promise.reject(Error("Cancelled by user")) unless confirm == "yes"
+        return Preferences.set({"#{KEY_DEFPLACE}": place})
+      ).then(=>
+        return newDirFs
+      ).catch((error) =>
+        App.popupWarning(I18n.getMessage("Sketch_save_canceled"))
+        App.error(error)
+        return Promise.reject()
+      ) # return Promise.resolve()
+    ).then((dirFs) =>
+      return @_backupWorkspace().then(=>
+        return @_sketch.save(dirFs)
+      ).then(=>
+        return @constructor._updateRecentSketch(@_sketch, oldFriendlyName, oldFsType)
+      )
+    ).then(=>
+      if @_sketch.dirFs.fsType == AsyncFs.TEMPORARY
+        id = "Sketch_was_saved_in_draft"
+      else
+        id = "Sketch_was_saved"
+      App.popupSuccess(I18n.getMessage(id))
+      return  # Do not wait until notification closing
     ).finally(=>
       spin.hide(MIN_SAVE_SPIN)
-    )
+    ).catch((error) =>
+      App.popupError(error) if error?
+      return  # Do not wait until notification closing
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Backup workspace
+  @return {Promise}
+    Promise object
+  ###
+  _backupWorkspace: ->
+    return Promise.resolve(
+    ).then(=>
+      @_sketch?.workspace = {
+        editors: ({
+          className: editor.className
+          path: editor.sketchItem?.path
+          active: (editor == @_activeEditor) or undefined
+        } for editor in @_editors)
+      }
+      return
+    ) # return Promise.resolve().then()
+
+  ###*
+  @private
+  @method
+    Restore workspace
+  @return {Promise}
+    Promise object
+  ###
+  _restoreWorkspace: ->
+    return Promise.resolve(
+    ).then(=>
+      @_clearEditors()
+      workspace = @_sketch?.workspace
+      return unless workspace
+      for desc in (workspace.editors or [])
+        editorClass = Editor.findEditor(desc.className)
+        if editorClass?
+          path = desc.path
+          item = @_sketch.getItem(path) if path?
+          @_addEditor(new editorClass(@$, @_sketch, item), null, !!desc.active)
+      return
+    ) # return Promise.resolve().then()
 
   ###*
   @private
@@ -668,25 +772,71 @@ module.exports = class MainController extends WindowController
         @_board.removeEventListener("disconnect", this)
       when "changetitle"
         editor = event.target
-        $("li##{editor.id}").text(editor.title)
+        position = @_editors.indexOf(editor)
+        if position >= 0
+          $(tabSet.domObject).find(TAB_SELECTOR).eq(position).text(editor.title)
     return
 
   ###*
   @private
   @method
     Add an editor tab
-  @return {undefined}
+  @param {Editor} editor
+    Editor instance
+  @param {number} [position=null]
+    Tab position
+  @param {boolean} [activate=false]
+    Activate editor after adding
+  @return {boolean}
   ###
-  _addEditor: (editor, activate = false) ->
+  _addEditor: (editor, position = null, activate = false) ->
+    $ = @$
     unless @_editors.includes(editor)
-      editor.id = "editor-id-#{nextEditorId++}"
-      tabSet.addTab("<li class=\"editor-tab\" id=\"#{editor.id}\"></li>")
-      $("li##{editor.id}").text(editor.title).click(
-        @_selectEditor.bind(this, editor)
-      )
+      position ?= @_editors.length
+      @_editors.splice(position, 0, editor)
+      s = TAB_SELECTOR.split(".")
+      tabSet.addTab("<#{s[0]} class=\"#{s[1]}\"></#{s[0]}>", position)
+      $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
+        .text(editor.title or "")
+        .click((event) =>
+          index = $(event.currentTarget).prevAll(TAB_SELECTOR).length
+          @_activateEditor(@_editors[index])
+        )
       editor.addEventListener("changetitle", this)
-    App.log("New editor (%o)", editor)
-    $("li##{editor.id}").click() if activate
+      App.log("New editor (%o) at index %d", editor, position)
+    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if activate
+    return true
+
+  ###*
+  @private
+  @method
+    Remove an editor
+  @param {Editor} editor
+    Editor instance
+  @return {boolean}
+  ###
+  _removeEditor: (editor) ->
+    position = @_editors.positionOf(editor)
+    return false if position < 0
+    if editor == @_activeEditor
+      editor.deactivate()
+      @_activeEditor = null
+    @_editors.splice(position, 1)
+    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
+    position = Math.min(position, @_editors.length - 1)
+    @_activateEditor(@_editors[position]) if poisition >= 0
+    return true
+
+  ###*
+  @private
+  @method
+    Clear editors
+  ###
+  _clearEditors: ->
+    @_activeEditor?.deactivate()
+    @_activeEditor = null
+    @_editors.splice(0, @_editors.length)
+    $(tabSet.domObject).find(TAB_SELECTOR).remove()
     return
 
   ###*
@@ -695,13 +845,92 @@ module.exports = class MainController extends WindowController
     Select an editor tab
   @param {Editor} editor
     Selected editor
-  @return {undefined}
+  @return {boolean}
   ###
-  _selectEditor: (editor) ->
-    return if editor == @_activeEditor
+  _activateEditor: (editor) ->
+    return false unless @_editors.includes(editor)
+    return true if editor == @_activeEditor
     @_activeEditor?.deactivate()
     (@_activeEditor = editor).activate()
-    return
+    return true
+
+  ###*
+  @static
+  @private
+  @method
+    Get recent sketch descriptors
+  @return {Promise}
+    Promise object
+  @return {Object[]} return.PromiseValue
+    Array of descriptor
+  ###
+  @_getRecentSketches: ->
+    return Promise.resolve(
+    ).then(=>
+      return Preferences.get({
+        "#{KEY_RECENT_SKETCHES_MAX}": DEF_RECENT_SKETCHES_MAX
+        "#{KEY_RECENT_SKETCHES_ITEMS}": []
+      })
+    ).then((values) =>
+      max = values[KEY_RECENT_SKETCHES_MAX]
+      items = values[KEY_RECENT_SKETCHES_ITEMS]
+      items.sort((a, b) =>
+        return b.lastUsed - a.lastUsed
+      )
+      items.push({lastUsed: 0}) while items.length < max
+      return items.slice(0, max)
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @static
+  @private
+  @method
+    Update recent sketch list
+  @param {Sketch} sketch
+    Sketch
+  @param {string} [oldFriendlyName=null]
+    Old sketch name
+  @param {string} [oldFsType=null]
+    Old filesystem type identifier
+  @return {Promise}
+    Promise object
+  @return {boolean} return.PromiseValue
+    Result (true for succeeded)
+  ###
+  @_updateRecentSketch: (sketch, oldFriendlyName, oldFsType) ->
+    return Promise.resolve(
+    ).then(=>
+      return @_getRecentSketches()
+    ).then((items) =>
+      max = items.length
+      if oldFriendlyName? and oldFsType == AsyncFs.TEMPORARY
+        for item, index in items
+          if item.friendlyName == oldFriendlyName
+            items.splice(index, 1)
+            break
+      return sketch.dirFs.retainfs(
+      ).then((retainInfo) =>
+        newName = sketch.friendlyName?.toString()
+        return unless newName?
+        for item, index in items
+          if item.friendlyName == newName
+            items.splice(index, 1)
+            break
+        items.unshift({
+          friendlyName: newName
+          lastUsed: Date.now()
+          fsType: sketch.dirFs.fsType
+          retainInfo: retainInfo
+        })
+        items = items.slice(0, max)
+        return Preferences.set({"#{KEY_RECENT_SKETCHES_ITEMS}": items})
+      ) # return sketch.dirFs.retainfs().then()
+    ).then(=>
+      return true
+    ).catch((error) =>
+      App.error(error)
+      return false
+    ) # return Promise.resolve().then()...
 
 # Post dependencies
 I18n = require("util/i18n")
@@ -710,6 +939,6 @@ App = require("app/app")
 Sketch = require("sketch/sketch")
 AsyncFs = require("filesystem/asyncfs")
 SketchItem = require("sketch/sketchitem")
-SketchEditor = require("editor/sketcheditor")
 Editor = require("editor/editor")
+SketchEditor = require("editor/sketcheditor")
 sprintf = require("util/sprintf")

@@ -57,15 +57,17 @@
         <div class="col-sm-12">
           <div class="list-group list-group-thin">
             <a href="#" class="list-group-item list-group-item-info sketch-new">
-              <h4 class="list-group-item-heading i18n"><span class="fa fa-fw fa-plus"></span> {New_sketch}</h4>
+              <h4 class="list-group-item-heading i18n"><span class="fa fa-fw fa-plus"></span> {Create_new_sketch}</h4>
               <p class="list-group-item-text i18n">{Desc_of_new_sketch}</p>
             </a>
           </div>
-          <div class="list-group">
-            <a href="#" class="list-group-item list-group-item-warning" id="recent-sketch-tmpl">
-              <h4 class="list-group-item-heading"><span class="fa fa-fw fa-folder-open-o"></span> (Open recent sketch)</h4>
-              <p class="list-group-item-text">(description)</p>
+          <div class="template-container" id="recent-sketch-tmpl">
+            <a href="#" class="list-group-item list-group-item-warning">
+              <h4 class="list-group-item-heading"><span class="fa fa-fw fa-folder-open-o"></span> <span class="placeholder"></span></h4>
+              <p class="list-group-item-text"><span class="placeholder"></span></p>
             </a>
+          </div>
+          <div class="list-group" id="recent-sketches">
           </div>
           <a href="#" class="i18n pull-right" id="clear-recent-sketch">
             <small><span class="fa fa-fw fa-trash-o"></span>{Clear_sketch_history}</small>
