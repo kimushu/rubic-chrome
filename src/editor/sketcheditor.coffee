@@ -211,12 +211,8 @@ module.exports = class SketchEditor extends Editor
         .find("thead").remove().end()
         .find("tbody")
       tr("Name", @_sketch?.friendlyName)
-      tr("Board", @_board?.friendlyName or notConf)
-      switch @_sketch?.dirFs?.fsType
-        when AsyncFs.TEMPORARY
-          tr("Stored_location", I18n.getMessage("Draft"))
-        when AsyncFs.LOCAL
-          tr("Stored_location", I18n.getMessage("Storage_in_this_PC"))
+      tr("Board", @_sketch.board?.friendlyName or notConf)
+      tr("Stored_location", I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType}"))
       body = $("#template-panel").children().clone().appendTo(div)
         .find(".panel-heading").text(I18n.getMessage("Startup_file")).end()
         .find(".panel-body")
