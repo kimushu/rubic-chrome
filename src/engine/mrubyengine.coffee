@@ -110,7 +110,7 @@ module.exports = class MrubyEngine extends Engine
     ).then(=>
       return mrbc.writeFile("/#{paths.rb}", src_data, {encoding: RUBY_ENCODING})
     ).then(=>
-      return mrbc.run("-o/#{paths.mrb}", "-g", (item.flags or [])...)
+      return mrbc.run("-o/#{paths.mrb}", (item.compilerOptions?.split(" ") or [])..., paths.rb)
     ).then((status) =>
       unless status == 0
         e = @_convertError(String.fromCharCode.apply(null, mrbc.readStderr()))
