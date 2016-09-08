@@ -48,7 +48,6 @@ module.exports = class WindowController extends Controller
 
       # Menu items
       activate = (_class) =>
-        $(".hide-left").click()
         _class.instance.activate()
       $(".activate-main").click(activate.bind(this, MainController))
       $(".activate-pref").click(activate.bind(this, PrefController))
