@@ -23,11 +23,10 @@ $(->
     require("board/wakayamarbboard")
     require("board/grcitrusboard")
 
-    # Engines
-    require("engine/mrubyengine")
-    require("engine/duktapeengine")
-    require("engine/luaengine")
-    require("engine/micropythonengine")
+    # Builders
+    require("builder/mrubybuilder")
+    require("builder/es5builder")
+    require("builder/coffeescriptbuilder")
 
     # Editors
     require("editor/rubyeditor")
