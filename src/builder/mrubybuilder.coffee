@@ -9,7 +9,7 @@ require("util/primitive")
   Builder for mruby (Model)
 @extends Builder
 ###
-module.exports = class MrubyBuidler extends Builder
+module.exports = class MrubyBuilder extends Builder
   Builder.jsonable(this)
 
   #--------------------------------------------------------------------------------
@@ -25,6 +25,43 @@ module.exports = class MrubyBuidler extends Builder
   @classProperty("friendlyName", value: new I18n({
     en: "mruby compiler"
     ja: "mruby コンパイラ"
+  }))
+
+  ###*
+  @static
+  @inheritdoc Builder#template
+  ###
+  @classProperty("template", value: Object.freeze({
+    suffix: "rb"
+    content: new I18n("#!mruby\n")
+  }))
+
+  ###*
+  @static
+  @inheritdoc Builder#configurations
+  ###
+  @classProperty("configurations", value: Object.freeze({
+    debugInfo: {
+      type: "boolean"
+      description: new I18n(
+        en: "Add debug information (-g)"
+        ja: "デバッグ情報を付加する (-g)"
+      )
+    }
+    enableDump: {
+      type: "boolean"
+      description: new I18n(
+        en: "Enable dump ouput (-v)"
+        ja: "ダンプ出力を有効にする (-v)"
+      )
+    }
+    compileOptions: {
+      type: "string"
+      description: new I18n(
+        en: "Compile options"
+        ja: "コンパイルオプション"
+      )
+    }
   }))
 
   ###*
@@ -51,7 +88,7 @@ module.exports = class MrubyBuidler extends Builder
   ###
   @property("compileOptions",
     get: -> @_compileOptions
-    set: (v) -> @_compileOptions.toString() or ""
+    set: (v) -> @_compileOptions = v?.toString() or ""
   )
 
   #--------------------------------------------------------------------------------
@@ -99,6 +136,7 @@ module.exports = class MrubyBuidler extends Builder
     mrb.builder = null
     mrb.fileType = MRB_FILETYPE
     mrb.source = rb
+    mrb.transfer = true
     if @_enableDump
       dump = rb.sketch.getItem("#{baseName}.dump", true)
       dump.builder = null

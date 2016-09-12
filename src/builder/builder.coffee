@@ -17,6 +17,13 @@ module.exports = class Builder extends JSONable
 
   ###*
   @static
+  @template
+  @property {Object} template
+    Template information
+  ###
+  @classProperty("template", value: Object.freeze({}))
+
+  ###*
   @property {I18n} friendlyName
     Name of this builder
   @readonly
@@ -24,7 +31,14 @@ module.exports = class Builder extends JSONable
   @property("friendlyName", get: -> @constructor.friendlyName)
 
   ###*
-  @static
+  @property {Object} configurations
+    Property information
+  ###
+  @property("configurations",
+    get: -> @constructor.configurations or Object.freeze({})
+  )
+
+  ###*
   @property {SketchItem} sketchItem
     SketchItem associated to this builder
   @readonly
