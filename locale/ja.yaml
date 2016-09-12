@@ -396,3 +396,19 @@ fsType_TEMPORARY:
     "下書き"
 fsType_LOCAL:
     "このPCのストレージ"
+fsType_Unknown:
+    "不明"
+Build_succeeded:
+    "ビルドに成功しました"
+FileType:
+    "ファイル種別"
+Generated_from:
+    "生成元"
+Transfer:
+    "転送"
+Transfer_to_board:
+    "ボードに転送する"
+Settings_for_1:
+    "$1の設定"
+Cannot_resolve_build_order:
+    "ビルドの順番を決定できません"

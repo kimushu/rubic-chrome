@@ -274,74 +274,75 @@ module.exports = class Sketch extends JSONable
     Promise object
   ###
   generateSkeleton: ->
-    item = getItem(@_bootItem) if @_bootItem
     return Promise.reject(Error("No board")) unless @_board?
     return Promise.resolve(
     ).then(=>
-      return @_board.loadFirmware()
-    ).then((firmware) =>
-      if item?
-        # Existing item
-        for engine in firmware.engines
-          for fileHandler in engine.fileHandlers
-            return fileHandler if fileHandler.supports(item.path)
-      else
-        # New item
-        for engine in firmware.engines
-          for fileHandler in engine.fileHandlers
-            return fileHandler if fileHandler.template? and fileHandler.suffix?
-      return Promise.reject(Error("No file handler")) unless fileHandler?
-    ).then((fileHandler) =>
-      return fileHandler if item?
-      # Create a new item
-      item = new SketchItem({path: "main.#{fileHandler.suffix}"})
-      @addItem(item)
-      @bootItem = item.path
+      # Execute setup to unbind non-supported builders
+      return @setupItems()
+    ).then(=>
+      return @_board.loadFirmRevision()
+    ).then((firmRevision) =>
+      item = @getItem(@_bootItem) if @_bootItem?
+      return if item?.builder?
+      builderClass = null
+      template = null
+      for cls in firmRevision.builderClasses
+        template = cls.template
+        if template.suffix?
+          builderClass = cls
+          break
+      return Promise.reject(Error("No builder class")) unless builderClass?
+      bootPath = "main.#{template.suffix}"
+      if @hasItem(bootPath)
+        # Configure existing file as boot item
+        @bootItem = bootPath
+        return
+
+      # Create new boot item
+      item = @getItem(bootPath, true)
+      @bootItem = bootPath
       return item.writeContent(
-        fileHandler.template.toString()
-        {encoding: SKETCH_ENCODING}
+        template.content?.toString() or ""
+        {encoding: "utf8"}
       ).then(=>
-        return fileHandler
-      )
-    ).then((fileHandler) =>
-      # TODO
-    )
-    return
+        # Execute setup again to bind builder to new item
+        return @setupItems()
+      ) # return item.writeContent().then()
+    ).then(=>
+      return  # Last PromiseValue
+    ) # return Promise.resolve().then()...
+
+  ###*
+  @method
+    Check if item in sketch
+  @param {SketchItem/string} item
+    Item or path
+  @return {boolean}
+    true if exists
+  ###
+  hasItem: (item) ->
+    if typeof(item) == "string"
+      comparator = (i) => i.path == item
+    else
+      comparator = (i) => i == item
+    return (@_items.findIndex(comparator) >= 0)
 
   ###*
   @method
     Get item in sketch
   @param {string} path
     Path of item
+  @param {boolean} create
+    Create if not exists
   @return {SketchItem/null}
     Item
   ###
-  getItem: (path) ->
+  getItem: (path, create = false) ->
     return item for item in @_items when item.path == path
+    if create
+      item = new SketchItem({path: path}, this)
+      return item if @addItem(item)
     return null
-
-  ###*
-  @method
-    Add a new item
-  @param {SketchItem/string} item
-    Item or path to create
-  @param {ArrayBuffer/string} content
-    Content of new item
-  @param {string} [encoding="utf8"]
-    Encoding (for string content)
-  @return {Promise}
-    Promise object
-  @return {SketchItem} return.PromiseValue
-    Item instance created
-  ###
-  addNewItem: (item, content, encoding = "utf8") ->
-    item = new SketchItem({path: item}) if typeof(item) == "string"
-    return Promise.reject(Error("Already_exist")) unless @addItem(item)
-    options = {}
-    options.encoding = encoding if typeof(content) == "string"
-    return @_dirFs.writeFile(item.path, content, options).then(=>
-      return item # Last PromiseValue
-    )
 
   ###*
   @method
@@ -352,7 +353,8 @@ module.exports = class Sketch extends JSONable
     Result (true=success, false=already_exists)
   ###
   addItem: (item) ->
-    return false if @getItem(item.path)?
+    return false if @hasItem(item.path)
+    return false if item.path == SKETCH_CONFIG
     item.setSketch(this)
     @_items.push(item)
     @_modify()
@@ -387,46 +389,26 @@ module.exports = class Sketch extends JSONable
   setupItems: ->
     return Promise.resolve(
     ).then(=>
-      index = 0
-      while index < @_items.length
-        item = @_items[index++]
-        sources = item.generatedFrom
-        if sources.length > 0
-          exists = 0
-          ++exists for src in sources when @_items.find((i) -> i.path == src)?
-          @_items.splice(--index, 1) if exists == 0
-      return
-    ).then(=>
-      return @_board?.loadFirmware()
-    ).then((firmware) =>
-      return unless firmware?
-      engines = firmware.engines
-      newItems = []
+      return @_board?.loadFirmRevision()
+    ).then((firmRevision) =>
+      return unless firmRevision?
+      builderClasses = firmRevision.builderClasses
       return @_items.reduce(
         (promise, item) =>
-          return promise if engines.includes(item.engine)
-          return promise.then(=>
-            return engines.reduce(
-              (promise2, engine) =>
-                return promise2.catch((error) =>
-                  return Promise.reject(error) if error?
-                  return engine.setup(this, item).then(=>
-                    return engine
-                  )
-                )
-              Promise.reject()
-            ).then((engine) =>
-              App.log("Engine detected for #{item.path} (%o)", engine)
-              item.engine = engine
-            ).catch((error) =>
-              App.error("Error occured during setup (#{error})") if error?
-              item.engine = null
+          if item.builder?
+            for cls in builderClasses
+              return promise if item.builder instanceof cls
+            # Remove unsuported builder
+            item.builder = null
+          for cls in builderClasses
+            continue unless cls.supports(item.path)
+            # Add builder
+            return promise.then(=>
+              return new cls({}, item).setup()
             )
-          )
+          return promise
         Promise.resolve()
-      ).then(=>
-        @_items.push(newItems...)
-      ) # return @_items.reduce().then()
+      ) # return @_items.reduce()
     ) # return Promise.resolve().then()...
 
   ###*
@@ -474,20 +456,46 @@ module.exports = class Sketch extends JSONable
     Promise object
   ###
   build: (force = false, progress = null) ->
-    buildItems = (item for item in @_items when item.engine?)
+    @_lastBuilt or= -1
+
+    # Resolve dependencies
+    candidates = (item for item in @_items when item.builder?)
+    buildItems = []
+    while candidates.length > 0
+      found = false
+      index = 0
+      while index < candidates.length
+        item = candidates[index]
+        src = item.source
+        if !src? or buildItems.includes(src)
+          buildItems.push(item)
+          candidates.splice(index, 1)
+          found = true
+        else
+          ++index
+      unless found
+        return I18n.rejectPromise("Cannot_resolve_build_order")
+    App.log("Resolved build dependency: %o", buildItems)
+
+    # Build
     done = 0
     return buildItems.reduce(
       (promise, item) =>
+        unless force
+          if (item.source?.lastModified or item.lastModified) < @_lastBuilt
+            return promise  # Skip
         return promise.then(=>
           engine = item.engine
           progress?(item.path, (100 * done / buildItems.length))
-          return engine.build(this, item).catch((error) =>
+          return item.builder.build().catch((error) =>
             progress?(item.path, null, error)
             return Promise.reject(error)
           )
         ).then(=>
           progress?(item.path, (100 * ++done / buildItems.length))
           return
+        ).delay(1).then(=>
+          @_lastBuilt = Date.now()
         )
       Promise.resolve()
     ) # return buildItems.reduce()
@@ -554,10 +562,11 @@ module.exports = class Sketch extends JSONable
   constructor: (obj = {}) ->
     super(obj)
     @_rubicVersion = obj.rubicVersion?.toString()
-    @_items = (SketchItem.parseJSON(item) for item in (obj?.items or []))
+    @_items = (SketchItem.parseJSON(item, this) for item in (obj?.items or []))
     @_bootItem = obj.bootItem?.toString()
     @_board = Board.parseJSON(obj.board) if obj.board?
     @_workspace = obj.workspace
+    @_modified = false
     @_modify = (key, value) =>
       if key?
         return if @[key] == value
@@ -599,8 +608,16 @@ module.exports = class Sketch extends JSONable
         return {
           rubicVersion: src.sketch.rubicVersion
           items: [
-            new SketchItem({path: "main.rb", transfer: false})
-            new SketchItem({path: "main.mrb", generatedFrom: ["main.rb"], transfer: true})
+            new SketchItem({
+              path: "main.rb"
+              builder: new MrubyBuilder({}, this).toJSON()
+              transfer: false
+            })
+            new SketchItem({
+              path: "main.mrb"
+              sourcePath: ["main.rb"]
+              transfer: true
+            })
           ]
           bootItem: "main.mrb"
           board: {

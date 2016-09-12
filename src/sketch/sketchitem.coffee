@@ -37,11 +37,38 @@ module.exports = class SketchItem extends JSONable
   @property("name", get: -> return @_path.split("/").pop())
 
   ###*
-  @property {string[]} generatedFrom
-    The list of sources of this item
+  @property {Builder} builder
+    Builder instance to process this item
+  ###
+  @property("builder",
+    get: -> @_builder
+    set: (v) -> @_modify("_builder", v)
+  )
+
+  ###*
+  @property {I18n} fileType
+    File type description
+  ###
+  @property("fileType",
+    get: -> @_fileType
+    set: (v) -> @_modify("_fileType", v)
+  )
+
+  ###*
+  @property {SketchItem} source
+    Source item instance
+  ###
+  @property("source",
+    get: -> @_sketch.getItem(@_sourcePath) if @_sourcePath?
+    set: (v) -> @_modify("_sourcePath", v?.path)
+  )
+
+  ###*
+  @property {string} sourcePath
+    Source path
   @readonly
   ###
-  @property("generatedFrom", get: -> (v for v in @_generatedFrom))
+  @property("sourcePath", get: -> @_sourcePath)
 
   ###*
   @property {boolean} transfer
@@ -50,24 +77,6 @@ module.exports = class SketchItem extends JSONable
   @property("transfer",
     get: -> @_transfer,
     set: (v) -> @_modify("_transfer", !!v)
-  )
-
-  ###*
-  @property {string} compilerOptions
-    The options for compiler
-  ###
-  @property("compilerOptions",
-    get: -> @_compilerOptions
-    set: (v) -> @_modify("_compilerOptions", v?.toString() or "")
-  )
-
-  ###*
-  @property {Engine} engine
-    The engine instance associated to this file
-  ###
-  @property("engine",
-    get: -> @_engine
-    set: (v) -> @_engine = v
   )
 
   ###*
@@ -80,13 +89,18 @@ module.exports = class SketchItem extends JSONable
   )
 
   ###*
-  @property {boolean} alreadyTransfered
-    Flag for skip of transfer
+  @property {number} lastModified
+    Timestamp of last modified date (in milliseconds from epoch, UTC)
+  @readonly
   ###
-  @property("alreadyTransfered",
-    get: -> @_alreadyTransfered
-    set: (v) -> @_alreadyTransfered = !!v
-  )
+  @property("lastModified", get: -> @_lastModified or 0)
+
+  ###*
+  @property {number} lastTransfered
+    Timestamp of last transfered date (in milliseconds from epoch, UTC)
+  @readonly
+  ###
+  @property("lastTransfered", get: -> @_lastTransfered or 0)
 
   #--------------------------------------------------------------------------------
   # Events
@@ -126,11 +140,24 @@ module.exports = class SketchItem extends JSONable
   ###
   constructor: (obj = {}, @_sketch) ->
     @_path = "#{obj.path}"
-    @_generatedFrom = obj.generatedFrom?.map?((v) -> "#{v}") or []
+    @_builder = Builder.parseJSON(obj.builder, this)
+    @_fileType = I18n.parseJSON(obj.fileType)
+    @_sourcePath = obj.sourcePath
     @_transfer = !!obj.transfer
-    @_compilerOptions = obj.compilerOptions?.toString()
     @_editor = null
     return
+
+  ###*
+  @inheritdoc JSONable#toJSON
+  ###
+  toJSON: ->
+    return super().extends({
+      path: @_path
+      builder: @_builder
+      fileType: @_fileType
+      sourcePath: @_sourcePath
+      transfer: @_transfer
+    })
 
   ###*
   @method
@@ -140,20 +167,6 @@ module.exports = class SketchItem extends JSONable
   @return {undefined}
   ###
   setSketch: (@_sketch) ->
-    return
-
-  ###*
-  @method
-    Add generator relationship
-  @param {SketchItem} item
-    SketchItem instance which generates this item
-  @return {undefined}
-  ###
-  addGenerator: (item) ->
-    path = item.path
-    unless @_generatedFrom.includes(path)
-      @_generatedFrom.push(path)
-      @dispatchEvent({type: "change"})
     return
 
   ###*
@@ -183,6 +196,7 @@ module.exports = class SketchItem extends JSONable
   writeContent: (content, options) ->
     return Promise.reject(Error("No sketch")) unless @_sketch?
     return @_sketch.dirFs.writeFile(@_path, content, options).then(=>
+      @_lastModified = Date.now()
       @dispatchEvent({type: "contentchange"})
       return
     )
@@ -213,22 +227,6 @@ module.exports = class SketchItem extends JSONable
     ) # return Promise.resolve().then()...
 
   #--------------------------------------------------------------------------------
-  # Protected methods
-  #
-
-  ###*
-  @protected
-  @inheritdoc JSONable#toJSON
-  ###
-  toJSON: ->
-    return super().extends({
-      path: @_path
-      generatedFrom: @_generatedFrom
-      transfer: @_transfer
-      compilerOptions: @_compilerOptions
-    })
-
-  #--------------------------------------------------------------------------------
   # Private methods
   #
 
@@ -249,4 +247,5 @@ module.exports = class SketchItem extends JSONable
     return
 
 # Post dependencies
-# (none)
+Builder = require("builder/builder")
+I18n = require("util/i18n")

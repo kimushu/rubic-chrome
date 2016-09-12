@@ -170,70 +170,133 @@ module.exports = class SketchEditor extends Editor
     return
 
   _selectItem: (item) ->
+    panels = {}
+    if item?
+      # SketchItem
+      panels["{File_overview}"] = ctrls = {}
+      dirs = item.path.split("/")
+      ctrls["{Name}"] = dirs.pop()
+      ctrls["{Folder}"] = dirs.join("/") if dirs.length > 0
+      ctrls["{FileType}"] = item.fileType?.toString() or I18n.getMessage("Unknown")
+      ctrls["{Generated_from}"] = item.source?.path
+      ctrls["{Transfer_to_board}"] = {
+        type: "checkbox"
+        get: => item.transfer
+        set: (v) => item.transfer = v
+      }
+      builder = item.builder
+      if builder?
+        # Builder settings
+        panels[I18n.getMessage("Settings_for_1", builder.friendlyName)] = ctrls = {}
+        for key, cfg of (builder.configurations or {})
+          do (key, cfg) =>
+            ctrl = {
+              get: => builder[key]
+              set: (v) => builder[key] = v
+            }
+            switch cfg.type
+              when "boolean"  then ctrl.type = "checkbox"
+              when "string"   then ctrl.type = "text"
+              when "fixed"    then ctrl = builder[key]?.toString()
+            ctrls[cfg.description.toString()] = ctrl
+    else
+      # Sketch
+      notConf = "(#{I18n.getMessage("Not_configured")})"
+      panels["{Sketch_overview}"] = ctrls = {}
+      ctrls["{Name}"] = @_sketch?.friendlyName.toString()
+      ctrls["{Board}"] = @_sketch?.board?.friendlyName.toString() or notConf
+      ctrls["{Stored_location}"] =
+        I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType or "Unknown"}")
+      ctrls["{Startup_file}"] = {
+        type: []
+        get: => @_sketch.bootItem
+        set: (v) => @_sketch.bootItem
+      }
+    @_generatePage(panels)
+    return
+
+  _generatePage: (panels) ->
     $ = @$
     div = $(".explorer-right").empty()
       .append('<div class="col-sm-12">').children("div")
+    for pname, ctrls of panels
+      body = $("#template-panel-table").children().clone().appendTo(div)
+        .find(".panel-heading").text(I18n.translateText(pname)).end()
+        .find("thead").remove().end()
+        .find("tbody")
+      for cname, ctrl of ctrls
+        do (ctrl) =>
+          if typeof(ctrl) == "string"
+            value = ctrl
+            ctrl = {type: "fixed", get: => value}
+          switch ctrl?.type
+            when "checkbox"
+              input = $("#template-input-checkbox").children().clone()
+                .appendTo(
+                  $("#template-tr-td2").children().clone().appendTo(body).children("td")
+                )
+                .find(".placeholder").text(I18n.translateText(cname)).end()
+                .find("input")
+              input.prop("checked", ctrl.get()).click(=>
+                ctrl.set(input.prop("checked"))
+                return
+              )
+            when "text"
+              input = $("#template-input-text").children().clone()
+                .appendTo(
+                  $("#template-tr-td2").children().clone().appendTo(body).children("td")
+                ).find(".placeholder").text(I18n.translateText(cname)).end()
+                .find("input")
+              input.val(ctrl.get()).change(=>
+                ctrl.set(input.val())
+                return
+              )
+            when "fixed"
+              $("#template-tr-td11").children().clone().appendTo(body).children("td")
+                .eq(0).text(I18n.translateText(cname)).end()
+                .eq(1).text(ctrl.get())
+            when undefined
+              null  # Do nothing
+    return
+
+  _selectSketch: ->
+    $ = @$
+    div = @_initPage()
     body = null
     tr = (titleId, value) =>
       $("#template-tr-td2").children().clone().appendTo(body).children("td")
         .eq(0).text(if titleId? then I18n.getMessage(titleId) else "").end()
         .eq(1).text(value or "").end()
     notConf = "(#{I18n.getMessage("Not_configured")})"
-    if item?
-      # File
-      body = $("#template-panel-table").children().clone().appendTo(div)
-        .find(".panel-heading")
-          .text(I18n.getMessage("File_overview"))
+
+    body = $("#template-panel-table").children().clone().appendTo(div)
+      .find(".panel-heading").text(I18n.getMessage("Sketch_overview")).end()
+      .find("thead").remove().end()
+      .find("tbody")
+    tr("Name", @_sketch?.friendlyName)
+    tr("Board", @_sketch.board?.friendlyName or notConf)
+    tr("Stored_location", I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType}"))
+    body = $("#template-panel").children().clone().appendTo(div)
+      .find(".panel-heading").text(I18n.getMessage("Startup_file")).end()
+      .find(".panel-body")
+    ul = $("#template-dropdown").children().clone().appendTo(body)
+      .find("button")
+        .addClass("btn-sm").prop("disabled", !(@_sketch?.items?.length > 0))
+        .find(".placeholder")
+          .text(@_sketch?.bootItem or notConf)
         .end()
-        .find("thead").remove().end()
-        .find("tbody")
-      dirs = item.path.split("/")
-      tr("Name", dirs.pop())
-      tr("Folder", dirs.join("/")) if dirs.length > 0
-      for fileHandler in (item.engine?.fileHandlers or [])
-        continue unless fileHandler.supports(item.path)
-        body = $("#template-panel-table").children().clone().appendTo(div)
-          .find(".panel-heading")
-            .text(I18n.getMessage("Script_engine_config"))
-          .end()
-          .find("thead").remove().end()
-          .find("tbody")
-        tr("Script_Engine", item.engine.friendlyName)
-        $("#template-input-text").children().clone().appendTo(
-          tr("Compiler_options", "").eq(1)
-        ).val(item.compilerOptions).bind("input", (event) =>
-          item.compilerOptions = $(event.currentTarget).val()
-        ) if fileHandler.hasCompilerOptions
-    else
-      # Root node (sketch)
-      body = $("#template-panel-table").children().clone().appendTo(div)
-        .find(".panel-heading").text(I18n.getMessage("Sketch_overview")).end()
-        .find("thead").remove().end()
-        .find("tbody")
-      tr("Name", @_sketch?.friendlyName)
-      tr("Board", @_sketch.board?.friendlyName or notConf)
-      tr("Stored_location", I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType}"))
-      body = $("#template-panel").children().clone().appendTo(div)
-        .find(".panel-heading").text(I18n.getMessage("Startup_file")).end()
-        .find(".panel-body")
-      ul = $("#template-dropdown").children().clone().appendTo(body)
-        .find("button")
-          .addClass("btn-sm").prop("disabled", !(@_sketch?.items?.length > 0))
-          .find(".placeholder")
-            .text(@_sketch?.bootItem or notConf)
-          .end()
-        .end()
-        .find("ul")
-      for item in (@_sketch?.items or [])
-        continue unless item.engine?
-        $('<li><a href="#">').appendTo(ul)
-          .find("a").text(item.path)[0].dataset.path = item.path
-      ul.find("li").click((event) =>
-        path = $(event.currentTarget)[0]?.dataset.path
-        return unless path?
-        @_sketch?.bootItem = path
-        ul.parent().find(".placeholder").text(path)
-      )
+      .end()
+      .find("ul")
+    for item in (@_sketch?.items or [])
+      continue unless item.builder?
+      $('<li><a href="#">').appendTo(ul)
+        .find("a").text(item.path)[0].dataset.path = item.path
+    ul.find("li").click((event) =>
+      path = $(event.currentTarget)[0]?.dataset.path
+      return unless path?
+      @_sketch?.bootItem = path
+      ul.parent().find(".placeholder").text(path)
+    )
     return
 
   _refreshTree: ->
@@ -242,7 +305,7 @@ module.exports = class SketchEditor extends Editor
     jsTree.rename_node(@_rootNodeId, @sketch.friendlyName)
 
     # Get items
-    items = @sketch.items.sort((a, b) =>
+    items = @sketch.items.slice(0).sort((a, b) =>
       # Sort by path name (case insensitive)
       ap = a.path.toUpperCase()
       bp = b.path.toUpperCase()

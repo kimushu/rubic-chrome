@@ -250,6 +250,8 @@ module.exports = class MainController extends WindowController
     tabSet.clearTabs()
     @_updateElementsForSketch()
     @_board = @_sketch?.board
+    @_board?.addEventListener("connect", this)
+    @_board?.addEventListener("disconnect", this)
     @_updateElementsForBoard()
     @_needRegenerate = false
     return
@@ -524,6 +526,8 @@ module.exports = class MainController extends WindowController
           return spin.text(
             "#{I18n.getMessage("Building_1", path)} (#{Math.round(progress)}%)"
           )
+      ).then(=>
+        App.popupSuccess(I18n.getMessage("Build_succeeded"))
       ).finally(=>
         spin.hide(500)
       ) # return sketch.build()...
