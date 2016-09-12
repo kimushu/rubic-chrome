@@ -22,15 +22,15 @@ module.exports = class I18n extends JSONable
   @method constructor
     Constructor of multi-language text
   ###
-  constructor: (obj) ->
-    @_text = obj
+  constructor: (@_obj) ->
+    @_text = @_obj
     return if typeof(@_text) == "string"
-    @_text = obj[lang]
+    @_text = @_obj[lang]
     return if typeof(@_text) == "string"
-    @_text = obj["en"]
+    @_text = @_obj["en"]
     return if typeof(@_text) == "string"
     @_text = "<translate error>"
-    console.warn("No translated text for object (#{obj})")
+    console.warn("No translated text for object (#{@_obj})")
     Object.freeze(this)
     return
 
