@@ -44,14 +44,12 @@ module.exports = class FirmRevision extends JSONable
   @property("lastModified", get: -> @_lastModified)
 
   ###*
-  @property {Object} engineOptions
-    Engine options
+  @property {Function[]} builderClasses
+    Array of supported builders
   @readonly
   ###
-  @property("engineOptions", get: ->
-    r = {}
-    r[k] = v for k, v of @_engineOptions
-    return r
+  @property("builderClasses",
+    get: -> Object.freeze(c for c in @_builderClasses)
   )
 
   ###*
@@ -152,13 +150,15 @@ module.exports = class FirmRevision extends JSONable
     JSON object
   ###
   constructor: (obj = {}) ->
-    @_id            = obj.id?.toString()
-    @_friendlyName  = I18n.parseJSON(obj.friendlyName)
-    @_rubicVersion  = obj.rubicVersion?.toString()
-    @_lastModified  = parseInt(obj.lastModified)
-    @_beta          = !!obj.beta
-    @_obsolete      = !!obj.obsolete
-    @_assets        = obj.assets or {}
+    @_id              = obj.id?.toString()
+    @_friendlyName    = I18n.parseJSON(obj.friendlyName)
+    @_rubicVersion    = obj.rubicVersion?.toString()
+    @_lastModified    = parseInt(obj.lastModified)
+    @_builderClasses  =
+      (Builder.subclasses.find((c) => c.name == name) for name in obj.builderClasses or [])
+    @_beta            = !!obj.beta
+    @_obsolete        = !!obj.obsolete
+    @_assets          = obj.assets or {}
     return
 
   ###*
@@ -168,13 +168,14 @@ module.exports = class FirmRevision extends JSONable
   ###
   toJSON: ->
     return super().extends({
-      id            : @_id
-      friendlyName  : @_friendlyName
-      rubicVersion  : @_rubicVersion
-      lastModified  : @_lastModified
-      beta          : @_beta
-      obsolete      : @_obsolete
-      assets        : @_assets
+      id              : @_id
+      friendlyName    : @_friendlyName
+      rubicVersion    : @_rubicVersion
+      lastModified    : @_lastModified
+      builderClasses  : (cls.name for cls in @_builderClasses)
+      beta            : @_beta
+      obsolete        : @_obsolete
+      assets          : @_assets
     })
 
 # Post dependencies
@@ -182,3 +183,4 @@ I18n = require("util/i18n")
 XhrPromise = require("util/xhrpromise")
 JsZip = global.Libs.JsZip
 Preferences = require("app/preferences")
+Builder = require("builder/builder")

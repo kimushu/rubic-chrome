@@ -44,25 +44,6 @@ module.exports = class Firmware extends JSONable
   @property("author", get: -> @_author)
 
   ###*
-  @property {Engine[]} engines
-    List of engines
-  @readonly
-  ###
-  @property("engines", get: -> (e for e in @_engines))
-
-  ###*
-  @property {FileHandler[]) fileHandlers
-    List of file handlers by all engines
-  @readonly
-  ###
-  @property("fileHandlers", get: ->
-    return @_fileHandlers or= @_engines.reduce(
-      (handlers, engine) => handlers.concat(engine.fileHandlers)
-      []
-    )
-  )
-
-  ###*
   @property {boolean} beta
     Is a beta feature?
   @readonly
@@ -91,7 +72,6 @@ module.exports = class Firmware extends JSONable
     @_friendlyName  = I18n.parseJSON(obj.friendlyName)
     @_rubicVersion  = obj.rubicVersion?.toString()
     @_author        = I18n.parseJSON(obj.author)
-    @_engines       = (Engine.parseJSON(e) for e in (obj.engines or []))
     @_beta          = !!obj.beta
     @_obsolete      = !!obj.obsolete
     return
@@ -107,11 +87,9 @@ module.exports = class Firmware extends JSONable
       friendlyName  : @_friendlyName
       rubicVersion  : @_rubicVersion
       author        : @_author
-      engines       : @_engines
       beta          : @_beta
       obsolete      : @_obsolete
     })
 
 # Post dependencies
 I18n = require("util/i18n")
-Engine = require("engine/engine")
