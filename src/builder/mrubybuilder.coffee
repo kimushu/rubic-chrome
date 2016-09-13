@@ -111,6 +111,7 @@ module.exports = class MrubyBuilder extends Builder
     en: "mruby compiler dump output"
     ja: "mruby コンパイラダンプ出力"
   })
+  DUMP_ENCODING = RB_ENCODING
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -180,7 +181,10 @@ module.exports = class MrubyBuilder extends Builder
     ).then((data) =>
       return mrb.writeContent(data)
     ).then(=>
-      return dump?.writeContent(mrbc.readStdout())
+      return dump?.writeContent(
+        String.fromCharCode.apply(null, mrbc.readStdout())
+        {encoding: DUMP_ENCODING}
+      )
     ).then(=>
       return  # Last PromiseValue
     ) # return Promise.resolve().then()...
