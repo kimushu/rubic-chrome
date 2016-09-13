@@ -86,7 +86,7 @@ module.exports = class MrbViewer extends TextEditor
         m.push("This file is not supported")
       if m.length > 0
         r.messages = m
-      return jsyaml.safeDump(r, {styles: {"!!int": "hex"}}) # Last PromiseValue
+      return JsYaml.safeDump(r, {styles: {"!!int": "hex"}}) # Last PromiseValue
     ) # return Promise.resolve().then()
 
   #--------------------------------------------------------------------------------
@@ -322,7 +322,8 @@ module.exports = class MrbViewer extends TextEditor
         else
           args = ",...,R(#{b+c})"
         return ["OP_HASH\t#{a}, #{b}, #{c}", "R(#{a}) := hash_new(R(#{b})#{args})"]
-      # when 0x40 => OP_LAMBDA
+      when 0x40
+        return ["OP_LAMBDA\t#{a}, #{b}, #{c}", "R(#{a}) := lambda(SEQ[#{b}],#{c})"]
       when 0x41
         return ["OP_RANGE\t#{a}, #{b}, #{c}", "R(#{a}) := range_new(R(#{b}),R(#{b+1}),C)"]
       when 0x42
@@ -354,4 +355,4 @@ module.exports = class MrbViewer extends TextEditor
         return [sprintf("0x%08x", code), "Unknown opcode"]
 
 # Post dependencies
-# (none)
+JsYaml = global.Libs.JsYaml
