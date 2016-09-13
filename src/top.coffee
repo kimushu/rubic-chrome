@@ -36,6 +36,7 @@ $(->
     require("editor/luaeditor")
     require("editor/pythoneditor")
     require("editor/yamleditor")
+    require("editor/plaintexteditor")
   )
 )
 
