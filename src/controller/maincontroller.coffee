@@ -60,6 +60,16 @@ module.exports = class MainController extends WindowController
       tabSet or= $("#editor-tabs").scrollTabs({
         left_arrow_size: 18
         right_arrow_size: 18
+        click_callback: (event) =>
+          index = $(event.currentTarget).prevAll(TAB_SELECTOR).length
+          editor = @_editors[index]
+          return unless editor?
+          if $(event.target).hasClass("editor-close-button")
+            # TODO: confirmation
+            @removeEditor(editor) if editor.closable
+          else
+            @_activateEditor(editor)
+          return
       })
       App.log("MainController.tabSet: %o", tabSet)
       return
@@ -124,6 +134,59 @@ module.exports = class MainController extends WindowController
     $ = @$
     $("body").removeClass("controller-main")
     return super()
+
+  ###*
+  @method
+    Add an editor tab
+  @param {Editor} editor
+    Editor instance
+  @param {number} [position=null]
+    Tab position
+  @param {boolean} [activate=false]
+    Activate editor after adding
+  @return {boolean}
+  ###
+  addEditor: (editor, position = null, activate = false) ->
+    $ = @$
+    exists = @_editors.indexOf(editor)
+    if exists >= 0
+      position = exists
+    else
+      position ?= @_editors.length
+      @_editors.splice(position, 0, editor)
+      s = TAB_SELECTOR.split(".")
+      tabSet.addTab("""
+      <#{s[0]} class="#{s[1]}">
+        <a href="#"></a>
+        <span class="editor-close-button glyphicon glyphicon-remove"></span>
+      </#{s[0]}>
+      """, position)
+      tab = $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
+      tab.find("a").eq(0).text(editor.title or "")
+      tab.find("span").remove() unless editor.closable
+      editor.addEventListener("changetitle", this)
+      App.log("New editor (%o) at index %d", editor, position)
+    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if activate
+    return true
+
+  ###*
+  @method
+    Remove an editor
+  @param {Editor} editor
+    Editor instance
+  @return {boolean}
+  ###
+  removeEditor: (editor) ->
+    position = @_editors.indexOf(editor)
+    return false if position < 0
+    if editor == @_activeEditor
+      editor.deactivate()
+      @_activeEditor = null
+    @_editors.splice(position, 1)
+    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
+    position = Math.min(position, @_editors.length - 1)
+    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if position >= 0
+    return true
 
   #--------------------------------------------------------------------------------
   # Private methods
@@ -271,7 +334,7 @@ module.exports = class MainController extends WindowController
       return Sketch.createNew()
     ).then((sketch) =>
       @_setSketch(sketch)
-      @_addEditor(new SketchEditor(@$, sketch), null, true)
+      @addEditor(new SketchEditor(@$, sketch), null, true)
       return
     ) # return Promise.resolve().then()...
 
@@ -489,7 +552,7 @@ module.exports = class MainController extends WindowController
         if editorClass?
           path = desc.path
           item = @_sketch.getItem(path) if path?
-          @_addEditor(new editorClass(@$, @_sketch, item), null, !!desc.active)
+          @addEditor(new editorClass(@$, @_sketch, item), null, !!desc.active)
       return
     ) # return Promise.resolve().then()
 
@@ -778,58 +841,9 @@ module.exports = class MainController extends WindowController
         editor = event.target
         position = @_editors.indexOf(editor)
         if position >= 0
-          $(tabSet.domObject).find(TAB_SELECTOR).eq(position).text(editor.title)
+          $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
+            .find("a").text(editor.title)
     return
-
-  ###*
-  @private
-  @method
-    Add an editor tab
-  @param {Editor} editor
-    Editor instance
-  @param {number} [position=null]
-    Tab position
-  @param {boolean} [activate=false]
-    Activate editor after adding
-  @return {boolean}
-  ###
-  _addEditor: (editor, position = null, activate = false) ->
-    $ = @$
-    unless @_editors.includes(editor)
-      position ?= @_editors.length
-      @_editors.splice(position, 0, editor)
-      s = TAB_SELECTOR.split(".")
-      tabSet.addTab("<#{s[0]} class=\"#{s[1]}\"></#{s[0]}>", position)
-      $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
-        .text(editor.title or "")
-        .click((event) =>
-          index = $(event.currentTarget).prevAll(TAB_SELECTOR).length
-          @_activateEditor(@_editors[index])
-        )
-      editor.addEventListener("changetitle", this)
-      App.log("New editor (%o) at index %d", editor, position)
-    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if activate
-    return true
-
-  ###*
-  @private
-  @method
-    Remove an editor
-  @param {Editor} editor
-    Editor instance
-  @return {boolean}
-  ###
-  _removeEditor: (editor) ->
-    position = @_editors.positionOf(editor)
-    return false if position < 0
-    if editor == @_activeEditor
-      editor.deactivate()
-      @_activeEditor = null
-    @_editors.splice(position, 1)
-    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
-    position = Math.min(position, @_editors.length - 1)
-    @_activateEditor(@_editors[position]) if poisition >= 0
-    return true
 
   ###*
   @private

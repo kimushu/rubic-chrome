@@ -16,6 +16,14 @@ module.exports = class SketchEditor extends Editor
   #
 
   ###*
+  @static
+  @property {boolean} closable
+    Is editor closable
+  @readonly
+  ###
+  @closable: false
+
+  ###*
   @property {string} title
     Title of this editor
   @readonly
@@ -46,6 +54,7 @@ module.exports = class SketchEditor extends Editor
   ###
   constructor: ($, sketch) ->
     super($, sketch, null, (domElement or= $("#sketch-editor")[0]))
+    @_selectedItem = null
     jsTree?.destroy()
     jqTreeElement = $(domElement).find(".explorer-left").empty()
     jqTreeElement.jstree({
@@ -64,11 +73,8 @@ module.exports = class SketchEditor extends Editor
     jsTree = jqTreeElement.jstree(true)
     e = "select_node.jstree"
     jqTreeElement.unbind(e).on(e, (event, data) =>
-      isFile = (data.node.type == "file")
-      $(".explorer-open").prop("disabled", !isFile)
-      $(".explorer-rename").prop("disabled", !isFile)
-      $(".explorer-remove").prop("disabled", !isFile)
-      @_selectItem(@_itemNodes[data.node.id]?.item)
+      @_selectedItem = @_itemNodes[data.node.id]?.item
+      @_selectItem()
     )
     $(".explorer-add-existing").unbind("click")
       .click(@_addExisting.bind(this))
@@ -161,7 +167,17 @@ module.exports = class SketchEditor extends Editor
     ) # return AsyncFs.chooseFile()...
 
   _openItem: ->
-    return
+    item = @_selectedItem
+    return unless item?
+    editor = item.editor
+    unless editor?
+      editorClass = Editor.findEditor(item)
+      unless editorClass?
+        App.popupError(I18n.getMessage("Cannot_find_editor"))
+        return false
+      editor = new editorClass(@$, @_sketch, item)
+    MainController.instance.addEditor(editor, null, true)
+    return true
 
   _renameItem: ->
     return
@@ -169,7 +185,12 @@ module.exports = class SketchEditor extends Editor
   _removeItem: ->
     return
 
-  _selectItem: (item) ->
+  _selectItem: ->
+    $ = @$
+    item = @_selectedItem
+    $(".explorer-open").prop("disabled", !item?)
+    $(".explorer-rename").prop("disabled", !item? or !!(item?.source?))
+    $(".explorer-remove").prop("disabled", !item? or !!(item?.source?))
     panels = {}
     if item?
       # SketchItem
@@ -350,3 +371,4 @@ module.exports = class SketchEditor extends Editor
 AsyncFs = require("filesystem/asyncfs")
 App = require("app/app")
 I18n = require("util/i18n")
+MainController = require("controller/maincontroller")

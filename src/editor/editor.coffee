@@ -19,10 +19,19 @@ module.exports = class Editor extends UnJSONable
   @static
   @inheritable
   @property {boolean} editable
-    Editable (true) or viewer only (false)
+    Editable (true) or readonly (false)
   @readonly
   ###
   @editable: false
+
+  ###*
+  @static
+  @inheritable
+  @property {boolean} closable
+    Is editor closable
+  @readonly
+  ###
+  @closable: true
 
   ###*
   @property {string} className
@@ -30,6 +39,20 @@ module.exports = class Editor extends UnJSONable
   @readonly
   ###
   @property("className", get: -> @constructor.name)
+
+  ###*
+  @property {boolean} editable
+    Editable (true) or readonly (false)
+  @readonly
+  ###
+  @property("editable", get: -> @constructor.editable)
+
+  ###*
+  @property {boolean} closable
+    Is editor closable
+  @readonly
+  ###
+  @property("closable", get: -> @constructor.closable)
 
   ###*
   @property {boolean} modified
@@ -264,6 +287,7 @@ module.exports = class Editor extends UnJSONable
     Element for this editor
   ###
   constructor: (@$, @_sketch, @_sketchItem, @_element) ->
+    @_sketchItem?.editor = this
     return
 
 # Post dependencies
