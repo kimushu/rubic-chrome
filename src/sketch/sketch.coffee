@@ -397,7 +397,9 @@ module.exports = class Sketch extends JSONable
         (promise, item) =>
           if item.builder?
             for cls in builderClasses
-              return promise if item.builder instanceof cls
+              return promise.then(=>
+                return item.builder.setup()
+              ) if item.builder instanceof cls
             # Remove unsuported builder
             item.builder = null
           for cls in builderClasses
