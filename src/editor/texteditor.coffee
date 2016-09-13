@@ -38,6 +38,7 @@ module.exports = class TextEditor extends Editor
     ).then((rawdata) =>
       return @convertForReading(rawdata)
     ).then((text) =>
+      @_loaded = true
       @_quiet(=>
         @_aceSession.setValue(text)
       )
@@ -67,7 +68,11 @@ module.exports = class TextEditor extends Editor
     return super(
     ).then(=>
       aceEditor.setSession(@_aceSession)
+      aceEditor.setReadOnly(!@constructor.editable)
       aceEditor.focus()
+    ).then(=>
+      return if @_loaded
+      return @load()
     ) # return super().then()
 
   ###*
@@ -123,6 +128,8 @@ module.exports = class TextEditor extends Editor
     Ace or= window.ace
     unless aceEditor
       aceEditor = Ace.edit(domElement)
+      App.log("TextEditor.aceEditor: %o", aceEditor)
+      aceEditor.$blockScrolling = Infinity
       aceEmptySession = aceEditor.getSession()
       aceEditor.setShowPrintMargin(false)
     @_aceSession = new Ace.createEditSession("", @_aceMode)
@@ -130,6 +137,7 @@ module.exports = class TextEditor extends Editor
       @modified = true unless @_ignoreEvents
       # TODO raise event listener
     )
+    @_loaded = false
     @_ignoreEvents = false
     @_quiet = (action) =>
       try
@@ -181,3 +189,4 @@ module.exports = class TextEditor extends Editor
 
 # Post dependencies
 I18n = require("util/i18n")
+App = require("app/app")
