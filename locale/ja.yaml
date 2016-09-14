@@ -412,3 +412,5 @@ Settings_for_1:
     "$1の設定"
 Cannot_resolve_build_order:
     "ビルドの順番を決定できません"
+File_1_has_been_modified:
+    "ファイル $1 には未保存の変更があります"

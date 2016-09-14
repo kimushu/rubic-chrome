@@ -65,8 +65,29 @@ module.exports = class MainController extends WindowController
           editor = @_editors[index]
           return unless editor?
           if $(event.target).hasClass("editor-close-button")
-            # TODO: confirmation
-            @removeEditor(editor) if editor.closable
+            Promise.resolve(
+            ).then(=>
+              return "ok" unless editor.modified
+              return global.bootbox.dialog_p({
+                title: I18n.getMessage("File_1_has_been_modified", editor.sketchItem?.path)
+                message: I18n.getMessage("Are_you_sure_to_discard_modifications")
+                closeButton: false
+                buttons: {
+                  ok: {
+                    label: I18n.getMessage("Yes_discard_them")
+                    className: "btn-danger"
+                  }
+                  cancel: {
+                    label: I18n.getMessage("No_cancel_the_operation")
+                    className: "btn-success"
+                  }
+                }
+              })  # return global.bootbox.dialog_p()
+            ).then((result) =>
+              return unless result == "ok"
+              @removeEditor(editor) if editor.closable
+              return
+            )
           else
             @_activateEditor(editor)
           return
