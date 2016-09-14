@@ -39,6 +39,7 @@ module.exports = class SketchEditor extends Editor
   domElement = null
   jsTree = null
   jqTreeElement = null
+  FILE_ICONTYPE = {true: "file_transfer", false: "file"}
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -68,6 +69,8 @@ module.exports = class SketchEditor extends Editor
         sketch: {}
         file:
           icon: "glyphicon glyphicon-file"
+        file_transfer:
+          icon: "glyphicon glyphicon-save-file"
       plugins: ["types"]
     })
     jsTree = jqTreeElement.jstree(true)
@@ -75,6 +78,12 @@ module.exports = class SketchEditor extends Editor
     jqTreeElement.unbind(e).on(e, (event, data) =>
       @_selectedItem = @_itemNodes[data.node.id]?.item
       @_selectItem()
+    )
+    e = "dblclick.jstree"
+    jqTreeElement.unbind(e).on(e, (event) =>
+      item = @_itemNodes[$(event.target).closest("li")[0]?.id]?.item
+      return unless item == @_selectedItem and item?
+      $(".explorer-open").click()
     )
     $(".explorer-add-existing").unbind("click")
       .click(@_addExisting.bind(this))
@@ -162,7 +171,8 @@ module.exports = class SketchEditor extends Editor
       return unless result == "yes"
       @sketch.removeItem(name)
       return fs.readFile(name).then((data) =>
-        return @sketch.addNewItem(name, data)
+        item = @sketch.getItem(name, true)
+        return item.writeContent(data)
       )
     ) # return AsyncFs.chooseFile()...
 
@@ -180,6 +190,9 @@ module.exports = class SketchEditor extends Editor
     return true
 
   _renameItem: ->
+    item = @_selectedItem
+    return unless item?
+
     return
 
   _removeItem: ->
@@ -203,7 +216,12 @@ module.exports = class SketchEditor extends Editor
       ctrls["{Transfer_to_board}"] = {
         type: "checkbox"
         get: => item.transfer
-        set: (v) => item.transfer = v
+        set: (v) =>
+          item.transfer = v
+          for id, info of @_itemNodes
+            if info.item == item
+              jsTree.set_type(id, FILE_ICONTYPE[!!v])
+              break
       }
       builder = item.builder
       if builder?
@@ -360,7 +378,7 @@ module.exports = class SketchEditor extends Editor
         # New node
         nodeId = jsTree.create_node(@_rootNodeId, {
           text: item.path
-          type: "file"
+          type: FILE_ICONTYPE[!!item.transfer]
         }, nextPos++)
         @_itemNodes[nodeId] = {item: item, path: item.path}
 

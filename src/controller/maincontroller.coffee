@@ -203,6 +203,8 @@ module.exports = class MainController extends WindowController
     if editor == @_activeEditor
       editor.deactivate()
       @_activeEditor = null
+    editor.close()
+    editor.destroy()
     @_editors.splice(position, 1)
     $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
     position = Math.min(position, @_editors.length - 1)
@@ -405,6 +407,7 @@ module.exports = class MainController extends WindowController
         Promise.resolve()
       ).then(=>
         return if dryrun
+        e?.destroy() for e in @_editors
         @_editors = []
         @$("#editor-tabs").empty()
         @_setSketch(null)

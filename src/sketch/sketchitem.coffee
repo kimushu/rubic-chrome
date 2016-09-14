@@ -85,7 +85,10 @@ module.exports = class SketchItem extends JSONable
   ###
   @property("editor",
     get: -> @_editor,
-    set: (v) -> @_editor = v
+    set: (v) ->
+      @_editor?.removeEventListener("change", this)
+      @_editor = v
+      @_editor?.addEventListener("change", this)
   )
 
   ###*
@@ -126,6 +129,16 @@ module.exports = class SketchItem extends JSONable
   ###
   @event("contentchange")
 
+  ###*
+  @event contentsave
+    Content of SketchItem saved
+  @param {Object} event
+    Event object
+  @param {SketchItem} event.target
+    SketchItem instance
+  ###
+  @event("contentsave")
+
   #--------------------------------------------------------------------------------
   # Public methods
   #
@@ -158,6 +171,19 @@ module.exports = class SketchItem extends JSONable
       sourcePath: @_sourcePath
       transfer: @_transfer
     })
+
+  ###*
+  @method
+    Event handler
+  @param {Object} event
+    Event object
+  @return {undefined}
+  ###
+  handleEvent: (event) ->
+    switch event.type
+      when "change"
+        @dispatchEvent({type: "contentchange"})
+    return
 
   ###*
   @method
@@ -197,7 +223,7 @@ module.exports = class SketchItem extends JSONable
     return Promise.reject(Error("No sketch")) unless @_sketch?
     return @_sketch.dirFs.writeFile(@_path, content, options).then(=>
       @_lastModified = Date.now()
-      @dispatchEvent({type: "contentchange"})
+      @dispatchEvent({type: "contentsave"})
       return
     )
 

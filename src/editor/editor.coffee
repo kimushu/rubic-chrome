@@ -236,6 +236,7 @@ module.exports = class Editor extends UnJSONable
   ###
   activate: ->
     @$(@element).show() if @element?
+    @_active = true
     @dispatchEvent({type: "activate"})
     return Promise.resolve()
 
@@ -248,6 +249,7 @@ module.exports = class Editor extends UnJSONable
   ###
   deactivate: ->
     @$(@element).hide() if @element?
+    @_active = false
     @dispatchEvent({type: "deactivate"})
     return Promise.resolve()
 
@@ -264,10 +266,14 @@ module.exports = class Editor extends UnJSONable
   @template
   @method
     Close editor
-  @return {undefined}
+  @return {Promise}
+    Promise object
   ###
   close: ->
-    return
+    @deactivate() if @_active
+    @_sketchItem.editor = null
+    @dispatchEvent({type: "close"})
+    return Promise.resolve()
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -288,6 +294,7 @@ module.exports = class Editor extends UnJSONable
   ###
   constructor: (@$, @_sketch, @_sketchItem, @_element) ->
     @_sketchItem?.editor = this
+    @_active = false
     return
 
 # Post dependencies

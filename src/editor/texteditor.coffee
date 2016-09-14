@@ -96,7 +96,7 @@ module.exports = class TextEditor extends Editor
   close: ->
     @deactivate() if aceEditor.getSession() == @_aceSession
     @_aceSession = null
-    return
+    return super()
 
   #--------------------------------------------------------------------------------
   # Protected methods
