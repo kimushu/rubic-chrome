@@ -1,12 +1,14 @@
 "use strict"
 # Pre dependencies
+Destructible = require("./destructible")
 require("./primitive")
 
 ###*
 @class JSONable
   Serializable class to JSON
+@extends Destructible
 ###
-module.exports = class JSONable
+module.exports = class JSONable extends Destructible
   null
 
   #--------------------------------------------------------------------------------
@@ -80,6 +82,15 @@ module.exports = class JSONable
         @[k] = v for k, v of o
         return this
     }
+
+  ###*
+  @method
+    Destroy object
+  @return {undefined}
+  ###
+  destroy: ->
+    delete this[k] for k, v of this when @hasOwnProperty(k)
+    return
 
 # Post dependencies
 # (none)

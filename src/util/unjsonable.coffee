@@ -1,12 +1,13 @@
 "use strict"
 # Pre dependencies
-# (none)
+Destructible = require("./destructible")
 
 ###*
 @class UnJSONable
   Unserializable class to JSON
+@extends Destructible
 ###
-module.exports = class UnJSONable
+module.exports = class UnJSONable extends Destructible
   null
 
   #--------------------------------------------------------------------------------
@@ -19,6 +20,15 @@ module.exports = class UnJSONable
   @return {undefined}
   ###
   toJSON: ->
+    return
+
+  ###*
+  @method
+    Destroy object
+  @return {undefined}
+  ###
+  destroy: ->
+    delete this[k] for k, v of this when @hasOwnProperty(k)
     return
 
 # Post dependencies
