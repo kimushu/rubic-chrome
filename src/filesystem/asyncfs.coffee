@@ -72,9 +72,47 @@ module.exports = class AsyncFs extends UnJSONable
   SEP_RE      = /\/+/
   SEP_LAST_RE = /\/+$/
 
+  F_OK = 0
+  R_OK = 4
+  W_OK = 2
+  X_OK = 1
+
+  #--------------------------------------------------------------------------------
+  # Node.js compatible properties
+  #
+
+  @classProperty("constants", get: ->
+    return (@_constants or= Object.freeze({
+      F_OK: F_OK
+      R_OK: R_OK
+      W_OK: W_OK
+      X_OK: X_OK
+    }))
+  )
+
   #--------------------------------------------------------------------------------
   # Node.js compatible methods
   #
+
+  ###*
+  @method
+    Test permissions
+  @param {string} path
+    File path / directory path
+  @param {number} [mode]
+    Mode (permissions)
+  @param {function(Error/null):undefined} [callback]
+    Callback function when Promise is not used
+  @return {undefined/Promise}
+    Promise object when callback is omitted
+  ###
+  access: (path, mode = F_OK, callback) ->
+    if typeof(mode) == "function"
+      callback = mode
+      mode = F_OK
+    return invokeCallback(callback, @access(path, mode)) if callback?
+    path = path.split(SEP_RE).join(SEP).replace(SEP_LAST_RE, "")
+    return @accessImpl(path, mode)
 
   ###*
   @method
@@ -342,6 +380,20 @@ module.exports = class AsyncFs extends UnJSONable
   ###
   getNameImpl: ->
     return
+
+  ###*
+  @protected
+  @method
+    Implement of access method
+  @param {string} path
+    File path / directory path
+  @param {number} mode
+    Mode (permissions)
+  @return {Promise}
+    Promise object
+  ###
+  accessImpl: (path, mode) ->
+    return Promise.reject(Error("Not supported"))
 
   ###*
   @protected
