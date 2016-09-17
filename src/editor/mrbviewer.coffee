@@ -127,41 +127,65 @@ module.exports = class MrbViewer extends TextEditor
     switch r.section_identify
       when "IREP"
         r.rite_version = String.fromCharCode.apply(null, h.subarray(0, 4))
-        r.record_size = _bin_to_u32_be(h.subarray(4, 8))
-        r.number_of_locals = _bin_to_u16_be(h.subarray(8, 10))
-        r.number_of_regs = _bin_to_u16_be(h.subarray(10, 12))
-        r.number_of_child_ireps = _bin_to_u16_be(h.subarray(12, 14))
-        n = _bin_to_u32_be(h.subarray(14, 18))
-        pad = (4 - (offset + 18) % 4) % 4
-        r.iseq = {number_of_opcodes: n, padding_bytes: pad, opcodes: []}
-        i = 18 + pad
-        while n > 0
-          c = _bin_to_u32_be(h.subarray(i, i + 4))
-          [c1,c2] = @_decodeRiteInst(c)
-          c1 = c1.replace("\t", " ") + "                                        "
-          r.iseq.opcodes.push("#{c1.substring(0, 20)}# #{c2}")
-          i += 4
-          n -= 1
-        n = _bin_to_u32_be(h.subarray(i, i + 4))
-        i += 4
-        r.pool = {length_of_pool: n, values: []}
-        while n > 0
-          n -= 1
-        n = _bin_to_u32_be(h.subarray(i, i + 4))
-        i += 4
-        r.syms = {number_of_syms: n, symbols: []}
-        while n > 0
-          len = _bin_to_u16_be(h.subarray(i, i + 2))
+        @_loadIrepRecord(r, h.subarray(4), offset + 4)
+      when "LVAR"
+        r.syms_len = _bin_to_u32_be(h.subarray(0, 4))
+        r.record = []
+        i = 4
+        n = 0
+        while n < r.syms_len
+          l = _bin_to_u16_be(h.subarray(i, i + 2))
           i += 2
-          if len == 0xffff
-            r.syms.symbols.push(null)
-          else
-            r.syms.symbols.push(String.fromCharCode.apply(null, h.subarray(i, i + len)))
-            i += (len + 1)
-          n -= 1
-        null
+          r.record.push(
+            {symbol: String.fromCharCode.apply(null, h.subarray(i, i + l))}
+          )
+          i += l
+          n += 1
+        while i < r.section_size
+          n = _bin_to_u16_be(h.subarray(i, i + 2))
+          r.record[n]?.lv = _bin_to_u16_be(h.subarray(i + 2, i + 4)) if n < 0xffff
+          i += 4
     offset += r.section_size
-    [r, offset]
+    return [r, offset]
+
+  _loadIrepRecord: (r, h, offset) ->
+    r.record_size = _bin_to_u32_be(h.subarray(0, 4))
+    r.number_of_locals = _bin_to_u16_be(h.subarray(4, 6))
+    r.number_of_regs = _bin_to_u16_be(h.subarray(6, 8))
+    r.number_of_child_ireps = _bin_to_u16_be(h.subarray(8, 10))
+    n = _bin_to_u32_be(h.subarray(10, 14))
+    pad = (4 - (offset + 14) % 4) % 4
+    r.iseq = {number_of_opcodes: n, padding_bytes: pad, opcodes: []}
+    i = 14 + pad
+    while n > 0
+      c = _bin_to_u32_be(h.subarray(i, i + 4))
+      [c1,c2] = @_decodeRiteInst(c)
+      c1 = c1.replace("\t", " ") + "                                        "
+      r.iseq.opcodes.push("#{c1.substring(0, 20)}# #{c2}")
+      i += 4
+      n -= 1
+    n = _bin_to_u32_be(h.subarray(i, i + 4))
+    i += 4
+    r.pool = {length_of_pool: n, values: []}
+    while n > 0
+      n -= 1
+    n = _bin_to_u32_be(h.subarray(i, i + 4))
+    i += 4
+    r.syms = {number_of_syms: n, symbols: []}
+    while n > 0
+      len = _bin_to_u16_be(h.subarray(i, i + 2))
+      i += 2
+      if len == 0xffff
+        r.syms.symbols.push(null)
+      else
+        r.syms.symbols.push(String.fromCharCode.apply(null, h.subarray(i, i + len)))
+        i += (len + 1)
+      n -= 1
+    n = 0
+    while n < r.number_of_child_ireps
+      @_loadIrepRecord(r["child_#{n}"] = {}, h.subarray(i), offset + i)
+      n += 1
+    return
 
   _decodeRiteInst: (code) ->
     op = (code) & 0x7f
@@ -213,8 +237,10 @@ module.exports = class MrbViewer extends TextEditor
         return ["OP_GETMCNST\t#{a}, #{bx}", "R(#{a}) := R(#{a+1})::Syms(#{bx})"]
       when 0x14
         return ["OP_SETMCNST\t#{a}, #{bx}", "R(#{a+1})::Syms(#{bx}) := R(#{a})"]
-      # when 0x15 => OP_GETUPVAR
-      # when 0x16 => OP_SETUPVAR
+      when 0x15
+        return ["OP_GETUPVAR\t#{a}, #{b}, #{c}", "R(#{a}) := uvget(#{b},#{c})"]
+      when 0x16
+        return ["OP_SETUPVAR\t#{a}, #{b}, #{c}", "uvset(#{b},#{c},R(#{a})"]
       when 0x17
         return ["OP_JMP\t#{sbx}", "pc+=#{sbx}"]
       when 0x18
@@ -261,7 +287,10 @@ module.exports = class MrbViewer extends TextEditor
       # when 0x26 => OP_ENTER
       # when 0x27 => OP_KARG
       # when 0x28 => OP_KDICT
-      # when 0x29 => OP_RETURN
+      when 0x29
+        return ["OP_RETURN\t#{a}, #{b}", "return R(#{a}) [OP_R_#{
+          ["NORMAL", "BREAK", "RETURN"][b]
+        }]"] if b <= 2
       # when 0x2a => OP_TAILCALL
       # when 0x2b => OP_BLKPUSH
       when 0x2c
