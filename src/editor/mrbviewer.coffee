@@ -68,7 +68,8 @@ module.exports = class MrbViewer extends TextEditor
       r = {}
       m = []
       i = 0
-      [r.rite_binary_header, i] = @_loadRiteBinaryHeader(arrayBuf, i)
+      ctx = {}
+      [r.rite_binary_header, i] = @_loadRiteBinaryHeader(ctx, arrayBuf, i)
       if r.rite_binary_header.binary_identify == "RITE" and
          r.rite_binary_header.binary_version == "0003"
         s = 0
@@ -76,9 +77,9 @@ module.exports = class MrbViewer extends TextEditor
         while (s == 0) or r[n].section_identify != "END\0"
           try
             n = "section_#{s}"
-            [r[n], i] = @_loadRiteSection(arrayBuf, i)
+            [r[n], i] = @_loadRiteSection(ctx, arrayBuf, i)
             s += 1
-          catch
+          catch error
             break
         if arrayBuf.byteLength > i
           m.push("Found #{arrayBuf.byteLength - i} bytes junk after END section")
@@ -105,42 +106,56 @@ module.exports = class MrbViewer extends TextEditor
     # Big-endian
     (a[0] << 8) | a[1]
 
-  _loadRiteBinaryHeader: (arrayBuf, offset) ->
+  _stringize = (a) ->
+    String.fromCharCode.apply(null, a)
+
+  _loadRiteBinaryHeader: (ctx, arrayBuf, offset) ->
     h = new Uint8Array(arrayBuf, offset, 22)
     [{
-      binary_identify: String.fromCharCode.apply(null, h.subarray(0, 4))
-      binary_version: String.fromCharCode.apply(null, h.subarray(4, 8))
+      binary_identify: _stringize(h.subarray(0, 4))
+      binary_version: _stringize(h.subarray(4, 8))
       binary_crc: _bin_to_u16_be(h.subarray(8, 10))
       binary_size: _bin_to_u32_be(h.subarray(10, 14))
-      compiler_name: String.fromCharCode.apply(null, h.subarray(14, 18))
-      compiler_version: String.fromCharCode.apply(null, h.subarray(18, 22))
+      compiler_name: _stringize(h.subarray(14, 18))
+      compiler_version: _stringize(h.subarray(18, 22))
     }, offset + h.byteLength]
 
-  _loadRiteSection: (arrayBuf, offset) ->
+  _loadRiteSection: (ctx, arrayBuf, offset) ->
     h = new Uint8Array(arrayBuf, offset, 8)
     r = {
       offset: offset
-      section_identify: String.fromCharCode.apply(null, h.subarray(0, 4))
+      section_identify: _stringize(h.subarray(0, 4))
       section_size: _bin_to_u32_be(h.subarray(4, 8))
     }
     h = new Uint8Array(arrayBuf, offset + 8, r.section_size - 8)
     switch r.section_identify
       when "IREP"
-        r.rite_version = String.fromCharCode.apply(null, h.subarray(0, 4))
-        @_loadIrepRecord(r, h.subarray(4), offset + 4)
+        r.rite_version = _stringize(h.subarray(0, 4))
+        ctx.last_irep = r
+        @_loadIrepRecord(ctx, r, h.subarray(4), offset + 4)
+      when "DBG\0"
+        r.filenames_len = _bin_to_u16_be(h.subarray(0, 2))
+        r.filenames = []
+        i = 2
+        for n in [0...(r.filenames_len)] by 1
+          l = _bin_to_u16_be(h.subarray(i, i + 2))
+          i += 2
+          r.filenames.push(_stringize(h.subarray(i, i + l)))
+          i += l
+        r.__irep = ctx.last_irep
+        ctx.last_dbg = r
+        @_loadDebugRecord(ctx, r, h.subarray(i))
       when "LVAR"
         r.syms_len = _bin_to_u32_be(h.subarray(0, 4))
         r.record = []
         i = 4
-        n = 0
-        while n < r.syms_len
+        for n in [0...(r.syms_len)] by 1
           l = _bin_to_u16_be(h.subarray(i, i + 2))
           i += 2
           r.record.push(
-            {symbol: String.fromCharCode.apply(null, h.subarray(i, i + l))}
+            {symbol: _stringize(h.subarray(i, i + l))}
           )
           i += l
-          n += 1
         while i < r.section_size
           n = _bin_to_u16_be(h.subarray(i, i + 2))
           r.record[n]?.lv = _bin_to_u16_be(h.subarray(i + 2, i + 4)) if n < 0xffff
@@ -148,7 +163,7 @@ module.exports = class MrbViewer extends TextEditor
     offset += r.section_size
     return [r, offset]
 
-  _loadIrepRecord: (r, h, offset) ->
+  _loadIrepRecord: (ctx, r, h, offset) ->
     r.record_size = _bin_to_u32_be(h.subarray(0, 4))
     r.number_of_locals = _bin_to_u16_be(h.subarray(4, 6))
     r.number_of_regs = _bin_to_u16_be(h.subarray(6, 8))
@@ -157,35 +172,65 @@ module.exports = class MrbViewer extends TextEditor
     pad = (4 - (offset + 14) % 4) % 4
     r.iseq = {number_of_opcodes: n, padding_bytes: pad, opcodes: []}
     i = 14 + pad
-    while n > 0
+    for n in [0...(r.iseq.number_of_opcodes)] by 1
       c = _bin_to_u32_be(h.subarray(i, i + 4))
       [c1,c2] = @_decodeRiteInst(c)
-      c1 = c1.replace("\t", " ") + "                                        "
-      r.iseq.opcodes.push("#{c1.substring(0, 20)}# #{c2}")
+      [c0,c1] = c1.split("\t")
+      r.iseq.opcodes.push(sprintf("%-11s %-11s # %s", c0, c1 or "", c2))
       i += 4
-      n -= 1
     n = _bin_to_u32_be(h.subarray(i, i + 4))
     i += 4
     r.pool = {length_of_pool: n, values: []}
-    while n > 0
-      n -= 1
+    for n in [0...(r.pool.length_of_pool)] by 1
+      null  # FIXME
     n = _bin_to_u32_be(h.subarray(i, i + 4))
     i += 4
     r.syms = {number_of_syms: n, symbols: []}
-    while n > 0
+    for n in [0...(r.syms.number_of_syms)] by 1
       len = _bin_to_u16_be(h.subarray(i, i + 2))
       i += 2
       if len == 0xffff
         r.syms.symbols.push(null)
       else
-        r.syms.symbols.push(String.fromCharCode.apply(null, h.subarray(i, i + len)))
+        r.syms.symbols.push(_stringize(h.subarray(i, i + len)))
         i += (len + 1)
-      n -= 1
-    n = 0
-    while n < r.number_of_child_ireps
-      @_loadIrepRecord(r["child_#{n}"] = {}, h.subarray(i), offset + i)
-      n += 1
-    return
+    for n in [0...(r.number_of_child_ireps)] by 1
+      i += @_loadIrepRecord(ctx, r["child_#{n}"] = {}, h.subarray(i), offset + i)
+    return i
+
+  _loadDebugRecord: (ctx, r, h) ->
+    r.file_count = _bin_to_u16_be(h.subarray(4, 6))
+    r.files = {}
+    i = 6
+    for n in [0...(r.file_count)] by 1
+      m = ctx.last_dbg?.filenames[_bin_to_u16_be(h.subarray(i + 4, i + 6))]
+      m or= "file_##{n}"
+      f = r.files[m] = {
+        start_pos: _bin_to_u32_be(h.subarray(i, i + 4))
+      }
+      i += 6
+      f.line_entry_count = _bin_to_u32_be(h.subarray(i, i + 4))
+      t = h[i + 4]
+      f.line_type = ["mrb_debug_line_ary", "mrb_debug_line_flat_map"][t] or "unknown"
+      i += 5
+      if t == 0
+        f.lines = []
+        for x in [0...(f.line_entry_count)] by 1
+          f.lines.push(_bin_to_u16_be(h.subarray(i, i + 2)))
+          i += 2
+      if t == 1
+        f.lines = []
+        for x in [0...(f.line_entry_count)] by 1
+          f.lines.push({
+            start_pos: _bin_to_u32_be(h.subarray(i, i + 4))
+            line: _bin_to_u16_be(h.subarray(i + 4, i + 6))
+          })
+          i += 6
+    for n in [0...(r.__irep?.number_of_child_ireps or 0)] by 1
+      k = "child_#{n}"
+      i += @_loadDebugRecord(ctx, r[k] = {__irep: r.__irep[k]}, h.subarray(i))
+    delete r.__irep
+    return i
 
   _decodeRiteInst: (code) ->
     op = (code) & 0x7f
