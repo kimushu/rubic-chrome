@@ -42,7 +42,9 @@ module.exports = class SketchItem extends JSONable
   ###
   @property("builder",
     get: -> @_builder
-    set: (v) -> @_modify("_builder", v)
+    set: (v) -> @_modify =>
+      @_builder = v
+      return true
   )
 
   ###*
@@ -51,7 +53,9 @@ module.exports = class SketchItem extends JSONable
   ###
   @property("fileType",
     get: -> @_fileType
-    set: (v) -> @_modify("_fileType", v)
+    set: (v) -> @_modify =>
+      @_fileType = v
+      return true
   )
 
   ###*
@@ -60,7 +64,9 @@ module.exports = class SketchItem extends JSONable
   ###
   @property("source",
     get: -> @_sketch.getItem(@_sourcePath) if @_sourcePath?
-    set: (v) -> @_modify("_sourcePath", v?.path)
+    set: (v) -> @_modify =>
+      @_sourcePath = v?.path
+      return true
   )
 
   ###*
@@ -76,7 +82,9 @@ module.exports = class SketchItem extends JSONable
   ###
   @property("transfer",
     get: -> @_transfer,
-    set: (v) -> @_modify("_transfer", !!v)
+    set: (v) -> @_modify =>
+      @_transfer = !!v
+      return true
   )
 
   ###*
@@ -86,9 +94,9 @@ module.exports = class SketchItem extends JSONable
   @property("editor",
     get: -> @_editor,
     set: (v) ->
-      @_editor?.removeEventListener("change", this)
+      @_editor?.removeEventListener("change.editor", this)
       @_editor = v
-      @_editor?.addEventListener("change", this)
+      @_editor?.addEventListener("change.editor", this)
   )
 
   ###*
@@ -110,34 +118,34 @@ module.exports = class SketchItem extends JSONable
   #
 
   ###*
-  @event change
+  @event change.sketchitem
     SketchItem changed (excludes content's change)
   @param {Object} event
     Event object
   @param {SketchItem} event.target
     SketchItem instance
   ###
-  @event("change")
+  @event(EVENT_CHANGE = "change.sketchitem")
 
   ###*
-  @event contentchange
+  @event contentchange.sketchitem
     Content of SketchItem changed
   @param {Object} event
     Event object
   @param {SketchItem} event.target
     SketchItem instance
   ###
-  @event("contentchange")
+  @event(EVENT_CONTENTCHANGE = "contentchange.sketchitem")
 
   ###*
-  @event contentsave
+  @event contentsave.sketchitem
     Content of SketchItem saved
   @param {Object} event
     Event object
   @param {SketchItem} event.target
     SketchItem instance
   ###
-  @event("contentsave")
+  @event(EVENT_CONTENTSAVE = "contentsave.sketchitem")
 
   #--------------------------------------------------------------------------------
   # Public methods
@@ -181,8 +189,8 @@ module.exports = class SketchItem extends JSONable
   ###
   handleEvent: (event) ->
     switch event.type
-      when "change"
-        @dispatchEvent({type: "contentchange"})
+      when "change.editor"
+        @dispatchEvent({type: EVENT_CONTENTCHANGE})
     return
 
   ###*
@@ -223,7 +231,7 @@ module.exports = class SketchItem extends JSONable
     return Promise.reject(Error("No sketch")) unless @_sketch?
     return @_sketch.dirFs.writeFile(@_path, content, options).then(=>
       @_lastModified = Date.now()
-      @dispatchEvent({type: "contentsave"})
+      @dispatchEvent({type: EVENT_CONTENTSAVE})
       return
     )
 
@@ -242,11 +250,17 @@ module.exports = class SketchItem extends JSONable
     return Promise.resolve(
     ).then(=>
       return @readContent()
+    ).catch((error) =>
+      return  # Ignore error on readContent
     ).then((content) =>
       @_path = newPath
+      return unless content?
       return @writeContent(content)
     ).then(=>
+      return unless content?
       return @_sketch.dirFs.unlink(oldPath)
+    ).then(=>
+      return  # Last PromiseValue
     ).catch((error) =>
       @_path = oldPath
       return Promise.reject(error)
@@ -259,17 +273,15 @@ module.exports = class SketchItem extends JSONable
   ###*
   @private
   @method
-    Modify property
-  @param {string} key
-    Key
-  @param {Object} value
-    Value
+    Notify modifications
+  @param {Function} callback
+    Callback function
   @return {undefined}
   ###
-  _modify: (key, value) ->
-    return if @[key] == value
-    @[key] = value
-    @dispatchEvent({type: "change"})
+  _modify: (callback) ->
+    return unless callback.call(this)?
+    @_modified = true
+    @dispatchEvent({type: EVENT_CHANGE})
     return
 
 # Post dependencies

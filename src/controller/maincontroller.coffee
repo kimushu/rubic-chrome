@@ -98,8 +98,8 @@ module.exports = class MainController extends WindowController
       # Setup other HTML elements (only once)
       return unless firstActivation
       $(".sketch-new")          .click(@_newSketch.bind(this))
-      $(".sketch-open-latest")  .click(@_openSketch.bind(this, null))
-      $(".sketch-open-local")   .click(@_openSketch.bind(this, "local"))
+      $(".sketch-open-latest")  .click(@_openSketch.bind(this, null, null))
+      $(".sketch-open-local")   .click(@_openSketch.bind(this, "local", null))
       $(".sketch-save-overwrite").click(@_saveSketch.bind(this, null))
       $(".sketch-save-local")   .click(@_saveSketch.bind(this, "local"))
       $(".sketch-close")        .click(@_closeSketch.bind(this, false, false))
@@ -133,6 +133,29 @@ module.exports = class MainController extends WindowController
       $("#device-list-disconnect > a").click((event) =>
         @_board?.disconnect()
       )
+      $(".board-info").click((event) =>
+        @_board?.getBoardInfo().then((info) =>
+          tbody = $("#template-table").clone()
+            .find("thead").remove().end()
+            .find("tbody")
+          $("#template-tr-td11").clone().appendTo(tbody).find("td")
+            .eq(0).text(I18n.getMessage("Board")).end()
+            .eq(1).text(@_board.friendlyName).end()
+          $("#template-tr-td11").clone().appendTo(tbody).find("td")
+            .eq(0).text(I18n.getMessage("Path")).end()
+            .eq(1).text(info.path).end() if info.path?
+          $("#template-tr-td11").clone().appendTo(tbody).find("td")
+            .eq(0).text(I18n.getMessage("Firmware")).end()
+            .eq(1).text(info.firmware).end() if info.firmware?
+          $("#template-tr-td11").clone().appendTo(tbody).find("td")
+            .eq(0).text(I18n.getMessage("Firmware_revision")).end()
+            .eq(1).text(info.firmRevision).end() if info.firmRevision?
+          return global.bootbox.alert_p({
+            title: I18n.getMessage("Board_info")
+            message: tbody.closest("table")
+          })
+        ) # @_board?.getBoardInfo().then()
+      )
     ).then(=>
       return unless firstActivation
       return @_updateElementsForSketch()
@@ -165,7 +188,8 @@ module.exports = class MainController extends WindowController
     Tab position
   @param {boolean} [activate=false]
     Activate editor after adding
-  @return {boolean}
+  @return {Promise}
+    Promise object
   ###
   addEditor: (editor, position = null, activate = false) ->
     $ = @$
@@ -178,38 +202,47 @@ module.exports = class MainController extends WindowController
       s = TAB_SELECTOR.split(".")
       tabSet.addTab("""
       <#{s[0]} class="#{s[1]}">
+        <span class="editor-modified fa fa-pencil"></span>
         <a href="#"></a>
         <span class="editor-close-button glyphicon glyphicon-remove"></span>
       </#{s[0]}>
       """, position)
       tab = $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
       tab.find("a").eq(0).text(editor.title or "")
-      tab.find("span").remove() unless editor.closable
-      editor.addEventListener("changetitle", this)
+      tab.find("span.editor-modified").hide() unless editor.modified
+      tab.find("span.editor-close-button").remove() unless editor.closable
+      editor.addEventListener("changetitle.editor", this)
+      editor.addEventListener("change.editor", this)
       App.log("New editor (%o) at index %d", editor, position)
     $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if activate
-    return true
+    return Promise.resolve(true)
 
   ###*
   @method
     Remove an editor
   @param {Editor} editor
     Editor instance
-  @return {boolean}
+  @return {Promise}
+    Promise object
   ###
   removeEditor: (editor) ->
     position = @_editors.indexOf(editor)
-    return false if position < 0
-    if editor == @_activeEditor
-      editor.deactivate()
+    return Promise.resolve(false) if position < 0
+    return Promise.resolve(
+    ).then(=>
+      return unless editor == @_activeEditor
+      return editor.deactivate()
+    ).then(=>
       @_activeEditor = null
-    editor.close()
-    editor.destroy()
-    @_editors.splice(position, 1)
-    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
-    position = Math.min(position, @_editors.length - 1)
-    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if position >= 0
-    return true
+      return editor.close()
+    ).then(=>
+      editor.destroy()
+      @_editors.splice(position, 1)
+      $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
+      position = Math.min(position, @_editors.length - 1)
+      $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if position >= 0
+      return true # Last PromiseValue
+    ) # return Promise.resolve().then()...
 
   #--------------------------------------------------------------------------------
   # Private methods
@@ -230,6 +263,21 @@ module.exports = class MainController extends WindowController
     @_activeEditor = null
     @_running = null
     return
+
+  ###*
+  @private
+  @method
+    Get tab element
+  @param {number/Editor} position
+    Tab position / editor instance
+  @return {jQuery}
+    jQuery object
+  ###
+  _getTab: (position) ->
+    unless typeof(position) == "number"
+      position = @_editors.indexOf(position)
+    return null if position < 0
+    return $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
 
   ###*
   @private
@@ -327,17 +375,24 @@ module.exports = class MainController extends WindowController
   @return {undefined}
   ###
   _setSketch: (sketch) ->
-    App.sketch?.removeEventListener("boardchange", this)
+    # Unregister old sketch and board
+    App.sketch?.removeEventListener("setboard.sketch", this)
+    App.sketch?.removeEventListener("change.sketch", this)
+    App.sketch?.removeEventListener("save.sketch", this)
     @_board?.disconnect() if @_board?.connected
+
+    # Register new sketch and board
     @_sketch = App.sketch = sketch
     App.log("Open sketch (%o)", @_sketch)
-    @_sketch?.addEventListener("boardchange", this)
+    @_sketch?.addEventListener("setboard.sketch", this)
+    @_sketch?.addEventListener("change.sketch", this)
+    @_sketch?.addEventListener("save.sketch", this)
     @_editors = []
     tabSet.clearTabs()
     @_updateElementsForSketch()
     @_board = @_sketch?.board
-    @_board?.addEventListener("connect", this)
-    @_board?.addEventListener("disconnect", this)
+    @_board?.addEventListener("connect.board", this)
+    @_board?.addEventListener("disconnect.board", this)
     @_updateElementsForBoard()
     @_needRegenerate = false
     return
@@ -836,37 +891,32 @@ module.exports = class MainController extends WindowController
   handleEvent: (event) ->
     $ = @$
     switch event.type
-      when "boardchange"
+      when "setboard.sketch"
         @_board?.disconnect() if @_board?.connected
         @_board = @_sketch?.board
         App.info("Board changed (%o)", @_board)
-        @_board?.addEventListener("connect", this)
-        @_board?.addEventListener("disconnect", this)
+        @_board?.addEventListener("connect.board", this)
+        @_board?.addEventListener("disconnect.board", this)
         @_updateElementsForBoard()
         @_needRegenerate = true
         @_regenerate()
-      when "connect"
+      when "save.sketch"
+        @_updateTabTitle(editor) for editor in @_editors
+      when "connect.board"
         App.popupInfo(I18n.getMessage("Connected_to_board_at_1", @_boardPath))
         $("body").addClass("board-connected")
         $("#device-selected").text(@_boardPath)
         $(".sketch-run").prop("disabled", false).next().prop("disabled", false)
         $(".board-info").prop("disabled", false)
-      when "disconnect"
+      when "disconnect.board"
         App.popupWarning(I18n.getMessage("Disconnected_from_board_at_1", @_boardPath))
         $("body").removeClass("board-connected")
         $("#device-selected").text("")
         $(".sketch-run").prop("disabled", true).next().prop("disabled", true)
         $(".board-info").prop("disabled", true)
         @_boardPath = null
-        return unless @_board?
-        @_board.removeEventListener("connect", this)
-        @_board.removeEventListener("disconnect", this)
-      when "changetitle"
-        editor = event.target
-        position = @_editors.indexOf(editor)
-        if position >= 0
-          $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
-            .find("a").text(editor.title)
+      when "changetitle.editor", "change.editor"
+        @_updateTabTitle(event.target)
     return
 
   ###*
@@ -879,6 +929,20 @@ module.exports = class MainController extends WindowController
     @_activeEditor = null
     @_editors.splice(0, @_editors.length)
     $(tabSet.domObject).find(TAB_SELECTOR).remove()
+    return
+
+  ###*
+  @private
+  @method
+    Update tab title
+  @param {Editor} editor
+    Editor instance
+  @return {undefined}
+  ###
+  _updateTabTitle: (editor) ->
+    tab = @_getTab(editor)
+    tab.find("span.editor-modified").toggle(!!editor.modified)
+    tab.find("a").text(editor.title)
     return
 
   ###*

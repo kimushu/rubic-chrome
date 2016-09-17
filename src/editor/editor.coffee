@@ -61,9 +61,11 @@ module.exports = class Editor extends UnJSONable
   @property("modified",
     get: -> @_modified
     set: (v) ->
-      v = !!v
-      @dispatchEvent({type: "change"}) if !@_modified and v
-      @_modified = v
+      if !v
+        @_modified = false
+      else if !@_modified
+        @_modified = true
+        @dispatchEvent({type: EVENT_CHANGE})
   )
 
   ###*
@@ -108,34 +110,34 @@ module.exports = class Editor extends UnJSONable
   #
 
   ###*
-  @event change
+  @event change.editor
     Content changed
   @param {Object} event
     Event object
   @param {Editor} event.target
     Editor instance
   ###
-  @event("change")
+  @event(EVENT_CHANGE = "change.editor")
 
   ###*
-  @event changetitle
+  @event changetitle.editor
     Title changed
   @param {Object} event
     Event object
   @param {Editor} event.target
     Editor instance
   ###
-  @event("changetitle")
+  @event(EVENT_CHANGETITLE = "changetitle.editor")
 
   ###*
-  @event activate
+  @event activate.editor
     Editor activated
   @param {Object} event
     Event object
   @param {Editor} event.target
     Editor instance
   ###
-  @event("activate")
+  @event(EVENT_ACTIVATE = "activate.editor")
 
   ###*
   @event deactivate
@@ -145,17 +147,17 @@ module.exports = class Editor extends UnJSONable
   @param {Editor} event.target
     Editor instance
   ###
-  @event("deactivate")
+  @event(EVENT_DEACTIVATE = "deactivate.editor")
 
   ###*
-  @event close
+  @event close.editor
     Editor closed
   @param {Object} event
     Event object
   @param {Editor} event.target
     Editor instance
   ###
-  @event("close")
+  @event(EVENT_CLOSE = "close.editor")
 
   #--------------------------------------------------------------------------------
   # Private variables
@@ -237,7 +239,7 @@ module.exports = class Editor extends UnJSONable
   activate: ->
     @$(@element).show() if @element?
     @_active = true
-    @dispatchEvent({type: "activate"})
+    @dispatchEvent({type: EVENT_ACTIVATE})
     return Promise.resolve()
 
   ###*
@@ -250,7 +252,7 @@ module.exports = class Editor extends UnJSONable
   deactivate: ->
     @$(@element).hide() if @element?
     @_active = false
-    @dispatchEvent({type: "deactivate"})
+    @dispatchEvent({type: EVENT_DEACTIVATE})
     return Promise.resolve()
 
   ###*
@@ -272,7 +274,7 @@ module.exports = class Editor extends UnJSONable
   close: ->
     @deactivate() if @_active
     @_sketchItem.editor = null
-    @dispatchEvent({type: "close"})
+    @dispatchEvent({type: EVENT_CLOSE})
     return Promise.resolve()
 
   #--------------------------------------------------------------------------------
@@ -295,6 +297,7 @@ module.exports = class Editor extends UnJSONable
   constructor: (@$, @_sketch, @_sketchItem, @_element) ->
     @_sketchItem?.editor = this
     @_active = false
+    @_modified = false
     return
 
 # Post dependencies

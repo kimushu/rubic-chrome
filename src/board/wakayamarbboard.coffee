@@ -177,7 +177,7 @@ module.exports = class WakayamaRbBoard extends Board
       serial.onReceived = @_receiveHandler.bind(this)
       @_serial = serial
       @_path = path
-      @dispatchEvent({type: "connect"})
+      @dispatchEvent({type: "connect.board"})
       return  # Last PromiseValue
     )
 
@@ -210,8 +210,8 @@ module.exports = class WakayamaRbBoard extends Board
       v = readdata.split("\r").pop().match(/^(.+)(Ver\..+)\(H \[ENTER\]\)/)
       return {
         path: @_path
-        boardVersion: v[1].trim?()
-        firmwareVersion: v[2].trim?()
+        firmware: v[1].trim?()
+        firmRevision: v[2].trim?()
       } # Last PromiseValue
     ).finally(=>
       return @_unlock(lock)
@@ -347,7 +347,7 @@ module.exports = class WakayamaRbBoard extends Board
     reject = @_waiter?.reject
     @_waiter = null
     reject?()
-    @dispatchEvent({type: "disconnect"})
+    @dispatchEvent({type: "disconnect.board"})
     return
 
   ###*

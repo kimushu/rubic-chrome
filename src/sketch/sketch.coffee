@@ -25,11 +25,9 @@ module.exports = class Sketch extends JSONable
   ###*
   @property {boolean} modified
     Is sketch modified
+  @readonly
   ###
-  @property("modified",
-    get: -> @_modified
-    set: (v) -> @_modify() if (@_modified = !!v)
-  )
+  @property("modified", get: -> @_modified)
 
   ###*
   @property {boolean} temporary
@@ -58,11 +56,11 @@ module.exports = class Sketch extends JSONable
   ###
   @property("bootItem",
     get: -> @_bootItem
-    set: (v) ->
+    set: (v) -> @_modify =>
       found = @_items.find((item) => item.path == v)
       throw Error("No item `#{v}'") unless found?
-      @_modify("_bootItem", v)
-      return
+      @_bootItem = v
+      return true
   )
 
   ###*
@@ -71,7 +69,10 @@ module.exports = class Sketch extends JSONable
   ###
   @property("board",
     get: -> @_board
-    set: (v) -> @_board = v; @dispatchEvent({type: "boardchange"})
+    set: (v) -> @_modify =>
+      @_board = v
+      @dispatchEvent({type: EVENT_SETBOARD})
+      return true
   )
 
   ###*
@@ -88,37 +89,37 @@ module.exports = class Sketch extends JSONable
   #
 
   ###*
-  @event change
-    Sketch changed (excludes each item's change)
+  @event change.sketch
+    Sketch changed (excludes each item's content change)
   @param {Object} event
     Event object
   @param {Sketch} event.target
     Sketch instance
   ###
-  @event("change")
+  @event(EVENT_CHANGE = "change.sketch")
 
   ###*
-  @event save
+  @event save.sketch
     Sketch saved
   @param {Object} event
     Event object
   @param {Sketch} event.target
     Sketch instance
   ###
-  @event("save")
+  @event(EVENT_SAVE = "save.sketch")
 
   ###*
-  @event boardchange
-    Board changed
+  @event setboard.sketch
+    Board set
   @param {Object} event
     Event object
   @param {Sketch} event.target
     Sketch instance
   ###
-  @event("boardchange")
+  @event(EVENT_SETBOARD = "setboard.sketch")
 
   ###*
-  @event additem
+  @event additem.sketch
     SketchItem added
   @param {Object} event
     Event object
@@ -127,10 +128,10 @@ module.exports = class Sketch extends JSONable
   @param {SketchItem} event.item
     Added item
   ###
-  @event("additem")
+  @event(EVENT_ADDITEM = "additem.sketch")
 
   ###*
-  @event removeitem
+  @event removeitem.sketch
     SketchItem being removed
   @param {Object} event
     Event object
@@ -139,7 +140,7 @@ module.exports = class Sketch extends JSONable
   @param {SketchItem} event.item
     Item removed
   ###
-  @event("removeitem")
+  @event(EVENT_REMOVEITEM = "removeitem.sketch")
 
   #--------------------------------------------------------------------------------
   # Private constants
@@ -247,7 +248,10 @@ module.exports = class Sketch extends JSONable
         # Relocate file
         return promise.then(=>
           return oldDirFs.readFile(item.path)
+        ).catch((error) =>
+          return  # No file
         ).then((data) =>
+          return unless data?
           return newDirFs.writeFile(item.path, data)
         )
       Promise.resolve()
@@ -259,7 +263,7 @@ module.exports = class Sketch extends JSONable
       # Successfully saved
       @_modified = false
       newDirFs = null
-      @dispatchEvent({type: "save"})
+      @dispatchEvent({type: EVENT_SAVE})
       return  # Last PromiseValue
     ).finally(=>
       # Revert properties if failed
@@ -349,16 +353,20 @@ module.exports = class Sketch extends JSONable
     Add item to sketch
   @param {SketchItem} item
     Item to add
+  @param {boolean} [suppressEvents=false]
+    Suppress events
   @return {boolean}
     Result (true=success, false=already_exists)
   ###
-  addItem: (item) ->
+  addItem: (item, suppressEvents = false) ->
     return false if @hasItem(item.path)
     return false if item.path == SKETCH_CONFIG
     item.setSketch(this)
+    item.addEventListener("change.sketchitem", this)
     @_items.push(item)
-    @_modify()
-    @dispatchEvent({type: "additem", item: item})
+    unless suppressEvents
+      @_modify(=> true)
+      @dispatchEvent({type: EVENT_ADDITEM, item: item})
     return true
 
   ###*
@@ -375,9 +383,10 @@ module.exports = class Sketch extends JSONable
     index = @_items.findIndex((value) => item.path == path)
     return false if index < 0
     itemRemoved = @_items[index]
+    itemRemoved.removeEventListener("change.sketchitem", this)
     @_items.splice(index, 1)
     @_modify()
-    @dispatchEvent({type: "removeitem", item: itemRemoved})
+    @dispatchEvent({type: EVENT_REMOVEITEM, item: itemRemoved})
     return true
 
   ###*
@@ -412,40 +421,6 @@ module.exports = class Sketch extends JSONable
         Promise.resolve()
       ) # return @_items.reduce()
     ) # return Promise.resolve().then()...
-
-  ###*
-  @method
-    Add editor
-  @param {Editor} editor
-    Editor instance
-  @param {number} [position=null]
-    Position to be added (if null, append to last)
-  @return {boolean}
-    Result (true if successfully added)
-  ###
-  addEditor: (editor, position) ->
-    return false if @_editors.indexOf(editor) >= 0
-    last = @_editors.length
-    position = last unless position?
-    position = Math.max(Math.min(position, last), 0)
-    @_editors.splice(last, 0, editor)
-    @dispatchEvent({type: "addeditor", editor: editor, position: position})
-    return true
-
-  ###*
-  @method
-    Remove editor
-  @param {Editor} editor
-    Editor instance
-  @return {boolean}
-    Result (true if successfully removed)
-  ###
-  removeEditor: (editor) ->
-    position = @_editors.indexOf(editor)
-    return false if position < 0
-    @_editors.splice(position, 1)
-    @_dispatchEvent({type: "removeeditor", editor: editor, position: position})
-    return true
 
   ###*
   @method
@@ -564,17 +539,12 @@ module.exports = class Sketch extends JSONable
   constructor: (obj = {}) ->
     super(obj)
     @_rubicVersion = obj.rubicVersion?.toString()
-    @_items = (SketchItem.parseJSON(item, this) for item in (obj?.items or []))
+    @_items = []
+    @addItem(SketchItem.parseJSON(item), true) for item in (obj?.items or [])
     @_bootItem = obj.bootItem?.toString()
     @_board = Board.parseJSON(obj.board) if obj.board?
     @_workspace = obj.workspace
     @_modified = false
-    @_modify = (key, value) =>
-      if key?
-        return if @[key] == value
-        @[key] = value
-      @_modified = true
-      @dispatchEvent({type: "change"})
     return
 
   ###*
@@ -590,9 +560,37 @@ module.exports = class Sketch extends JSONable
       workspace: @_workspace
     })
 
+  ###*
+  @protected
+  @method
+    Event handler
+  @param {Object} event
+    Event object
+  @return {undefined}
+  ###
+  handleEvent: (event) ->
+    switch event.type
+      when "change.sketchitem"
+        @dispatchEvent({type: EVENT_CHANGE})
+    return
+
   #--------------------------------------------------------------------------------
   # Private methods
   #
+
+  ###*
+  @private
+  @method
+    Notify modifications
+  @param {Function} callback
+    Callback function
+  @return {undefined}
+  ###
+  _modify: (callback) ->
+    return unless callback.call(this)?
+    @_modified = true
+    @dispatchEvent({type: EVENT_CHANGE})
+    return
 
   ###*
   @private

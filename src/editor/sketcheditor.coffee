@@ -97,9 +97,10 @@ module.exports = class SketchEditor extends Editor
       .click(@_removeItem.bind(this))
     @_refreshTree()
     jsTree.select_node(@_rootNodeId)
-    @sketch.addEventListener("save", this)
-    @sketch.addEventListener("additem", this)
-    @sketch.addEventListener("removeitem", this)
+    @sketch.addEventListener("save.sketch", this)
+    @sketch.addEventListener("change.sketch", this)
+    @sketch.addEventListener("additem.sketch", this)
+    @sketch.addEventListener("removeitem.sketch", this)
     return
 
   #--------------------------------------------------------------------------------
@@ -115,16 +116,20 @@ module.exports = class SketchEditor extends Editor
   ###
   handleEvent: (event) ->
     switch event.type
-      when "save"
-        @dispatchEvent({type: "changetitle"})
-      when "additem"
+      when "save.sketch"
+        @modified = false
+        @dispatchEvent({type: "changetitle.editor"})
+      when "change.sketch"
+        @modified = true
+        @dispatchEvent({type: "change.editor"})
+      when "additem.sketch"
         @_refreshTree()
         for k, v of @_itemNodes
           if event.item.path == v.path
             jsTree.deselect_all()
             jsTree.select_node(k)
             break
-      when "removeitem"
+      when "removeitem.sketch"
         @_refreshTree()
     return
 
@@ -192,10 +197,47 @@ module.exports = class SketchEditor extends Editor
   _renameItem: ->
     item = @_selectedItem
     return unless item?
-
-    return
+    oldPath = item.path
+    dirs = oldPath.split("/")
+    oldName = dirs.pop()
+    return Promise.resolve(
+    ).then(=>
+      return global.bootbox.prompt_p({
+        title: I18n.getMessage("Input_new_name_for_1", oldName)
+        value: oldName
+      })  # return global.bootbox.prompt_p()
+    ).catch(=>
+      return  # Cancelled
+    ).then((newName) =>
+      return unless newName?
+      return if newName == oldName  # No change
+      newPath = dirs.concat(newName).join("/")
+      return item.rename(newPath).then(=>
+        return item.sketch.setupItems()
+      )
+    ) # return Promise.resolve().then()...
 
   _removeItem: ->
+    item = @_selectedItem
+    return unless item?
+    return global.bootbox.dialog_p({
+      title: I18n.getMessage("File_remove")
+      message: I18n.getMessage("Are_you_sure_to_remove_file_1", item.path)
+      closeButton: false
+      buttons: {
+        yes: {
+          label: I18n.getMessage("Yes")
+          className: "btn-danger"
+        }
+        no: {
+          label: I18n.getMessage("No")
+          className: "btn-success"
+        }
+      }
+    }).then((result) =>
+      # TODO: remove file
+      return item.sketch.removeItem(item)
+    ) # return global.bootbox.dialog_p().then()...
     return
 
   _selectItem: ->

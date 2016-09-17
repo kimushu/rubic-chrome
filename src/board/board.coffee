@@ -111,34 +111,34 @@ module.exports = class Board extends JSONable
   #
 
   ###*
-  @event change
+  @event change.board
     Board changed
   @param {Object} event
     Event object
   @param {Board} event.target
     Board instance
   ###
-  @event("change")
+  @event("change.board")
 
   ###*
-  @event connect
+  @event connect.board
     Connected event target
   @param {Object} event
     Event object
   @param {Board} event.target
     Board instance
   ###
-  @event("connect")
+  @event("connect.board")
 
   ###*
-  @event disconnect
+  @event disconnect.board
     Disconnected
   @param {Object} event
     Event object
   @param {Board} event.target
     Board instance
   ###
-  @event("disconnect")
+  @event("disconnect.board")
 
   #--------------------------------------------------------------------------------
   # Public methods
