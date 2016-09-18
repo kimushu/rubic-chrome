@@ -6,7 +6,7 @@ clean: clean-html
 clobber: clobber-html
 
 dwld_dir  = $(VIEW_DIR)/downloads
-modules   = jqy twbs fawe ace spin jqsp bbox bsnt jqst splt cana jstr
+modules   = jqy twbs fawe ace spin jqsp bbox bsnt jqst splt jstr
 
 .PHONY: info
 info:
@@ -368,41 +368,6 @@ $(splt_key): $(splt_tgz)
 $(splt_tgz):
 	$(call ECHO_C,"Downloading $(splt_name) tarball ($(splt_url))")
 	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(splt_url)"
-
-#--------------------------------------------------------------------------------
-# Canarium
-#
-
-cana_name = Canarium
-cana_ver  = 0.9.8
-cana_url  = https://github.com/kimushu/canarium/archive/v$(cana_ver).tar.gz
-cana_dir  = $(dwld_dir)/canarium-$(cana_ver)
-cana_tgz  = $(cana_dir).tar.gz
-cana_key  = $(cana_dir)/.unpacked
-cana_src  = $(cana_dir)/js/canarium.min.js
-cana_out  = $(DIST_DIR)/$(notdir $(cana_src))
-
-.PHONY: cana clean-cana clobber-cana
-cana: $(cana_out)
-
-clean-cana:
-	$(Q)rm -f $(cana_out)
-
-clobber-cana: clean-cana
-	$(Q)rm -rf $(cana_dir)
-	$(Q)rm -f $(cana_tgz)
-
-$(cana_out): $(cana_key)
-	$(call ECHO_W,"Locating $(cana_name) script ($@)")
-	$(Q)mkdir -p $(dir $@) && cp $(cana_src) $@
-
-$(cana_key): $(cana_tgz)
-	$(call ECHO_W,"Unpacking $(cana_name) tarball ($<)")
-	$(Q)tar -C $(dir $<) -xf $< && touch $@
-
-$(cana_tgz):
-	$(call ECHO_C,"Downloading $(cana_name) tarball ($(cana_url))")
-	$(Q)mkdir -p $(dir $@) && curl -L -o $@ "$(cana_url)"
 
 #--------------------------------------------------------------------------------
 # jsTree

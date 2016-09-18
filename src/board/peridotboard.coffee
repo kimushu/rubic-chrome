@@ -281,5 +281,5 @@ module.exports = class PeridotBoard extends Board
       return
 
 # Post dependencies
-Canarium = global.Canarium
+Canarium = global.Libs.Canarium.Canarium
 Preferences = require("app/preferences")

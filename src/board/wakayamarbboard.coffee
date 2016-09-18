@@ -520,4 +520,5 @@ module.exports = class WakayamaRbBoard extends Board
 App = require("app/app")
 FifoBuffer = require("util/fifobuffer")
 Preferences = require("app/preferences")
-SerialPort = global.Canarium.BaseComm.SerialWrapper
+Canarium = global.Libs.Canarium.Canarium
+SerialPort = Canarium.BaseComm.SerialWrapper

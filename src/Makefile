@@ -4,7 +4,7 @@ browserify_envs = NODE_PATH=$(SRC_DIR)
 
 browserify_opts = \
 	--transform=coffeeify --extension=coffee --debug \
-	$(addprefix --external=,crypto)
+	$(addprefix --external=,crypto serialport)
 
 jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQuery
 
