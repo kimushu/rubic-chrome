@@ -356,6 +356,8 @@ Close_sketch:
     "スケッチを閉じる"
 Get_board_info:
     "ボードの情報を取得"
+Board_info:
+    "ボードの情報"
 Info:
     "情報"
 Script_engine_config:
@@ -414,3 +416,5 @@ Cannot_resolve_build_order:
     "ビルドの順番を決定できません"
 File_1_has_been_modified:
     "ファイル $1 には未保存の変更があります"
+Input_new_name_for_1:
+    "ファイル $1 の新しい名前を入力してください"
