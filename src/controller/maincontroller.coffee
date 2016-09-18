@@ -203,6 +203,7 @@ module.exports = class MainController extends WindowController
       tabSet.addTab("""
       <#{s[0]} class="#{s[1]}">
         <span class="editor-modified fa fa-pencil"></span>
+        <span class="editor-readonly fa fa-lock"></span>
         <a href="#"></a>
         <span class="editor-close-button glyphicon glyphicon-remove"></span>
       </#{s[0]}>
@@ -210,6 +211,7 @@ module.exports = class MainController extends WindowController
       tab = $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
       tab.find("a").eq(0).text(editor.title or "")
       tab.find("span.editor-modified").hide() unless editor.modified
+      tab.find("span.editor-readonly").hide() if editor.editable
       tab.find("span.editor-close-button").remove() unless editor.closable
       editor.addEventListener("changetitle.editor", this)
       editor.addEventListener("change.editor", this)

@@ -17,6 +17,14 @@ module.exports = class SketchEditor extends Editor
 
   ###*
   @static
+  @inheritdoc Editor#editable
+  @readonly
+  ###
+  @editable: true
+
+
+  ###*
+  @static
   @property {boolean} closable
     Is editor closable
   @readonly
