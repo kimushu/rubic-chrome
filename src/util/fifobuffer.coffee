@@ -1,6 +1,6 @@
 "use strict"
 # Pre dependencies
-# (none)
+require("util/primitive")
 
 TR = ArrayBuffer.transfer or (oldBuffer, newByteLength = oldBuffer.byteLength) ->
   oldByteLength = oldBuffer.byteLength
@@ -12,114 +12,122 @@ TR = ArrayBuffer.transfer or (oldBuffer, newByteLength = oldBuffer.byteLength) -
 MIN_CAPACITY = 256
 
 module.exports = class FifoBuffer
-  SB = Symbol("Buffer")
-  SF = Symbol("FirstPart")
-  SS = Symbol("SecondPart")
+  null
 
-  Object.defineProperty(@prototype, "byteLength", get: ->
-    return (@[SF]?.byteLength or 0) + (@[SS]?.byteLength or 0)
-  )
+  ###*
+  @property {number} byteLength
+    Length of stored data in bytes
+  @readonly
+  ###
+  @property("byteLength", get: -> @_byteLength)
 
-  Object.defineProperty(@prototype, "capacity", get: ->
-    return @[SB].byteLength
-  )
+  ###*
+  @property {number} capacity
+    Length of buffer in bytes
+  @readonly
+  ###
+  @property("capacity", get: -> @_buffer.byteLength)
 
+  ###*
+  @method constructor
+    Constructor of FifoBuffer class
+  ###
   constructor: ->
-    @[SB] = new ArrayBuffer(0)
-    @[SF] = null
-    @[SS] = null
+    @_byteLength = 0
+    @_buffer = new ArrayBuffer(MIN_CAPACITY)
     return
 
+  ###*
+  @method
+    Append new data to buffer
+  @param {TypedArray/ArrayBuffer} data
+    Data to add
+  @return {undefined}
+  ###
   push: (data) ->
-    data = new Uint8Array(data) unless data instanceof Uint8Array
-    alen = data.byteLength
-    return if alen == 0
-
-    # Extend buffer size
-    @extend(@byteLength + alen)
-
-    foff = @[SF]?.byteOffset or 0
-    flen = @[SF]?.byteLength or 0
-    slen = @[SS]?.byteLength or 0
-    if slen > 0
-      # Extend second part only
-      (@[SS] = new Uint8Array(@[SB], 0, slen + alen)).set(data, slen)
+    if data instanceof ArrayBuffer
+      array = new Uint8Array(data)
     else
-      # Extend first part
-      frem = @[SB].byteLength - (foff + flen)
-      fadd = Math.min(alen, frem)
-      (@[SF]= new Uint8Array(@[SB], foff, flen + fadd)).set(data, foff + flen)
-      alen -= fadd
-      if alen > 0
-        # Create second part
-        (@[SS] = new Uint8Array(@[SB], 0, alen)).set(data.subarray(fadd), 0)
+      array = new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+    alen = array.byteLength
+    return unless alen > 0
+    nlen = @_byteLength + alen
+    @allocate(nlen)
+    new Uint8Array(@_buffer, @_byteLength).set(array)
+    @_byteLength = nlen
     return
 
-  pop: (byteLength) ->
-    if byteLength?
-      byteLength = Math.min(byteLength, @byteLength)
-    else
-      byteLength = @byteLength
-    array = new Uint8Array(byteLength)
-    if byteLength > 0
-      flen = @[SF].byteLength
-      fpop = Math.min(byteLength, flen)
-      # Copy from first part
-      array.set(@[SF].subarray(0, fpop), 0)
-      byteLength -= fpop
-      if byteLength > 0
-        # Switch to second part
-        array.set(@[SS].subarray(0, byteLength), fpop)
-        slen = @[SS].byteLength - byteLength
-        if slen > 0
-          @[SF] = @[SS].subarray(byteLength, slen)
-        else
-          @[SF] = null
-        @[SS] = null
-      else
-        flen -= fpop
-        if flen > 0
-          @[SF] = @[SF].subarray(fpop, flen)
-        else
-          @[SF] = null
-    return array.buffer
+  ###*
+  @method
+    Pick out data from buffer
+  @param {number} byteLength
+    Read length in bytes
+  @return {ArrayBuffer}
+    Read data
+  ###
+  shift: (byteLength) ->
+    data = @peek(byteLength)
+    rlen = data.byteLength
+    @_byteLength -= rlen
+    if @_byteLength > 0 and rlen > 0
+      new Uint8Array(@_buffer).set(new Uint8Array(@_buffer, rlen, @_byteLength))
+      @compact()
+    return data
 
+  ###*
+  @method
+    Read data from buffer
+  @param {number} byteLength
+    Read length in bytes
+  @return {ArrayBuffer}
+    Read data
+  ###
   peek: (byteLength) ->
     if byteLength?
-      byteLength = Math.max(0, Math.min(byteLength, @byteLength))
+      byteLength = Math.min(@_byteLength, byteLength)
     else
-      byteLength = @byteLength
-    array = new Uint8Array(byteLength)
-    if byteLength > 0
-      flen = @[SF].byteLength
-      fpek = Math.min(byteLength, flen)
-      # Copy from first part
-      array.set(@[SF].subarray(0, fpek), 0)
-      byteLength -= fpek
-      if byteLength > 0
-        # Copy from second part
-        array.set(@[SS].subarray(0, byteLength), fpek)
-    return array.buffer
+      byteLength = @_byteLength
+    return @_buffer.slice(0, byteLength)
 
-  extend: (byteLength) ->
-    newCapacity = @[SB].byteLength
-    return if byteLength <= newCapacity
-    newCapacity or= MIN_CAPACITY
-    newCapacity *= 2 while newCapacity < byteLength
-    foff = @[SF]?.byteOffset
-    flen = @[SF]?.byteLength or 0
-    slen = @[SS]?.byteLength or 0
-    @[SF] = null
-    @[SS] = null
-    @[SB] = TR(@[SB], newCapacity)
-    @[SF] = new Uint8Array(@[SB], foff, flen + slen) if flen > 0
-    @[SF].set(new Uint8Array(@[SB], 0, slen), foff + flen) if slen > 0
+  ###*
+  @method
+    Allocate (growth or reduce) buffer
+  @param {number} capacity
+    New capacity
+  @return {undefined}
+  ###
+  allocate: (capacity) ->
+    newCapacity = Math.max(@_byteLength, capacity) - 1
+    newCapacity |= (newCapacity >>> 1)
+    newCapacity |= (newCapacity >>> 2)
+    newCapacity |= (newCapacity >>> 4)
+    newCapacity |= (newCapacity >>> 8)
+    newCapacity |= (newCapacity >>> 16)
+    newCapacity = Math.max(MIN_CAPACITY, newCapacity + 1)
+    oldCapacity = @_buffer.byteLength
+    return if newCapacity == oldCapacity
+    newBuffer = new ArrayBuffer(newCapacity)
+    new Uint8Array(newBuffer).set(new Uint8Array(@_buffer, 0, @_byteLength))
+    @_buffer = newBuffer
     return
 
-  clear: ->
-    @[SB] = TR(@[SB], 0)
-    @[SF] = null
-    @[SS] = null
+  ###*
+  @method
+    Compactize buffer
+  @return {undefined}
+  ###
+  compact: ->
+    @allocate(0)
+    return
+
+  ###*
+  @method
+    Reset buffer
+  @return {undefined}
+  ###
+  reset: ->
+    @_byteLength = 0
+    @compact()
     return
 
 # Post dependencies
