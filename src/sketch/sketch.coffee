@@ -385,7 +385,7 @@ module.exports = class Sketch extends JSONable
     itemRemoved = @_items[index]
     itemRemoved.removeEventListener("change.sketchitem", this)
     @_items.splice(index, 1)
-    @_modify()
+    @_modify(=> true)
     @dispatchEvent({type: EVENT_REMOVEITEM, item: itemRemoved})
     return true
 
