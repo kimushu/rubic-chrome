@@ -82,7 +82,7 @@ module.exports = class WakayamaRbBoard extends Board
   READ1K_TIMEOUT_MS   = 1000
   WRITE1K_TIMEOUT_MS  = 2000
   DELETE_TIMEOUT_MS   = 1000
-  V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^,]+),([^(]+)\(H [ENTER]\)$/
+  V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^,]+),([^(]+)\(H \[ENTER\]\)$/
 
   VID_PID_LIST = [
     # VID)PID)
@@ -562,8 +562,8 @@ module.exports = class WakayamaRbBoard extends Board
     @param {WakayamaRbBoard} wrbb
       Owner class instance
     ###
-    constructor: (wrbb) ->
-      super(wrbb)
+    constructor: (@_wrbb) ->
+      super(@_wrbb)
       @_lock = {}
       @_opened = false
       return
@@ -579,7 +579,7 @@ module.exports = class WakayamaRbBoard extends Board
           return @_wrbb._wait("\n").then((data) =>
             return unless @_opened
             return ab2str(data).then((text) =>
-              if V1_VERSION_LINE.test(text.replace(/[\r\n]/, ""))
+              if V1_VERSION_LINE.test(text.replace(/[\r\n]+$/, ""))
                 @close()
                 return
               @dispatchEvent({type: "receive.console", board: @_wrbb, data: data})
