@@ -103,8 +103,22 @@ module.exports = class Board extends JSONable
 
   ###*
   @property {boolean} connected
+  @readonly
   ###
-  @property("connected", get: -> @_connected)
+  @property("connected", get: -> @_lastConnected?)
+
+  ###*
+  @property {string} path
+  @readonly
+  ###
+  @property("path", get: -> @_path)
+
+  ###*
+  @property {number} lastConnected
+    Timestamp of last connected date (in milliseconds from epoch, UTC)
+  @readonly
+  ###
+  @property("lastConnected", get: -> @_lastConnected)
 
   #--------------------------------------------------------------------------------
   # Events
@@ -264,7 +278,11 @@ module.exports = class Board extends JSONable
     Promise object
   @return {undefined} return.PromiseValue
   ###
-  connect: null # pure virtual
+  connect: (path) ->
+    @_path = path
+    @_lastConnected = Date.now()
+    @dispatchEvent({type: "connect.board"})
+    return Promise.resolve()
 
   ###*
   @template
@@ -274,7 +292,11 @@ module.exports = class Board extends JSONable
     Promise object
   @return {undefined} return.PromiseValue
   ###
-  disconnect: null # pure virtual
+  disconnect: ->
+    @_path = null
+    @_lastConnected = null
+    @dispatchEvent({type: "disconnect.board"})
+    return Promise.resolve()
 
   ###*
   @template
@@ -358,7 +380,7 @@ module.exports = class Board extends JSONable
     @_boardRevision   = obj.boardRevision?.toString?()
     @_firmwareId      = obj.firmwareId?.toString?()
     @_firmRevisionId  = obj.firmRevisionId?.toString?()
-    @_connected       = false
+    @_lastConnected   = null
     @_modify = (key, value) =>
       if key?
         return if @[key] == value

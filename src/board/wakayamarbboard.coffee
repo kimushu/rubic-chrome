@@ -78,7 +78,8 @@ module.exports = class WakayamaRbBoard extends Board
   #
 
   CMD_TIMEOUT_MS      = 200
-  READ1K_TIMEOUT_MS   = 500
+  CMD_RETRIES         = 10
+  READ1K_TIMEOUT_MS   = 1000
   WRITE1K_TIMEOUT_MS  = 2000
   DELETE_TIMEOUT_MS   = 1000
   V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^,]+),([^(]+)\(H [ENTER]\)$/
@@ -156,7 +157,7 @@ module.exports = class WakayamaRbBoard extends Board
       for port in ports
         if Preferences.os == "mac" and port.path.startsWith("/dev/tty.")
           continue  # Drop TTY device (for Mac)
-        id = (parseInt(port.vendorId) << 16) + parseInt(port.productId)
+        id = ((parseInt(port.vendorId) << 16) + parseInt(port.productId)) >>> 0
         devices.push({
           friendlyName: port.manufacturer
           path: port.path
@@ -174,12 +175,18 @@ module.exports = class WakayamaRbBoard extends Board
     return @errorConnected() if @_serial?
     serial = new SerialPort(path)
     return serial.open().then(=>
-      serial.onClosed = @_closeHandler.bind(this)
-      serial.onReceived = @_receiveHandler.bind(this)
+      serial.onClosed = =>
+        Promise.delay(0).then(=>
+          @_closeHandler()
+          return
+        )
+      serial.onReceived = (data) =>
+        Promise.delay(0).then(=>
+          @_receiveHandler(data)
+          return
+        )
       @_serial = serial
-      @_path = path
-      @dispatchEvent({type: "connect.board"})
-      return  # Last PromiseValue
+      return super(path)
     )
 
   ###*
@@ -189,7 +196,7 @@ module.exports = class WakayamaRbBoard extends Board
     return @errorNotConnected() unless @_serial?
     return @_serial.close().then(=>
       @_serial = null
-      return  # Last PromiseValue
+      return super()
     )
 
   ###*
@@ -204,15 +211,18 @@ module.exports = class WakayamaRbBoard extends Board
     ).then(=>
       return @_send("H\r")
     ).then(=>
-      return @_wait("(H [ENTER])").timeout(CMD_TIMEOUT_MS)
+      return @_pull(@_wait("(H [ENTER])"))
     ).then((readdata) =>
       return ab2str(readdata)
     ).then((readdata) =>
-      v = readdata.split("\r").pop().match(/^(.+)(Ver\..+)\(H \[ENTER\]\)/)
+      verline = readdata.split("\r\n").pop()
+      App.log("WakayamaRbBoard#getBoardInfo: (%o)", verline)
+      v = verline.match(V1_VERSION_LINE)
+      return Promise.reject(Error("Bad response")) unless v?
       return {
-        path: @_path
-        firmware: v[1].trim?()
-        firmRevision: v[2].trim?()
+        "{Kind_of_board}": v[1]?.trim()
+        "{Firmware_revision}": v[2]?.trim()
+        "{Embedded_script_engine}": v[3]?.trim()
       } # Last PromiseValue
     ).finally(=>
       return @_unlock(lock)
@@ -243,11 +253,13 @@ module.exports = class WakayamaRbBoard extends Board
     ).then(=>
       return @_lock(lock)
     ).then(=>
-      return @_send("R #{target}\r")
+      return @_send("\bR #{target}\r")
     ).then(=>
-      return @_wait(">R #{target}\r")
+      return @_wait("\bR #{target}\r\n")
     ).then(=>
       return @_unlock(lock)
+    ).then(=>
+      return new WrbbConsoleV1(this)
     )
     return
 
@@ -327,6 +339,11 @@ module.exports = class WakayamaRbBoard extends Board
     return Promise.reject(Error("Already waiting")) if @_waiter?
     return Promise.resolve(
     ).then(=>
+      if expect instanceof ArrayBuffer
+        do ->
+          except = except.slice(0)
+          pro = null
+          Object.defineProperty(except, "ab2str", get: -> pro or= ab2str(except))
       App.log.verbose("WakayamaRbBoard#_wait(%o)", expect)
       return str2ab(expect) if typeof(expect) == "string"
       return expect
@@ -339,14 +356,24 @@ module.exports = class WakayamaRbBoard extends Board
   ###*
   @private
   @method
+    Pull receive data by sending meaningless bytes
+  ###
+  _pull: (promise, timeout = CMD_TIMEOUT_MS, retries = CMD_RETRIES) ->
+    timerId = global.setInterval((=> @_send(" \b")), timeout)
+    return promise.timeout(timeout * (retries + 1)).finally(=>
+      global.clearInterval(timerId)
+    )
+
+  ###*
+  @private
+  @method
     Handler for disconnection
   ###
   _closeHandler: ->
-    @_serial = null
     reject = @_waiter?.reject
     @_waiter = null
+    @disconnect()
     reject?()
-    @dispatchEvent({type: "disconnect.board"})
     return
 
   ###*
@@ -357,7 +384,10 @@ module.exports = class WakayamaRbBoard extends Board
     Received data
   ###
   _receiveHandler: (ab) ->
-    App.log.verbose("WakayamaRbBoard#_recv(%o)", ab)
+    do (ab) ->
+      pro = null
+      Object.defineProperty(ab, "ab2str", get: -> pro or= ab2str(ab))
+      App.log.verbose("WakayamaRbBoard#_recv(%o, %i bytes)", ab, ab.byteLength)
     @_recvBuffer or= new FifoBuffer()
     oldLen = @_recvBuffer.byteLength
     @_recvBuffer.push(ab)
@@ -375,7 +405,7 @@ module.exports = class WakayamaRbBoard extends Board
           match = false
           break
       continue unless  match
-      data = @_recvBuffer.pop(i + tlen)
+      data = @_recvBuffer.shift(i + tlen)
       resolve = @_waiter.resolve
       @_waiter = null
       resolve?(data)
@@ -397,6 +427,7 @@ module.exports = class WakayamaRbBoard extends Board
     (HEX2BIN[i+0x30] = i + 0) for i in [0...10] by 1
     (HEX2BIN[i+0x41] = i + 10) for i in [0...6] by 1
     (HEX2BIN[i+0x61] = i + 10) for i in [0...6] by 1
+    BIN2HEX = ("0#{i.toString(16)}".substr(-2) for i in [0...256] by 1)
 
     ###*
     @inheritdoc AsyncFs#getNameImpl
@@ -414,23 +445,23 @@ module.exports = class WakayamaRbBoard extends Board
       ).then(=>
         return @_wrbb._lock(lock)
       ).then(=>
-        return @_wrbb._send("F #{@dir}#{path}\r")
+        return @_wrbb._send("F #{@_dir}#{path}\r")
       ).then(=>
-        return @_wrbb._wait("\rWaiting").timeout(CMD_TIMEOUT_MS)
+        return @_wrbb._wait("\r\nWaiting").timeout(CMD_TIMEOUT_MS)
       ).then(=>
         return @_wrbb._send("\r")
       ).then(=>
-        return @_wrbb._wait("\rWaiting").timeout(CMD_TIMEOUT_MS)
+        return @_wrbb._wait("\r\nWaiting").timeout(CMD_TIMEOUT_MS)
       ).then((readdata) =>
         text = String.fromCharCode.apply(null, new Uint8Array(readdata))
-        text.match(/\r(\d+)\rWaiting/, (match, sizeLine) =>
+        text.replace(/\r\n(\d+)\r\nWaiting/, (match, sizeLine) =>
           result = new Uint8Array(parseInt(sizeLine))
         )
         return @_wrbb._send("\r")
       ).then(=>
-        return @_wrbb._wait("\r").timeout(CMD_TIMEOUT_MS)
+        return @_wrbb._wait("\r\n").timeout(CMD_TIMEOUT_MS)
       ).then(=>
-        return @_wrbb._wait("\r").timeout(READ1K_TIMEOUT_MS * ((length + 1024) / 1024))
+        return @_wrbb._wait("\r\n").timeout(READ1K_TIMEOUT_MS * ((length + 1024) / 1024))
       ).then((readdata) =>
         src = new Uint8Array(readdata)
         for i in [0...result.byteLength] by 1
@@ -459,17 +490,19 @@ module.exports = class WakayamaRbBoard extends Board
         src = new Uint8Array(buffer)
         return @_wrbb._send("U #{@_dir}#{path} #{src.byteLength * 2}\r")
       ).then(=>
-        return @_wrbb._wait("\rWaiting").timeout(CMD_TIMEOUT_MS)
+        return @_wrbb._wait("\r\nWaiting").timeout(CMD_TIMEOUT_MS)
       ).then(=>
         dump = ""
         for i in [0...src.byteLength] by 1
-          dump += "0#{i.toString(16).toUpperCase()}".substr(-2)
+          dump += BIN2HEX[src[i]]
         return @_wrbb._send(dump)
       ).then(=>
         return @_wrbb._wait("Saving").timeout(CMD_TIMEOUT_MS)
       ).then(=>
-        return @_wrbb._wait("\r\r").timeout(
-          WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024)
+        return @_wrbb._pull(
+          @_wrbb._wait("\r\n>")
+          WRITE1K_TIMEOUT_MS
+          ((src.byteLength + 1024) / 1024)
         )
       ).then(=>
         return  # Last PromiseValue
@@ -488,7 +521,7 @@ module.exports = class WakayamaRbBoard extends Board
       ).then(=>
         return @_wrbb._send("D #{@_dir}#{path}\r")
       ).then(=>
-        return @_wrbb._wait("\r\r").timeout(DELETE_TIMEOUT_MS)
+        return @_wrbb._wait("\r\n\r\n").timeout(DELETE_TIMEOUT_MS)
       ).then(=>
         return  # Last PromiseValue
       ).finally(=>
