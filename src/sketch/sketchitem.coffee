@@ -237,6 +237,15 @@ module.exports = class SketchItem extends JSONable
 
   ###*
   @method
+    Set transfered
+  @return {undefined}
+  ###
+  setTransfered: ->
+    @_lastTransfered = Date.now()
+    return
+
+  ###*
+  @method
     Rename item
   @param {string} newPath
     New path

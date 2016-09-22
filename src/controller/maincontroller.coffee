@@ -41,6 +41,8 @@ module.exports = class MainController extends WindowController
 
   firstActivation = true  # Flag for first activation
   tabSet = null           # jquery-scrollTabs instance for editor tabs
+  Ace = null              # Ace class
+  aceEditor = null        # Ace editor for output window
   nextEditorId = 1        # Next editor ID
 
   #--------------------------------------------------------------------------------
@@ -86,6 +88,19 @@ module.exports = class MainController extends WindowController
       App.log("MainController.tabSet: %o", tabSet)
       return
     ).then(=>
+      # Setup Ace editor for output window (only once)
+      return unless firstActivation
+      Ace = window.ace
+      Ace.Range = Ace.require("ace/range").Range
+      aceEditor = Ace.edit($(".editor-bottom")[0])
+      App.log("MainController.aceEditor: %o", aceEditor)
+      aceEditor.$blockScrolling = Infinity
+      aceEditor.renderer.setShowGutter(false)
+      aceEditor.setTheme("ace/theme/twilight")
+      aceEditor.setShowPrintMargin(false)
+      # aceEditor.setReadOnly(true)
+      return
+    ).then(=>
       # Setup other HTML elements (only once)
       return unless firstActivation
       $(".sketch-new")          .click(@_newSketch.bind(this))
@@ -126,24 +141,19 @@ module.exports = class MainController extends WindowController
       )
       $(".board-info").click((event) =>
         @_board?.getBoardInfo().then((info) =>
-          tbody = $("#template-table").clone()
-            .find("thead").remove().end()
-            .find("tbody")
-          $("#template-tr-td11").clone().appendTo(tbody).find("td")
-            .eq(0).text(I18n.getMessage("Board")).end()
-            .eq(1).text(@_board.friendlyName).end()
-          $("#template-tr-td11").clone().appendTo(tbody).find("td")
-            .eq(0).text(I18n.getMessage("Path")).end()
-            .eq(1).text(info.path).end() if info.path?
-          $("#template-tr-td11").clone().appendTo(tbody).find("td")
-            .eq(0).text(I18n.getMessage("Firmware")).end()
-            .eq(1).text(info.firmware).end() if info.firmware?
-          $("#template-tr-td11").clone().appendTo(tbody).find("td")
-            .eq(0).text(I18n.getMessage("Firmware_revision")).end()
-            .eq(1).text(info.firmRevision).end() if info.firmRevision?
+          table = $("#template-table").children().clone()
+          $("#template-tr-th11").children().clone()
+            .appendTo(table.find("thead")).find("th")
+            .eq(0).text(I18n.getMessage("Board_info")).end()
+            .eq(1).text("#{@_board.friendlyName} [#{@_board.path}]").end()
+          for k, v of info
+            $("#template-tr-td11").children().clone()
+              .appendTo(table.find("tbody")).find("td")
+              .eq(0).text(I18n.translateText(k)).end()
+              .eq(1).text(v).end()
           return global.bootbox.alert_p({
-            title: I18n.getMessage("Board_info")
-            message: tbody.closest("table")
+            # title: I18n.getMessage("Board_info")
+            message: table
           })
         ) # @_board?.getBoardInfo().then()
       )
@@ -236,6 +246,53 @@ module.exports = class MainController extends WindowController
       $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if position >= 0
       return true # Last PromiseValue
     ) # return Promise.resolve().then()...
+
+  ###*
+  @method
+    Clear output window
+  @return {undefined}
+  ###
+  clearOutput: ->
+    session = Ace.createEditSession("", "ace/mode/text")
+    session.setUseWrapMode(true)
+    aceEditor.setSession(session)
+    return
+
+  ###*
+  @method
+    Print text to output window
+  @param {string} text
+    Text to print
+  @param {string} [marker=null]
+    Marker class
+  @param {boolean} [newline=false]
+    Force new line
+  @return {undefined}
+  ###
+  printOutput: (text, marker = null, newline = false) ->
+    session = aceEditor.getSession()
+    range = new Ace.Range
+    row = session.getLength()
+    range.start = {
+      row: row
+      column: session.getLine(row).length
+    }
+    if newline and range.start.column > 0
+      text = "\n#{text}"
+    range.end = session.insert(range.start, text)
+    session.addMarker(range, "marker-#{marker}", "text") if marker?
+    return
+
+  ###*
+  @method
+    Print system message to output window
+  @param {string} text
+    Text to print (LF automatically added to the end of text)
+  @return {undefined}
+  ###
+  printSystem: (text) ->
+    @printOutput("#{text}\n", "system", true)
+    return
 
   #--------------------------------------------------------------------------------
   # Private methods
@@ -616,10 +673,12 @@ module.exports = class MainController extends WindowController
     Build sketch
   @param {boolean/MouseEvent/KeyboardEvent} [force]
     Force all build (If event is specified, judged by SHIFT key)
+  @param {boolean} [keepOutput=false]
+    Keep output window
   @return {Promise}
     Promise object
   ###
-  _buildSketch: (force) ->
+  _buildSketch: (force, keepOutput = false) ->
     force = force.shiftKey if typeof(force) == "object"
     force = !!force
     sketch = App.sketch
@@ -633,6 +692,7 @@ module.exports = class MainController extends WindowController
       return @_saveSketch()
     ).then(=>
       spin = @modalSpin()
+      @clearOutput() unless keepOutput
       return sketch.build(
         force
         (path, progress, error) =>
@@ -640,11 +700,17 @@ module.exports = class MainController extends WindowController
             I18n.getMessage("Failed_to_build_1", path)
             I18n.getMessage("Build_failed")
           ) if error?
-          return spin.text(
-            "#{I18n.getMessage("Building_1", path)} (#{Math.round(progress)}%)"
+          msg = I18n.getMessage("Building_1", path)
+          @printSystem(msg) if progress == 0
+          spin.text(
+            "#{msg} (#{Math.round(progress)}%)"
           )
+          return
       ).then(=>
-        App.popupSuccess(I18n.getMessage("Build_succeeded"))
+        msg = I18n.getMessage("Build_succeeded")
+        @printSystem(msg)
+        App.popupSuccess(msg)
+        return  # Do not wait until notification closing
       ).finally(=>
         spin.hide(500)
       ) # return sketch.build()...
@@ -656,10 +722,12 @@ module.exports = class MainController extends WindowController
     Transfer sketch
   @param {boolean/MouseEvent/KeyboardEvent} [force]
     Force all build (If event is specified, judged by SHIFT key)
+  @param {boolean} [keepOutput=false]
+    Keep output window
   @return {Promise}
     Promise object
   ###
-  _transferSketch: (force) ->
+  _transferSketch: (force, keepOutput = false) ->
     force = force.shiftKey if typeof(force) == "object"
     force = !!force
     sketch = App.sketch
@@ -669,6 +737,7 @@ module.exports = class MainController extends WindowController
     return Promise.resolve(
     ).then(=>
       spin = @modalSpin()
+      @clearOutput() unless keepOutput
       return sketch.transfer(
         force
         (path, progress, error) =>
@@ -676,11 +745,18 @@ module.exports = class MainController extends WindowController
             I18n.getMessage("Failed_to_transfer_1", path)
             I18n.getMessage("Transfer_failed")
           ) if error?
+          msg = I18n.getMessage("Transferring_1", path)
+          @printSystem(msg) if progress == 0
           return spin.text(
-            "#{I18n.getMessage("Transferring_1", path)} (#{Math.round(progress)}%)"
+            "#{msg} (#{Math.round(progress)}%)"
           )
+      ).then(=>
+        msg = I18n.getMessage("Transfer_succeeded")
+        @printSystem(msg)
+        App.popupSuccess(msg)
+        return  # Do not wait until notification closing
       ).finally(=>
-        spin.hide()
+        spin.hide(500)
       ) # return sketch.transfer()...
     ) # return Promise.resolve().then()...
 
@@ -702,25 +778,34 @@ module.exports = class MainController extends WindowController
     board = sketch.board
     return Promise.reject(Error("No board")) unless board?
     items = (i for i in sketch.items when i.transfered)
+    @clearOutput()
     return Promise.resolve(
     ).then(=>
-      return @_buildSketch(force)
+      return @_buildSketch(force, true)
     ).then(=>
-      return @_transferSketch(force)
+      return @_transferSketch(force, true)
     ).then(=>
-      unless sketch.bootItem?
+      bootItem = sketch.bootItem
+      unless bootItem?
         App.popupError(I18n.getMessage("No_program_to_boot"))
         return Promise.reject(Error("No program to boot"))
       @_running = Promise.resolve(
       ).then(=>
-        $(".sketch-run").hide()
+        $(".sketch-run").closest(".btn-group").hide()
         $(".sketch-stop").show()
       ).then(=>
-        return board.startSketch()
+        return board.startSketch(bootItem)
+      ).then((console) =>
+        @_console = console
+        @_console.addEventListener("receive.console", this)
+        @_console.addEventListener("close.console", this)
+        return @_console.open()
       ).then(=>
+        @printSystem("-------- #{I18n.getMessage("Connected_to_console")} --------")
+        return
       ).finally(=>
         $(".sketch-stop").hide()
-        $(".sketch-run").show()
+        $(".sketch-run").closest(".btn-group").show()
         @_running = null
       )
       return  # Do not wait until sketch finish
@@ -739,7 +824,7 @@ module.exports = class MainController extends WindowController
     board = sketch.board
     return Promise.reject(Error("No board")) unless board?
     return Promise.reject(Error("Already stopped")) unless @_running
-    spin = @modalSpin()
+    spin = @modalSpin().show()
     return Promise.resolve(
     ).then(=>
       return board.stopSketch()
@@ -853,6 +938,11 @@ module.exports = class MainController extends WindowController
       return @_board.disconnect()
     ).then(=>
       @_board.connect(@_boardPath)
+    ).catch((error) =>
+      App.popupError(
+        error.toString()
+        I18n.getMessage("Failed_to_connect_board")
+      )
     )
     return
 
@@ -892,6 +982,14 @@ module.exports = class MainController extends WindowController
         @_boardPath = null
       when "changetitle.editor", "change.editor"
         @_updateTabTitle(event.target)
+      when "receive.console"
+        return unless @_console
+        return ab2str(event.data).then((text) =>
+          @printOutput(text)
+        )
+      when "close.console"
+        @printSystem("-------- #{I18n.getMessage("Disconnected_from_console")} --------")
+        @_console = null
     return
 
   ###*
@@ -1023,3 +1121,4 @@ SketchItem = require("sketch/sketchitem")
 Editor = require("editor/editor")
 SketchEditor = require("editor/sketcheditor")
 sprintf = require("util/sprintf")
+ab2str = require("util/ab2str")

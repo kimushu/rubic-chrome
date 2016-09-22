@@ -72,6 +72,8 @@ Select_connection:
     "接続先を選択"
 Scan_connections:
     "再検索"
+Failed_to_connect_board:
+    "ボードへの接続に失敗しました"
 Toolbox:
     "ツールボックス"
 Hardware_info:
@@ -418,3 +420,9 @@ File_1_has_been_modified:
     "ファイル $1 には未保存の変更があります"
 Input_new_name_for_1:
     "ファイル $1 の新しい名前を入力してください"
+Transfer_succeeded:
+    "転送に成功しました"
+Connected_to_console:
+    "コンソールに接続しました"
+Disconnected_from_console:
+    "コンソールから切断されました"

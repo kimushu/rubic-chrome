@@ -492,7 +492,6 @@ module.exports = class Sketch extends JSONable
     transferItems = (item for item in @_items when item.transfer)
     boardFs = null
     done = 0
-    writeData = null
     return transferItems.reduce(
       (promise, item) =>
         return promise.then(=>
@@ -501,20 +500,24 @@ module.exports = class Sketch extends JSONable
             progress?(item.path, null, error)
             return Promise.reject(error)
           )
-        ).then((readData) =>
-          writeData = readData
-          return if force # Skip readback when force==true
-          return if item.alreadyTransfered
-          return boardFs.readFile(item.path).catch(=>
-            return  # Ignore errors on readFile()
+        ).then((content) =>
+          return Promise.resolve(
+          ).then(=>
+            return if force
+            tModify = item.lastModified
+            tTrans  = item.lastTransfered
+            tConn   = @_board.lastConnected
+            return if (tModify < tTrans) and (tConn < tTrans)
+            return boardFs.readFile(item.path).catch(=>
+              return  # Ignore errors on readFile()
+            )
+          ).then((compare) =>
+            if !force and compareData?
+              return if arrayEqual(new Uint8Array(content), new Uint8Array(compare))
+            return boardFs.writeFile(item.path, content).then(=>
+              item.setTransfered()
+            )
           )
-        ).then((compareData) =>
-          return if !force and item.alreadyTransfered
-          return if !force and compareData? and arrayEqual(
-            new Uint8Array(writeData)
-            new Uint8Array(compareData)
-          )
-          return boardFs.writeFile(item.path, data)
         ).then(=>
           progress?(item.path, (100 * ++done / transferItems.length))
           return
