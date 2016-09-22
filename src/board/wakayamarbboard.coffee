@@ -389,10 +389,11 @@ module.exports = class WakayamaRbBoard extends Board
       Object.defineProperty(ab, "ab2str", get: -> pro or= ab2str(ab))
       App.log.verbose("WakayamaRbBoard#_recv(%o, %i bytes)", ab, ab.byteLength)
     @_recvBuffer or= new FifoBuffer()
-    oldLen = @_recvBuffer.byteLength
     @_recvBuffer.push(ab)
     token = @_waiter?.token
     return unless token?
+    oldLen = @_waiter.oldLen or 0
+    @_waiter.oldLen = @_recvBuffer.byteLength
     tlen = token.byteLength
     start = Math.max(0, oldLen - tlen)
     end = @_recvBuffer.byteLength - tlen
