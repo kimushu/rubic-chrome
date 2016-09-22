@@ -79,7 +79,7 @@ module.exports = class Controller extends UnJSONable
       )
     ).then(=>
       @window.controller = this
-      App.info.verbose({"Controller#activate": this})
+      App.info.verbose("Controller#activate(%o)", this)
       unless (doc = @window.document).translated
         doc.translated = true
         console.log("Translating document (#{I18n.lang})")
@@ -96,7 +96,7 @@ module.exports = class Controller extends UnJSONable
   deactivate: ->
     return Promise.resolve(
     ).then(=>
-      App.info.verbose({"Controller#deactivate": this})
+      App.info.verbose("Controller#deactivate(%o)", this)
     ).then(=>
       @window.controller = null
     ) # return Promise.resolve().then()...
@@ -148,10 +148,12 @@ module.exports = class Controller extends UnJSONable
           }, opts))
         return this
       hide: (atleast = 0) ->
+        last = Math.max(0, atleast - (Date.now() - @_start))
+        if last > 0
+          @_window.setTimeout(@hide.bind(this, 0), last)
+          return
         if (@_depth = Math.max(@_depth - 1, 0)) == 0
-          last = Math.max(0, atleast - (Date.now() - @_start))
-          hide = => @_spinElement.modal("hide")
-          @_window.setTimeout((=> @_spinElement.modal("hide")), last)
+          @_spinElement.modal("hide")
         else
           @_textElement.html("")
         return this
