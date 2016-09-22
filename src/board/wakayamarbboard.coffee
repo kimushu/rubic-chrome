@@ -3,9 +3,9 @@
 Board = require("board/board")
 I18n = require("util/i18n")
 AsyncFs = require("filesystem/asyncfs")
-ab2str = require("util/ab2str")
-str2ab = require("util/str2ab")
+BoardConsole = require("board/boardconsole")
 require("util/primitive")
+require("compat/bbjscompat")
 
 ###*
 @class WakayamaRbBoard
@@ -81,6 +81,7 @@ module.exports = class WakayamaRbBoard extends Board
   READ1K_TIMEOUT_MS   = 500
   WRITE1K_TIMEOUT_MS  = 2000
   DELETE_TIMEOUT_MS   = 1000
+  V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^,]+),([^(]+)\(H [ENTER]\)$/
 
   VID_PID_LIST = [
     # VID)PID)
@@ -231,8 +232,6 @@ module.exports = class WakayamaRbBoard extends Board
       when "internal"
         return Promise.resolve(new WrbbFileSystemV1(this))
     return Promise.reject(Error("invalid storage: `#{storage}'"))
-
-  # requestConsole
 
   ###*
   @inheritdoc Board#startSketch
@@ -516,7 +515,66 @@ module.exports = class WakayamaRbBoard extends Board
       super(AsyncFs.BOARD_INTERNAL)
       return
 
+  ###*
+  @class WrbbConsoleV1
+    Pseudo filesystem for WakayamaRbBoard (V1 firmware)
+  ###
+  class WrbbConsoleV1 extends BoardConsole
+    null
+
+    ###*
+    @method constructor
+      Constructor of WrbbConsoleV1 class
+    @param {WakayamaRbBoard} wrbb
+      Owner class instance
+    ###
+    constructor: (wrbb) ->
+      super(wrbb)
+      @_lock = {}
+      @_opened = false
+      return
+
+    ###*
+    @inheritdoc BoardConsole#open
+    ###
+    open: ->
+      return Promise.reject(Error("Already opened")) if @_opened
+      return @_wrbb._lock(@_lock).then(=>
+        @_opened = true
+        waitLoop = =>
+          return @_wrbb._wait("\n").then((data) =>
+            return unless @_opened
+            return ab2str(data).then((text) =>
+              if V1_VERSION_LINE.test(text.replace(/[\r\n]/, ""))
+                @close()
+                return
+              @dispatchEvent({type: "receive.console", board: @_wrbb, data: data})
+              return waitLoop()
+            ) # return ab2str().then()
+          ) # return @_wrbb._wait().then()
+        waitLoop()
+        return
+      )
+
+    ###*
+    @inheritdoc BoardConsole#send
+    ###
+    send: (data) ->
+      return Promise.reject(Error("Not opened")) unless @_opened
+      return @_wrbb._send(data)
+
+    ###*
+    @inheritdoc BoardConsole#close
+    ###
+    close: ->
+      return Promise.reject(Error("Not opened")) unless @_opened
+      @_opened = false
+      @dispatchEvent({type: "close.console", board: @_wrbb})
+      return @_wrbb._unlock(@_lock)
+
 # Post dependencies
+ab2str = require("util/ab2str")
+str2ab = require("util/str2ab")
 App = require("app/app")
 FifoBuffer = require("util/fifobuffer")
 Preferences = require("app/preferences")
