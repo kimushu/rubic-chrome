@@ -76,6 +76,51 @@ module.exports = class App
   ###*
   @static
   @method
+    Show confirmation before danger operation
+    "Yes" button is red(danger), "No" button is green(safe)
+  @param {Object} options
+    Options
+  @param {string} [options.rawMessage]
+    Raw message (Skip I18n translation)
+  @param {string} [options.rawTitle]
+    Raw title (Skip I18n translation)
+  @param {string} [options.rawYes]
+    Raw yes button text (Skip I18n translation)
+  @param {string} [options.rawNo]
+    Raw no button text (Skip I18n translation)
+  @param {string} [options.message]
+    Message (Translated by I18n.translateText)
+  @param {string} [options.title]
+    Title (Translated by I18n.translateText)
+  @param {string} [options.yes="yes"]
+    Yes button text (Translated by I18n.translateText)
+  @param {string} [options.no="no"]
+    No button text (Translated by I18n.translateText)
+  @return {Promise}
+    Promise object
+  @return {"yes"/"no"}
+    Selection by user
+  ###
+  @safeConfirm_yes_no: (options) ->
+    return global.bootbox.dialog_p(
+      title: options.rawTitle or I18n.translateText(options.title)
+      message: options.rawMessage or I18n.translateText(options.message)
+      closeButton: false
+      buttons: {
+        yes: {
+          label: options.rawYes or I18n.translateText(options.yes or "{Yes}")
+          className: "btn-danger"
+        }
+        cancel: {
+          label: options.rawNo or I18n.translateText(options.no or "{No}")
+          className: "btn-success"
+        }
+      }
+    ) # return global.bootbox.dialog_p()
+
+  ###*
+  @static
+  @method
     Check if current version matches an version-check expression
   @param {string} versionExpr
     Expression for version check
@@ -104,3 +149,4 @@ module.exports = class App
 # Post dependencies
 Preferences = require("app/preferences")
 Notifier = require("ui/notifier")
+I18n = require("util/i18n")

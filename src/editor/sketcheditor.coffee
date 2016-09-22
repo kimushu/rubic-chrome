@@ -165,21 +165,10 @@ module.exports = class SketchEditor extends Editor
       fs = result.fs
       name = result.name
       return "yes" unless @sketch.getItem(name)
-      return global.bootbox.dialog_p({
-        title: I18n.getMessage("File_overwrite")
-        message: I18n.getMessage("Are_you_sure_to_replace_existing_file_1_with_new_one")
-        closeButton: false
-        buttons: {
-          yes: {
-            label: I18n.getMessage("Yes")
-            className: "btn-danger"
-          }
-          no: {
-            label: I18n.getMessage("No")
-            className: "btn-success"
-          }
-        }
-      })  # return global.bootbox.dialog_p()
+      return App.safeConfirm_yes_no(
+        title: "{File_overwrite}"
+        rawMessage: I18n.getMessage("Are_you_sure_to_replace_existing_file_1_with_new_one", name)
+      )
     ).then((result) =>
       return unless result == "yes"
       @sketch.removeItem(name)
@@ -228,24 +217,17 @@ module.exports = class SketchEditor extends Editor
   _removeItem: ->
     item = @_selectedItem
     return unless item?
-    return global.bootbox.dialog_p({
-      title: I18n.getMessage("File_remove")
-      message: I18n.getMessage("Are_you_sure_to_remove_file_1", item.path)
-      closeButton: false
-      buttons: {
-        yes: {
-          label: I18n.getMessage("Yes")
-          className: "btn-danger"
-        }
-        no: {
-          label: I18n.getMessage("No")
-          className: "btn-success"
-        }
-      }
-    }).then((result) =>
+    return Promise.resolve(
+    ).then(=>
+      return App.safeConfirm_yes_no(
+        title: "{File_remove}"
+        rawMessage: I18n.getMessage("Are_you_sure_to_remove_file_1", item.path)
+      )
+    ).then((result) =>
+      return unless result == "yes"
       # TODO: remove file
       return item.sketch.removeItem(item)
-    ) # return global.bootbox.dialog_p().then()...
+    ) # return Promise.resolve().then()...
     return
 
   _selectItem: ->

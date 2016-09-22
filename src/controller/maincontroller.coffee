@@ -68,23 +68,14 @@ module.exports = class MainController extends WindowController
             Promise.resolve(
             ).then(=>
               return "ok" unless editor.modified
-              return global.bootbox.dialog_p({
-                title: I18n.getMessage("File_1_has_been_modified", editor.sketchItem?.path)
-                message: I18n.getMessage("Are_you_sure_to_discard_modifications")
-                closeButton: false
-                buttons: {
-                  ok: {
-                    label: I18n.getMessage("Yes_discard_them")
-                    className: "btn-danger"
-                  }
-                  cancel: {
-                    label: I18n.getMessage("No_cancel_the_operation")
-                    className: "btn-success"
-                  }
-                }
-              })  # return global.bootbox.dialog_p()
+              return App.safeConfirm_yes_no(
+                rawTitle: I18n.getMessage("File_1_has_been_modified", editor.sketchItem?.path)
+                message: "{Are_you_sure_to_discard_modifications}"
+                yes: "{Yes_discard_them}"
+                no: "{No_cancel_the_operation}"
+              )
             ).then((result) =>
-              return unless result == "ok"
+              return unless result == "yes"
               @removeEditor(editor) if editor.closable
               return
             )
@@ -432,25 +423,16 @@ module.exports = class MainController extends WindowController
   _closeSketch: (dryrun = false, force = false) ->
     return Promise.resolve(
     ).then(=>
-      return "ok" unless App.sketch?.modified
-      return "ok" if force
-      return global.bootbox.dialog_p({
-        title: I18n.getMessage("Current_sketch_has_been_modified")
-        message: I18n.getMessage("Are_you_sure_to_discard_modifications")
-        closeButton: false
-        buttons: {
-          ok: {
-            label: I18n.getMessage("Yes_discard_them")
-            className: "btn-danger"
-          }
-          cancel: {
-            label: I18n.getMessage("No_cancel_the_operation")
-            className: "btn-success"
-          }
-        }
-      })  # return global.bootbox.dialog_p()
+      return "yes" unless App.sketch?.modified
+      return "yes" if force
+      return App.safeConfirm_yes_no(
+        title: "{Current_sketch_has_been_modified}"
+        message: "{Are_you_sure_to_discard_modifications}"
+        yes: "{Yes_discard_them}"
+        no: "{No_cancel_the_operation}"
+      )
     ).then((result) =>
-      return Promise.reject(Error("Cancelled")) unless result == "ok"
+      return Promise.reject(Error("Cancelled")) unless result == "yes"
       return if dryrun
       return @_editors.reduce(
         (promise, editor) =>
@@ -550,21 +532,12 @@ module.exports = class MainController extends WindowController
         return Sketch.exists(newDirFs)
       ).then((exists) =>
         return "yes" unless exists
-        return global.bootbox.dialog_p({
-          title: I18n.getMessage("Sketch_overwrite_confirmation")
-          message: I18n.getMessage("Are_you_sure_to_overwrite_existing_sketch")
-          closeButton: false
-          buttons: {
-            yes: {
-              label: I18n.getMessage("Yes_overwrite")
-              className: "btn-danger"
-            }
-            no: {
-              label: I18n.getMessage("No_cancel_the_operation")
-              className: "btn-success"
-            }
-          }
-        })  # return global.bootbox.dialog_p()
+        return App.safeConfirm_yes_no(
+          title: "{Sketch_overwrite_confirmation}"
+          message: "{Are_you_sure_to_overwrite_existing_sketch}"
+          yes: "{Yes_overwrite}"
+          no: "{No_cancel_the_operation}"
+        )
       ).then((confirm) =>
         return Promise.reject(Error("Cancelled by user")) unless confirm == "yes"
         return Preferences.set({"#{KEY_DEFPLACE}": place})

@@ -269,23 +269,12 @@ module.exports = class BoardController extends WindowController
       boardClass = Board.subclasses.find((item) => item.name == name)
       return Promise.reject("Board class not found") unless boardClass?
       return "ok" if !@_board? or @_board?.constructor == boardClass
-      return global.bootbox.dialog_p({
-        title: I18n.getMessage("Confirm_board_change_title")
-        message: I18n.getMessage("Confirm_board_change_message", boardClass.friendlyName)
-        closeButton: false
-        buttons: {
-          ok: {
-            label: I18n.getMessage("Yes")
-            className: "btn-danger"
-          }
-          cancel: {
-            label: I18n.getMessage("No")
-            className: "btn-success"
-          }
-        }
-      })  # return global.bootbox.dialog_p()
+      return App.safeConfirm_yes_no(
+        title: "{Confirm_board_change_title}"
+        rawMessage: I18n.getMessage("Confirm_board_change_message", boardClass.friendlyName)
+      )
     ).then((result) =>
-      return unless result == "ok"
+      return unless result == "yes"
       li.siblings().removeClass("board-selected")
       li.addClass("board-selected")
       if !@_board? or @_board?.constructor != boardClass
