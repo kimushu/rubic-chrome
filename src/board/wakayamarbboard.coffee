@@ -384,6 +384,7 @@ module.exports = class WakayamaRbBoard extends Board
     Received data
   ###
   _receiveHandler: (ab) ->
+    return unless ab.byteLength > 0
     do (ab) ->
       pro = null
       Object.defineProperty(ab, "ab2str", get: -> pro or= ab2str(ab))
@@ -392,12 +393,11 @@ module.exports = class WakayamaRbBoard extends Board
     @_recvBuffer.push(ab)
     token = @_waiter?.token
     return unless token?
-    oldLen = @_waiter.oldLen or 0
-    @_waiter.oldLen = @_recvBuffer.byteLength
     tlen = token.byteLength
-    start = Math.max(0, oldLen - tlen)
     end = @_recvBuffer.byteLength - tlen
-    return unless start <= end
+    return unless end >= 0
+    start = @_waiter.nextScan or 0
+    @_waiter.nextScan = start + 1
     data = new Uint8Array(@_recvBuffer.peek())
     for i in [start..end] by 1
       match = true
