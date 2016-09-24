@@ -69,7 +69,7 @@ module.exports = class MainController extends WindowController
           if $(event.target).hasClass("editor-close-button")
             Promise.resolve(
             ).then(=>
-              return "ok" unless editor.modified
+              return "yes" unless editor.modified
               return App.safeConfirm_yes_no(
                 rawTitle: I18n.getMessage("File_1_has_been_modified", editor.sketchItem?.path)
                 message: "{Are_you_sure_to_discard_modifications}"
@@ -98,7 +98,7 @@ module.exports = class MainController extends WindowController
       aceEditor.renderer.setShowGutter(false)
       aceEditor.setTheme("ace/theme/twilight")
       aceEditor.setShowPrintMargin(false)
-      # aceEditor.setReadOnly(true)
+      aceEditor.setReadOnly(true)
       return
     ).then(=>
       # Setup other HTML elements (only once)
@@ -272,26 +272,31 @@ module.exports = class MainController extends WindowController
   printOutput: (text, marker = null, newline = false) ->
     session = aceEditor.getSession()
     range = new Ace.Range
-    row = session.getLength()
+    row = session.getLength() - 1
     range.start = {
       row: row
-      column: session.getLine(row).length
+      column: session.getScreenLastRowColumn(row)
     }
     if newline and range.start.column > 0
-      text = "\n#{text}"
+      range.start = session.insert(range.start, "\n")
     range.end = session.insert(range.start, text)
-    session.addMarker(range, "marker-#{marker}", "text") if marker?
+    session.addMarker(range, "marker-#{marker}", "line") if marker?
+    aceEditor.navigateFileEnd()
+    aceEditor.scrollToRow(range.end.row)
     return
 
   ###*
   @method
     Print system message to output window
   @param {string} text
-    Text to print (LF automatically added to the end of text)
+    Text to print
+  @param {boolean} [newline=true]
+    Add LF to the end of text
   @return {undefined}
   ###
-  printSystem: (text) ->
-    @printOutput("#{text}\n", "system", true)
+  printSystem: (text, newline = true) ->
+    text = "#{text}\n" if newline
+    @printOutput(text, "system", newline)
     return
 
   #--------------------------------------------------------------------------------
@@ -695,13 +700,21 @@ module.exports = class MainController extends WindowController
       @clearOutput() unless keepOutput
       return sketch.build(
         force
-        (path, progress, error) =>
+        (path, progress, step, error) =>
+          msg = I18n.getMessage("Building_1", path)
+          switch step
+            when Sketch.STEP_START
+              @printSystem(msg, false)
+            when Sketch.STEP_FINISHED
+              @printSystem("#{I18n.getMessage("Succeeded")}\n", false)
+            when Sketch.STEP_SKIPPED
+              @printSystem("#{I18n.getMessage("Skipped")}\n", false)
+            when Sketch.STEP_ABORTED
+              @printSystem("#{I18n.getMessage("Failed")}\n", false)
           return App.popupError(
             I18n.getMessage("Failed_to_build_1", path)
             I18n.getMessage("Build_failed")
           ) if error?
-          msg = I18n.getMessage("Building_1", path)
-          @printSystem(msg) if progress == 0
           spin.text(
             "#{msg} (#{Math.round(progress)}%)"
           )
@@ -709,7 +722,7 @@ module.exports = class MainController extends WindowController
       ).then(=>
         msg = I18n.getMessage("Build_succeeded")
         @printSystem(msg)
-        App.popupSuccess(msg)
+        # App.popupSuccess(msg)
         return  # Do not wait until notification closing
       ).finally(=>
         spin.hide(500)
@@ -740,20 +753,28 @@ module.exports = class MainController extends WindowController
       @clearOutput() unless keepOutput
       return sketch.transfer(
         force
-        (path, progress, error) =>
+        (path, progress, step, error) =>
+          msg = I18n.getMessage("Transferring_1", path)
+          switch step
+            when Sketch.STEP_START
+              @printSystem(msg, false)
+            when Sketch.STEP_FINISHED
+              @printSystem("#{I18n.getMessage("Succeeded")}\n", false)
+            when Sketch.STEP_SKIPPED
+              @printSystem("#{I18n.getMessage("Skipped")}\n", false)
+            when Sketch.STEP_ABORTED
+              @printSystem("#{I18n.getMessage("Failed")}\n", false)
           return App.popupError(
             I18n.getMessage("Failed_to_transfer_1", path)
             I18n.getMessage("Transfer_failed")
           ) if error?
-          msg = I18n.getMessage("Transferring_1", path)
-          @printSystem(msg) if progress == 0
           return spin.text(
             "#{msg} (#{Math.round(progress)}%)"
           )
       ).then(=>
         msg = I18n.getMessage("Transfer_succeeded")
         @printSystem(msg)
-        App.popupSuccess(msg)
+        # App.popupSuccess(msg)
         return  # Do not wait until notification closing
       ).finally(=>
         spin.hide(500)

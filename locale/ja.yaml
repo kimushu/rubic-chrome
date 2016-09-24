@@ -242,6 +242,12 @@ Building_1:
     "$1 をビルドしています..."
 Transferring_1:
     "$1 を転送しています..."
+Succeeded:
+    "成功しました"
+Skipped:
+    "スキップしました"
+Failed:
+    "失敗しました"
 Save_your_settings:
     "お気に入り構成の保存"
 Back:
