@@ -372,7 +372,7 @@ module.exports = class WakayamaRbBoard extends Board
   _closeHandler: ->
     reject = @_waiter?.reject
     @_waiter = null
-    @disconnect()
+    @disconnect() if @_serial?
     reject?()
     return
 
