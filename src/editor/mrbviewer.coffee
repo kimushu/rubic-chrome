@@ -1,5 +1,6 @@
 "use strict"
 # Pre dependencies
+YamlEditor = require("editor/yamleditor")
 TextEditor = require("editor/texteditor")
 sprintf = require("util/sprintf")
 require("util/primitive")
@@ -7,9 +8,9 @@ require("util/primitive")
 ###*
 @class
   Viewer for mrb binary
-@extends TextEditor
+@extends YamlEditor
 ###
-module.exports = class MrbViewer extends TextEditor
+module.exports = class MrbViewer extends YamlEditor
   TextEditor.register(this)
 
   #--------------------------------------------------------------------------------
@@ -55,7 +56,7 @@ module.exports = class MrbViewer extends TextEditor
     Sketch item
   ###
   constructor: ($, sketch, item) ->
-    super($, sketch, item, "ace/mode/yaml")
+    super($, sketch, item)
     return
 
   ###*
@@ -234,11 +235,12 @@ module.exports = class MrbViewer extends TextEditor
 
   _decodeRiteInst: (code) ->
     op = (code) & 0x7f
-    a = (code >> 23) & 0x1ff
-    b = (code >> 14) & 0x1ff
-    c = (code >> 7) & 0x7f
-    bx = (code >> 7) & 0xffff
-    sbx = bx - (0xffff >> 1)
+    a = (code >>> 23) & 0x1ff
+    b = (code >>> 14) & 0x1ff
+    c = (code >>> 7) & 0x7f
+    bx = (code >>> 7) & 0xffff
+    sbx = bx - (0xffff >>> 1)
+    ax = (code >>> 7) & 0x1ffffff
     switch (code & 0x7f)
       when 0x00
         return ["OP_NOP", "no operation"]
@@ -329,7 +331,21 @@ module.exports = class MrbViewer extends TextEditor
       # when 0x23 => OP_CALL
       # when 0x24 => OP_SUPER
       # when 0x25 => OP_ARGARY
-      # when 0x26 => OP_ENTER
+      when 0x26
+        args = []
+        v = (ax >>> 18) & 0x1f
+        args.push("req=#{v}") if v > 0
+        v = (ax >>> 13) & 0x1f
+        args.push("opt=#{v}") if v > 0
+        v = (ax >>> 12) & 0x1
+        args.push("rest=#{v}") if v > 0
+        v = (ax >>> 7) & 0x1f
+        args.push("post=#{v}") if v > 0
+        if args.length > 0
+          args = args.join(",")
+        else
+          args = "none"
+        return ["OP_ENTER\t#{sprintf("0x%x", ax)}", "arg setup (#{args})"]
       # when 0x27 => OP_KARG
       # when 0x28 => OP_KDICT
       when 0x29
