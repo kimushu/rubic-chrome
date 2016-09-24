@@ -84,6 +84,46 @@ module.exports = class Sketch extends JSONable
     set: (v) -> @_workspace = v
   )
 
+  ###*
+  @static
+  @property {number} STEP_START
+    Constant number for step starting
+  @readonly
+  ###
+  @classProperty("STEP_START", value: STEP_START = 0)
+
+  ###*
+  @static
+  @property {number} STEP_PROGRESS
+    Constant number for step in progress
+  @readonly
+  ###
+  @classProperty("STEP_PROGRESS", value: STEP_PROGRESS = 1)
+
+  ###*
+  @static
+  @property {number} STEP_FINISHED
+    Constant number for step finished
+  @readonly
+  ###
+  @classProperty("STEP_FINISHED", value: STEP_FINISHED = 2)
+
+  ###*
+  @static
+  @property {number} STEP_SKIPPED
+    Constant number for step skipped
+  @readonly
+  ###
+  @classProperty("STEP_SKIPPED", value: STEP_SKIPPED = 3)
+
+  ###*
+  @static
+  @property {number} STEP_ABORTED
+    Constant number for step aborted
+  @readonly
+  ###
+  @classProperty("STEP_ABORTED", value: STEP_ABORTED = 4)
+
   #--------------------------------------------------------------------------------
   # Events
   #
@@ -243,7 +283,9 @@ module.exports = class Sketch extends JSONable
     return @_items.reduce(
       # Save all files in sketch
       (promise, item) =>
-        return item.editor.save() if item.editor?
+        if item.editor?
+          return promise unless newDirFs? or item.editor.modified
+          return promise.then(=> item.editor.save())
         return promise unless newDirFs?
         # Relocate file
         return promise.then(=>
@@ -427,7 +469,7 @@ module.exports = class Sketch extends JSONable
     Build sketch
   @param {boolean} [force=false]
     Force build all files
-  @param {function(string,number,Error)} [progress=null]
+  @param {function(string,number,number,Error)} [progress=null]
     Hook function for show progress
   @return {Promise}
     Promise object
@@ -458,18 +500,17 @@ module.exports = class Sketch extends JSONable
     done = 0
     return buildItems.reduce(
       (promise, item) =>
-        unless force
-          if (item.source?.lastModified or item.lastModified) < @_lastBuilt
-            return promise  # Skip
+        if !force and ((item.source?.lastModified or item.lastModified) < @_lastBuilt)
+          return promise  # Skip
         return promise.then(=>
           engine = item.engine
-          progress?(item.path, (100 * done / buildItems.length))
+          progress?(item.path, (100 * done / buildItems.length), STEP_START)
           return item.builder.build().catch((error) =>
-            progress?(item.path, null, error)
+            progress?(item.path, null, STEP_ABORTED, error)
             return Promise.reject(error)
           )
         ).then(=>
-          progress?(item.path, (100 * ++done / buildItems.length))
+          progress?(item.path, (100 * ++done / buildItems.length), STEP_FINISHED)
           return
         ).delay(1).then(=>
           @_lastBuilt = Date.now()
@@ -482,7 +523,7 @@ module.exports = class Sketch extends JSONable
     Transfer sketch (Rubic->Board)
   @param {boolean} [force=false]
     Force download all files
-  @param {function(string,number,Error)} [progress=null]
+  @param {function(string,number,number,Error)} [progress=null]
     Hook function for show progress
   @return {Promise}
     Promise object
@@ -494,8 +535,9 @@ module.exports = class Sketch extends JSONable
     done = 0
     return transferItems.reduce(
       (promise, item) =>
+        written = false
         return promise.then(=>
-          progress?(item.path, (100 * done / transferItems.length))
+          progress?(item.path, (100 * done / transferItems.length), STEP_START)
           return @_dirFs.readFile(item.path).catch((error) =>
             progress?(item.path, null, error)
             return Promise.reject(error)
@@ -512,14 +554,22 @@ module.exports = class Sketch extends JSONable
               return  # Ignore errors on readFile()
             )
           ).then((compare) =>
-            if !force and compareData?
+            if !force and compare?
               return if arrayEqual(new Uint8Array(content), new Uint8Array(compare))
+            written = true
             return boardFs.writeFile(item.path, content).then(=>
               item.setTransfered()
+            ).catch((error) =>
+              progress?(item.path, null, STEP_ABORTED, error)
+              return Promise.reject(error)
             )
           )
         ).then(=>
-          progress?(item.path, (100 * ++done / transferItems.length))
+          progress?(
+            item.path
+            (100 * ++done / transferItems.length)
+            if written then STEP_FINISHED else STEP_SKIPPED
+          )
           return
         )
       @_board.requestFileSystem("internal").then((fs) =>
