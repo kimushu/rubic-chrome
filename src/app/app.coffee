@@ -62,7 +62,7 @@ module.exports = class App
     }, {
       type: ntype
       allow_dismiss: true
-      placement: {from: "bottom", align: "center"}
+      placement: {from: "top", align: "right"}
       delay: 2
       offset: {x: 20, y: 50}
       showProgressbar: true
