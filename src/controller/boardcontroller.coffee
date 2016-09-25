@@ -268,7 +268,7 @@ module.exports = class BoardController extends WindowController
       name = li.data("name")
       boardClass = Board.subclasses.find((item) => item.name == name)
       return Promise.reject("Board class not found") unless boardClass?
-      return "ok" if !@_board? or @_board?.constructor == boardClass
+      return "yes" if !@_board? or @_board?.constructor == boardClass
       return App.safeConfirm_yes_no(
         title: "{Confirm_board_change_title}"
         rawMessage: I18n.getMessage("Confirm_board_change_message", boardClass.friendlyName)
