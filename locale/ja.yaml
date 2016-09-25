@@ -380,8 +380,10 @@ Name:
     "名前"
 Not_configured:
     "未設定"
-Startup_file:
-    "最初に実行するファイルの設定"
+Startup_settings:
+    "ボード起動時の設定"
+Executable_file:
+    "実行するファイル"
 Stored_location:
     "保存先"
 Draft:
