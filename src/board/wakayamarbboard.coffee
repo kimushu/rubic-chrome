@@ -193,11 +193,18 @@ module.exports = class WakayamaRbBoard extends Board
   @inheritdoc Board#disconnect
   ###
   disconnect: ->
-    return @errorNotConnected() unless @_serial?
-    return @_serial.close().then(=>
-      @_serial = null
+    oldSerial = @_serial
+    return @errorNotConnected() unless oldSerial?
+    @_serial = null
+    return Promise.resolve(
+    ).then(=>
+      return oldSerial.close?()
+    ).then(=>
       return super()
-    )
+    ).catch((error) =>
+      @_serial = oldSerial
+      return Promise.reject(error)
+    ) # return Promise.resolve().then()...
 
   ###*
   @inheritdoc Board#getBoardInfo
@@ -372,8 +379,10 @@ module.exports = class WakayamaRbBoard extends Board
   _closeHandler: ->
     reject = @_waiter?.reject
     @_waiter = null
-    @disconnect() if @_serial?
     reject?()
+    if @_serial?
+      @_serial = {}
+      @disconnect()
     return
 
   ###*
