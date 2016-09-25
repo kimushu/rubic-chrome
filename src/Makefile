@@ -22,10 +22,6 @@ top_out  = $(DIST_DIR)/window.js
 top_dep  = $(call dep,$(top_src))
 top_min  = $(DIST_DIR)/window.min.js
 
-lib_src  = $(SRC_DIR)/library.coffee
-lib_dep  = $(call dep,$(lib_src))
-lib_min  = $(DIST_DIR)/library.min.js
-
 stub_src = $(SRC_DIR)/stubs.coffee
 stub_min = $(DIST_DIR)/stubs.min.js
 
@@ -46,14 +42,13 @@ define compile_coffee
 	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) $< $1 > $@ || (rm -f $@; false)
 endef
 
-all: $(bkg_min) $(top_out) $(lib_min) $(stub_min) $(mani_out)
+all: $(bkg_min) $(top_out) $(stub_min) $(mani_out)
 
 release: all $(top_min)
 
 clean:
 	$(Q)rm -f $(bkg_dep) $(bkg_dep).new $(bkg_out)
 	$(Q)rm -f $(top_dep) $(top_dep).new $(top_out)
-	$(Q)rm -f $(lib_dep) $(lib_dep).new $(lib_min)
 	$(Q)rm -f $(stub_min)
 	$(Q)rm -f $(mani_out)
 
@@ -73,9 +68,6 @@ $(top_min): $(top_out) $(UGLIFYJS)
 	$(call ECHO_W,"Minimizing script ($@)")
 	$(Q)$(UGLIFYJS) $(uglifyjs_opts) -o $@ $<
 
-$(lib_min): $(lib_src) $(BROWSERIFY) $(ROOT_DIR)/package.json
-	$(call compile_coffee,| $(UGLIFYJS) $(uglifyjs_opts))
-
 $(stub_min): $(stub_src) $(COFFEE) $(UGLIFYJS)
 	$(call ECHO_W,"Generating stub scripts ($@)")
 	$(Q)mkdir -p $(dir $@)
@@ -93,5 +85,4 @@ doc: $(top_out) $(JSDUCK)
 
 -include $(bkg_dep)
 -include $(top_dep)
--include $(lib_dep)
 

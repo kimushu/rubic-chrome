@@ -1,6 +1,13 @@
 include ../common.mk
 
-browserify_opts =
+browserify_envs =
+
+browserify_opts = \
+	--transform=coffeeify --extension=coffee --debug \
+	$(addprefix --external=,crypto serialport)
+
+node_src  = $(LIBS_DIR)/nodemodules.coffee
+node_min  = $(DIST_DIR)/nodemodules.min.js
 
 em_runner = emscriptenrunner.coffee
 
@@ -19,15 +26,22 @@ define em_build
 	$(Q)echo "return}(this.Libs=(this.Libs||{})).$($1_name)=$($1_name)})()" >> $@
 endef
 
-all: $(mrbc_sout) $(mrbc_mout)
+all: $(node_min) $(mrbc_sout) $(mrbc_mout)
 
 release: all
 
 clean:
+	$(Q)rm -f $(node_min)
 	$(Q)rm -f $(mrbc_sout) $(mrbc_mout)
 
 clobber: clean
 	$(Q)$(MAKE) -C mruby clean
+
+$(node_min): $(node_src) $(BROWSERIFY) $(ROOT_DIR)/package.json
+	$(call ECHO_W,"Updating npm packages")
+	$(Q)cd $(ROOT_DIR) && npm install
+	$(call ECHO_W,"Gathering node modules ($@)")
+	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) $< | $(UGLIFYJS) $(uglifyjs_opts) > $@ || (rm -f $@; false)
 
 $(mrbc_src): $(EMCC)
 	$(call ECHO_W,"Building mruby")
