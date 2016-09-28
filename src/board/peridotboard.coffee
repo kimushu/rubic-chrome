@@ -103,6 +103,11 @@ module.exports = class PeridotBoard extends Board
   constructor: (obj) ->
     super(obj)
     @_canarium = new Canarium()
+    @_canarium.onClosed = =>
+      Promise.delay(0).then(=>
+        PeridotBoard.__super__.disconnect.call(this)
+        return
+      )
     return
 
   ###*
@@ -193,39 +198,47 @@ module.exports = class PeridotBoard extends Board
   @inheritdoc Board#connect
   ###
   connect: (path) ->
+    return @errorConnected() if @_canarium.connected
     return @_canarium.open(path).then(=>
-      @_canarium.onClosed = =>
-        @_canarium.onClosed = null
-        @_connected = false
-        @dispatchEvent({type: "disconnect"})
-
-      @_connected = true
-      @dispatchEvent({type: "connect"})
-      return
+      return super(path)
     ) # return @_canarium.open().then()
 
   ###*
   @inheritdoc Board#disconnect
   ###
   disconnect: ->
+    return @errorNotConnected() unless @_canarium.connected
     return @_canarium.close()
+
+  ###*
+  @inheritdoc Board#getBoardInfo
+  ###
+  getBoardInfo: ->
+    return @errorNotConnected() unless @_canarium.connected
+    return Promise.resolve({
+      "foo": "bar"  # FIXME
+    })
+
+  ###*
+  @inheritdoc Board#getStorages
+  ###
+  getStorages: ->
+    return Promise.resolve(["internal"])
 
   ###*
   @inheritdoc Board#requestFileSystem
   ###
   requestFileSystem: (storage) ->
-    return new PeridotFileSystem(@_canarium, "/mnt/#{storage}")
-
-  ###*
-  @inheritdoc Board#requestConsole
-  ###
-  requestConsole: ->
-    return @_canarium.requestSerial()
+    return Promise.resolve(
+    ).then(=>
+      return new PeridotFileSystem(@_canarium, "/mnt/#{storage}")
+      return Promise.reject(Error("invalid storage: `#{storage}'"))
+    ) # return Promise.resolve().then()
 
   ###*
   @inheritdoc Board#startSketch
   ###
-  startSketch: (onFinished) ->
+  startSketch: (target, onFinished) ->
     # return @_canarium.
     return
 

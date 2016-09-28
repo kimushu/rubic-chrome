@@ -187,7 +187,7 @@ module.exports = class WakayamaRbBoard extends Board
         )
       @_serial = serial
       return super(path)
-    )
+    ) # return serial.open().then()
 
   ###*
   @inheritdoc Board#disconnect
@@ -266,7 +266,7 @@ module.exports = class WakayamaRbBoard extends Board
     ).then(=>
       return @_unlock(lock)
     ).then(=>
-      return new WrbbConsoleV1(this)
+      return new WrbbConsoleV1(this, onFinished)
     )
     return
 
@@ -568,10 +568,12 @@ module.exports = class WakayamaRbBoard extends Board
     ###*
     @method constructor
       Constructor of WrbbConsoleV1 class
-    @param {WakayamaRbBoard} wrbb
+    @param {WakayamaRbBoard} _wrbb
       Owner class instance
+    @param {function(boolean)} _onClosed
+      Close handler
     ###
-    constructor: (@_wrbb) ->
+    constructor: (@_wrbb, @_onClosed) ->
       super(@_wrbb)
       @_lock = {}
       @_opened = false
@@ -589,6 +591,9 @@ module.exports = class WakayamaRbBoard extends Board
             return unless @_opened
             return ab2str(data).then((text) =>
               if V1_VERSION_LINE.test(text.replace(/[\r\n]+$/, ""))
+                onClosed = @_onClosed
+                @_onClosed = null
+                onClosed?(true)
                 @close()
                 return
               @dispatchEvent({type: "receive.console", board: @_wrbb, data: data})
@@ -613,6 +618,9 @@ module.exports = class WakayamaRbBoard extends Board
       return Promise.reject(Error("Not opened")) unless @_opened
       @_opened = false
       @dispatchEvent({type: "close.console", board: @_wrbb})
+      onClosed = @_onClosed
+      @_onClosed = null
+      onClosed?(false)
       return @_wrbb._unlock(@_lock)
 
 # Post dependencies

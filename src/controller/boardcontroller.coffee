@@ -264,7 +264,7 @@ module.exports = class BoardController extends WindowController
     boardClass = null
     return Promise.resolve(
     ).then(=>
-      li = $(event.target).parents(".media").eq(0)
+      li = $(event.currentTarget).closest(".media")
       name = li.data("name")
       boardClass = Board.subclasses.find((item) => item.name == name)
       return Promise.reject("Board class not found") unless boardClass?

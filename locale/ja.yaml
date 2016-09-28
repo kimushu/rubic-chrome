@@ -434,3 +434,5 @@ Connected_to_console:
     "コンソールに接続しました"
 Disconnected_from_console:
     "コンソールから切断されました"
+Connecting:
+    "接続中..."
