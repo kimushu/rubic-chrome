@@ -46,7 +46,7 @@ module.exports = class BoardConsole extends UnJSONable
 
   ###*
   @method
-    Open console (Start receiving data9
+    Open console (Start receiving data)
   @return {Promise}
     Promise object
   ###

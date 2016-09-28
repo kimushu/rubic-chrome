@@ -3,7 +3,7 @@
 Board = require("board/board")
 I18n = require("util/i18n")
 AsyncFs = require("filesystem/asyncfs")
-Programmer = require("programmer/programmer")
+BoardConsole = require("board/boardconsole")
 require("util/primitive")
 
 ###*
@@ -83,6 +83,10 @@ module.exports = class PeridotBoard extends Board
   # Private constants
   #
 
+  PERIDOT_HTTP_TIMEOUT = 3000
+  SERVER_HOST         = "peridot"
+  SERVER_FS_PATH      = "/mnt/epcs"
+
   FPGAPIN = new I18n({en: "Pin name of FPGA", ja: "FPGAピン名"})
 
   VID_PID_LIST = [
@@ -109,12 +113,6 @@ module.exports = class PeridotBoard extends Board
         return
       )
     return
-
-  ###*
-  @inheritdoc Board#getProgrammer
-  ###
-  getProgrammer: ->
-    return new PeridotProgrammer(@_canarium)
 
   ###*
   @inheritdoc Board#getPinList
@@ -200,6 +198,7 @@ module.exports = class PeridotBoard extends Board
   connect: (path) ->
     return @errorConnected() if @_canarium.connected
     return @_canarium.open(path).then(=>
+      @irqBase = @nextTxPacket = @nextRxPacket = null
       return super(path)
     ) # return @_canarium.open().then()
 
@@ -215,9 +214,10 @@ module.exports = class PeridotBoard extends Board
   ###
   getBoardInfo: ->
     return @errorNotConnected() unless @_canarium.connected
-    return Promise.resolve({
-      "foo": "bar"  # FIXME
-    })
+    return Promise.resolve(
+    ).then(=>
+      return @_canarium.getinfo()
+    )
 
   ###*
   @inheritdoc Board#getStorages
@@ -229,24 +229,172 @@ module.exports = class PeridotBoard extends Board
   @inheritdoc Board#requestFileSystem
   ###
   requestFileSystem: (storage) ->
-    return Promise.resolve(
-    ).then(=>
-      return new PeridotFileSystem(@_canarium, "/mnt/#{storage}")
-      return Promise.reject(Error("invalid storage: `#{storage}'"))
-    ) # return Promise.resolve().then()
+    switch storage
+      when "internal"
+        return Promise.resolve(new PeridotFileSystemLegacy(this))
+    return Promise.reject(Error("Unknown storage"))
 
   ###*
   @inheritdoc Board#startSketch
   ###
-  startSketch: (target, onFinished) ->
-    # return @_canarium.
-    return
+  startSketch: (onFinished) ->
+    return new Promise((resolve, reject) =>
+      req = @_newHttpRequest()
+      req.timeout = PERIDOT_HTTP_TIMEOUT
+      req.onreadystatechange = =>
+        return unless req.readyState == req.DONE
+        return resolve() unless req.errorFlag
+        return reject()
+      req.open("POST", "http://#{SERVER_HOST}/start")
+      req.send()
+    ).then(=>
+      return new PeridotConsoleLegacy()
+    ) # return new Promise().then()
+
+  ###*
+  @inheritdoc Board#stopSketch
+  ###
+  stopSketch: () ->
+    return new Promise((resolve, reject) =>
+      req = @_newHttpRequest()
+      req.timeout = PERIDOT_HTTP_TIMEOUT
+      req.onreadystatechange = =>
+        return unless req.readyState == req.DONE
+        return resolve() unless req.errorFlag
+        return reject()
+      req.open("POST", "http://#{SERVER_HOST}/stop")
+      req.send()
+    ) # return new Promise()
+
+  #--------------------------------------------------------------------------------
+  # Private methods
+  #
+
+  ###*
+  @private
+  @method _newHttpRequest
+  Make new XMLHttpRequest compatible object (for legacy I/F)
+  ###
+  _newHttpRequest: ->
+    return new MemHttpRequest(this)
+
+  DEBUG               = 0
+  MEM_BASE            = 0xfffc000
+  MEM_HTTP_SIGNATURE  = "MHttp1.0"
+  MEM_HTTP_VALID      = 1
+  MEM_HTTP_SOM        = 2
+  MEM_HTTP_EOM        = 4
+
+  ###*
+  @method getTxPacket
+  Get next empty TX packet
+  ###
+  getTxPacket: (callback) ->
+    @connectDataLink((result) =>
+      return callback?(null) unless result
+      base = @nextTxPacket
+      @_canarium.avm.read(base, 8, (result, readdata) =>
+        return callback?(null) unless result
+        header = new Uint8Array(readdata)
+        flags = (header[5] << 8) | header[4]
+        return callback?(null) unless (flags & MEM_HTTP_VALID) == 0
+        packet =
+          capacity: (header[3] << 8) | header[2]
+          startOfMessage: null
+          endOfMessage: null
+          length: null
+          buffer: null
+          transmit: (tx_callback) ->
+            App.log.verbose({tx_packet1: {base: base, data: @buffer}}) if DEBUG > 0
+            @peridot._canarium.avm.write(base + 8, @buffer, (result) =>
+              return tx_callback?(false) unless result
+              word = (@length << 16) | MEM_HTTP_VALID
+              word |= MEM_HTTP_SOM if @startOfMessage
+              word |= MEM_HTTP_EOM if @endOfMessage
+              @peridot._canarium.avm.iowr(base, 1, word, (result) =>
+                return tx_callback?(false) unless result
+                App.log.verbose({tx_packet2: {base: base, flags: word & 0xffff, length: word >> 16}}) if DEBUG > 0
+                @peridot.raiseIrq((result) => tx_callback?(result))
+              )
+            )
+          peridot: this
+        @nextTxPacket = MEM_BASE + ((header[1] << 8) | header[0])
+        App.log.verbose({tx_packet0: {base: base, packet: packet}}) if DEBUG > 0
+        callback?(packet)
+      )
+    )
+
+  ###*
+  @method getRxPacket
+  Get next full RX packet
+  ###
+  getRxPacket: (callback) ->
+    @connectDataLink((result) =>
+      return callback?(null) unless result
+      base = @nextRxPacket
+      @_canarium.avm.read(base, 8, (result, readdata) =>
+        return callback?(null) unless result
+        header = new Uint8Array(readdata)
+        flags = (header[5] << 8) | header[4]
+        length = (header[7] << 8) | header[6]
+        return callback?(null) unless (flags & MEM_HTTP_VALID) != 0
+        @_canarium.avm.read(base + 8, length, (result, readdata) =>
+          return callback?(null) unless result
+          packet =
+            capacity: (header[3] << 8) | header[2]
+            startOfMessage: (flags & MEM_HTTP_SOM) != 0
+            endOfMessage: (flags & MEM_HTTP_EOM) != 0
+            length: length
+            buffer: readdata
+            discard: (rx_callback) ->
+              @peridot._canarium.avm.iowr(base, 1, 0, (result) =>
+                return rx_callback?(false) unless result
+                App.log.verbose({rx_packet1: {base: base, discarded: true}}) if DEBUG > 0
+                @peridot.raiseIrq((result) => rx_callback?(result))
+              )
+            peridot: this
+          @nextRxPacket = MEM_BASE + ((header[1] << 8) | header[0])
+          App.log.verbose({rx_packet0: {base: base, packet: packet}}) if DEBUG > 0
+          callback?(packet)
+        )
+      )
+    )
+
+  ###*
+  @private
+  @method connectDataLink
+  ###
+  connectDataLink: (callback) ->
+    return callback?(true) if @irqBase? and @nextTxPacket? and @nextRxPacket?
+    @_canarium.avm.read(MEM_BASE, 16, (result, readdata) =>
+      return callback?(false) unless result
+      sign = String.fromCharCode.apply(null, new Uint8Array(readdata.slice(0, 8)))
+      return callback?(false) unless sign == MEM_HTTP_SIGNATURE
+      array = new Uint8Array(readdata)
+      @irqBase = (array[11] << 24) | (array[10] << 16) | (array[9] << 8) | array[8]
+      @nextTxPacket = MEM_BASE + ((array[13] << 8) | array[12])
+      @nextRxPacket = MEM_BASE + ((array[15] << 8) | array[14])
+      App.log.verbose({datalink: {irq_base: @irqBase, tx_packet: @nextTxPacket, rx_packet: @nextRxPacket}}) if DEBUG > 0
+      callback?(true)
+    )
+
+  ###*
+  @private
+  @method raiseIrq
+  ###
+  raiseIrq: (callback) ->
+    return callback?(false) unless @irqBase?
+    return callback?(true) if @irqBase == 0
+    @_canarium.avm.iowr(@irqBase, 0, 1, (result) ->
+      App.log.verbose({raise_irq: result}) if DEBUG > 0
+      callback?(result)
+    )
 
   #--------------------------------------------------------------------------------
   # Internal class
   #
 
-  class PeridotFileSystem extends AsyncFs
+  class PeridotFileSystemLegacy extends AsyncFs
     null
 
     ###*
@@ -259,40 +407,62 @@ module.exports = class PeridotBoard extends Board
     @inheritdoc AsyncFs#readFileImpl
     ###
     readFileImpl: (path, options) ->
-      return
+      if path == "main.mrb"
+        return Promise.resolve(new ArrayBuffer(0))
+      return super(path, options)
 
     ###*
     @inheritdoc AsyncFs#writeFileImpl
     ###
     writeFileImpl: (path, data, options) ->
-      return
+      if path == "main.mrb"
+        return new Promise((resolve, reject) =>
+          req = @_peridot._newHttpRequest()
+          req.timeout = PERIDOT_HTTP_TIMEOUT
+          req.onreadystatechange = =>
+            return unless req.readyState == req.DONE
+            return resolve() unless req.errorFlag
+            return reject()
+          req.open("PUT", "http://#{SERVER_HOST}#{SERVER_FS_PATH}/#{path}")
+          req.send(new Uint8Array(data))
+        ) # return new Promise()
+      return super(path, data, options)
 
-    ###*
-    @inheritdoc AsyncFs#unlinkImpl
-    ###
-    unlinkImpl: (path) ->
-      return
+    # ###*
+    # @inheritdoc AsyncFs#unlinkImpl
+    # ###
+    # unlinkImpl: (path) ->
+    #   return super(path)
 
-    ###*
-    @inheritdoc AsyncFs#opendirfsImpl
-    ###
-    opendirfsImpl: (path) ->
-      return
+    # ###*
+    # @inheritdoc AsyncFs#opendirfsImpl
+    # ###
+    # opendirfsImpl: (path) ->
+    #   return super(path)
 
     ###*
     @method constructor
       Constructor of PeridotFileSystem class
     ###
-    constructor: (@_canarium, @_dir) ->
+    constructor: (@_peridot) ->
       super(AsyncFs.BOARD_INTERNAL)
       return
 
-  class PeridotProgrammer extends Programmer
-    null
+  class PeridotConsoleLegacy extends BoardConsole
+    open: ->
+      Promise.delay(1).then(=>
+        @close()
+      )
+      return Promise.resolve()
 
-    constructor: (@_canarium) ->
-      return
+    send: (data) ->
+      return Promise.resolve()
+
+    close: ->
+      @dispatchEvent({type: "close.console", board: @_wrbb})
+      return Promise.resolve()
 
 # Post dependencies
+MemHttpRequest = require("./memhttprequest")
 Canarium = global.Libs.Canarium.Canarium
 Preferences = require("app/preferences")

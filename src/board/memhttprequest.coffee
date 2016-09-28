@@ -1,4 +1,6 @@
-class MemHttpRequest
+"use strict"
+
+module.exports = class MemHttpRequest
   DEBUG = 0
 
   # XMLHttpRequest compatible constants
@@ -49,7 +51,7 @@ class MemHttpRequest
     #{@requestMethod} #{encodeURI(parser.pathname + parser.search)} HTTP/1.1\r\n\
     "
     @requestHeaders = {host: ["Host", encodeURI(parser.hostname)]}
-    console.log({"MemHttpRequest#open": this}) if DEBUG > 0
+    App.log.verbose({"MemHttpRequest#open": this}) if DEBUG > 0
     @sendFlag = false
     @changeState(@OPENED)
     null
@@ -118,8 +120,8 @@ class MemHttpRequest
       request += "\r\n"
       reader = new FileReader()
       reader.onload = =>
-        console.log({"request-header": request})
-        console.log({"request-body": new Uint8Array(buffer)})
+        App.log.verbose({"request-header": request})
+        App.log.verbose({"request-body": new Uint8Array(buffer)})
         array = new Uint8Array(reader.result.byteLength + dataLength)
         array.set(new Uint8Array(reader.result), 0)
         array.set(new Uint8Array(buffer), reader.result.byteLength) if buffer?
@@ -234,7 +236,7 @@ class MemHttpRequest
   ###
   changeState: (newState) ->
     return if @readyState == newState
-    console.log({
+    App.log.verbose({
       "MemHttpRequest#changeState": this
       oldState: @readyState
       newState: newState
@@ -250,7 +252,7 @@ class MemHttpRequest
   Set error flag and update state to DONE
   ###
   failed: (message, callback) ->
-    console.log({"MemHttpRequest#failed": this, message: message})
+    App.log.verbose({"MemHttpRequest#failed": this, message: message})
     @errorFlag = true
     @changeState(@DONE)
     callback?()
@@ -268,7 +270,7 @@ class MemHttpRequest
       packet.length = Math.min(@requestBuffer.byteLength - offset, packet.capacity)
       @requestOffset += packet.length
       packet.buffer = @requestBuffer.slice(offset, offset + packet.length)
-      console.log({
+      App.log.verbose({
         "MemHttpRequest#transmitMessage": this
         packet: packet
         array: new Uint8Array(packet.buffer)
@@ -300,7 +302,7 @@ class MemHttpRequest
     @datalink.getRxPacket((packet) =>
       return @isTimedOut("Receive") or \
         setTimeout((=> @receiveMessage()), RX_RETRY_MS) unless packet?
-      console.log({
+      App.log.verbose({
         "MemHttpRequest#receiveMessage": this
         packet: packet
         data: new Uint8Array(packet.buffer)
@@ -324,8 +326,8 @@ class MemHttpRequest
           return failed("Invalid response start line")
         @status = parseInt(@statusText)
         if DEBUG > 0
-          console.log({"response-status": @status})
-          console.log({"response-header": "#{resp}\r\n\r\n"})
+          App.log.verbose({"response-status": @status})
+          App.log.verbose({"response-header": "#{resp}\r\n\r\n"})
         @responseHeaders = {}
         for line in lines
           [name, value] = line.split(":", 2)
@@ -354,7 +356,7 @@ class MemHttpRequest
           @response = @responseBuffer
         else
           throw new TypeError("Unsupported responseType")
-      console.log({"response-body": @response}) if DEBUG > 0
+      App.log.verbose({"response-body": @response}) if DEBUG > 0
       packet.discard(=> @changeState(@DONE))
     )
 
@@ -379,3 +381,4 @@ class MemHttpRequest
     @failed(message)
     true
 
+App = require("app/app")

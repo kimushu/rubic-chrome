@@ -436,3 +436,5 @@ Disconnected_from_console:
     "コンソールから切断されました"
 Connecting:
     "接続中..."
+Reading_board_info:
+    "ボード情報を読み取っています..."

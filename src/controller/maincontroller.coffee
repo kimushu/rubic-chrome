@@ -141,7 +141,13 @@ module.exports = class MainController extends WindowController
         @_board?.disconnect()
       )
       $(".board-info").click((event) =>
-        @_board?.getBoardInfo().then((info) =>
+        spin = @modalSpin().text(I18n.getMessage("Reading_board_info")).show()
+        return Promise.resolve(
+        ).then(=>
+          return @_board?.getBoardInfo()
+        ).finally(=>
+          return spin.hide(500)
+        ).then((info) =>
           table = $("#template-table").children().clone()
           $("#template-tr-th11").children().clone()
             .appendTo(table.find("thead")).find("th")
