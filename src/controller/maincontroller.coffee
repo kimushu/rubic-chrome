@@ -31,6 +31,7 @@ module.exports = class MainController extends WindowController
 
   SCAN_TIMEOUT = 2000
   SCAN_PERIOD_MS = 1000
+  CONNECT_TIMEOUT = 5000
   KEY_RECENT_SKETCHES_MAX = "recent_sketches.max"
   DEF_RECENT_SKETCHES_MAX = 10
   KEY_RECENT_SKETCHES_ITEMS = "recent_sketches.items"
@@ -280,7 +281,7 @@ module.exports = class MainController extends WindowController
     if newline and range.start.column > 0
       range.start = session.insert(range.start, "\n")
     range.end = session.insert(range.start, text)
-    session.addMarker(range, "marker-#{marker}", "line") if marker?
+    # session.addMarker(range, "marker-#{marker}", "line") if marker?
     aceEditor.navigateFileEnd()
     aceEditor.scrollToRow(range.end.row)
     return
@@ -953,17 +954,23 @@ module.exports = class MainController extends WindowController
     return unless path?
     @_boardPath = path
     return unless @_board?
+    spin = @modalSpin().text(I18n.getMessage("Connecting")).show()
     Promise.resolve(
     ).then(=>
       return unless @_board.connected
       return @_board.disconnect()
     ).then(=>
-      @_board.connect(@_boardPath)
+      return @_board.connect(@_boardPath)
+    ).timeout(
+      CONNECT_TIMEOUT
     ).catch((error) =>
       App.popupError(
         error.toString()
         I18n.getMessage("Failed_to_connect_board")
       )
+      return
+    ).finally(=>
+      spin.hide(500)
     )
     return
 

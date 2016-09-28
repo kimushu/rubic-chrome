@@ -53,6 +53,15 @@ module.exports = class FirmRevision extends JSONable
   )
 
   ###*
+  @property {RegExp[]} executables
+    Array of executable items
+  @readonly
+  ###
+  @property("executables",
+    get: -> Object.freeze(e for e in @_executables)
+  )
+
+  ###*
   @property {boolean} beta
     Is a beta feature?
   @readonly
@@ -156,6 +165,7 @@ module.exports = class FirmRevision extends JSONable
     @_lastModified    = parseInt(obj.lastModified)
     @_builderClasses  =
       (Builder.subclasses.find((c) => c.name == name) for name in obj.builderClasses or [])
+    @_executables     = (new RegExp(e[0], e[1]) for e in obj.executables or [])
     @_beta            = !!obj.beta
     @_obsolete        = !!obj.obsolete
     @_assets          = obj.assets or {}
@@ -173,6 +183,7 @@ module.exports = class FirmRevision extends JSONable
       rubicVersion    : @_rubicVersion
       lastModified    : @_lastModified
       builderClasses  : (cls.name for cls in @_builderClasses)
+      executables     : ([e.source, e.flags] for e in @_executables)
       beta            : @_beta
       obsolete        : @_obsolete
       assets          : @_assets

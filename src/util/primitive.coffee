@@ -35,7 +35,10 @@ Function::event = (type) ->
         fn = listener
       else if typeof(listener?.handleEvent) == "function"
         fn = listener.handleEvent.bind(listener)
-      fn?(e)
+      try
+        fn?(e)
+      catch error
+        console.error(error)
       return false if stop
     return true
 

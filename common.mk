@@ -9,7 +9,10 @@ VIEW_DIR   := $(ROOT_DIR)/view
 LOCALE_DIR := $(ROOT_DIR)/locale
 TEST_DIR   := $(ROOT_DIR)/test
 
+ifeq ($(NPM_BIN),)
 NPM_BIN    := $(shell npm bin)
+export NPM_BIN
+endif
 
 BROWSERIFY := $(NPM_BIN)/browserify
 COFFEE     := $(NPM_BIN)/coffee

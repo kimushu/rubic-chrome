@@ -236,54 +236,73 @@ module.exports = class SketchEditor extends Editor
     $(".explorer-open").prop("disabled", !item?)
     $(".explorer-rename").prop("disabled", !item? or !!(item?.source?))
     $(".explorer-remove").prop("disabled", !item? or !!(item?.source?))
+    return @_generatePageForItems(item) if item?
+    return @_generatePageForSketch()
+
+  _generatePageForItems: (item) ->
     panels = {}
-    if item?
-      # SketchItem
-      panels["{File_overview}"] = ctrls = {}
-      dirs = item.path.split("/")
-      ctrls["{Name}"] = dirs.pop()
-      ctrls["{Folder}"] = dirs.join("/") if dirs.length > 0
-      ctrls["{FileType}"] = item.fileType?.toString() or I18n.getMessage("Unknown")
-      ctrls["{Generated_from}"] = item.source?.path
-      ctrls["{Transfer_to_board}"] = {
-        type: "checkbox"
-        get: => item.transfer
-        set: (v) =>
-          item.transfer = v
-          for id, info of @_itemNodes
-            if info.item == item
-              jsTree.set_type(id, FILE_ICONTYPE[!!v])
-              break
-      }
-      builder = item.builder
-      if builder?
-        # Builder settings
-        panels[I18n.getMessage("Settings_for_1", builder.friendlyName)] = ctrls = {}
-        for key, cfg of (builder.configurations or {})
-          do (key, cfg) =>
-            ctrl = {
-              get: => builder[key]
-              set: (v) => builder[key] = v
-            }
-            switch cfg.type
-              when "boolean"  then ctrl.type = "checkbox"
-              when "string"   then ctrl.type = "text"
-              when "fixed"    then ctrl = builder[key]?.toString()
-            ctrls[cfg.description.toString()] = ctrl
-    else
-      # Sketch
-      notConf = "(#{I18n.getMessage("Not_configured")})"
+    panels["{File_overview}"] = ctrls = {}
+    dirs = item.path.split("/")
+    ctrls["{Name}"] = dirs.pop()
+    ctrls["{Folder}"] = dirs.join("/") if dirs.length > 0
+    ctrls["{FileType}"] = item.fileType?.toString() or I18n.getMessage("Unknown")
+    ctrls["{Generated_from}"] = item.source?.path
+    ctrls["{Transfer_to_board}"] = {
+      type: "checkbox"
+      get: => item.transfer
+      set: (v) =>
+        item.transfer = v
+        for id, info of @_itemNodes
+          if info.item == item
+            jsTree.set_type(id, FILE_ICONTYPE[!!v])
+            break
+    }
+    builder = item.builder
+    if builder?
+      # Builder settings
+      panels[I18n.getMessage("Settings_for_1", builder.friendlyName)] = ctrls = {}
+      for key, cfg of (builder.configurations or {})
+        do (key, cfg) =>
+          ctrl = {
+            get: => builder[key]
+            set: (v) => builder[key] = v
+          }
+          switch cfg.type
+            when "boolean"  then ctrl.type = "checkbox"
+            when "string"   then ctrl.type = "text"
+            when "fixed"    then ctrl = builder[key]?.toString()
+          ctrls[cfg.description.toString()] = ctrl
+    @_generatePage(panels)
+    return
+
+  _generatePageForSketch: ->
+    panels = {}
+    Promise.resolve(
+    ).then(=>
+      return @_sketch?.board?.loadFirmRevision()
+    ).then((firmRevision) =>
       panels["{Sketch_overview}"] = ctrls = {}
       ctrls["{Name}"] = @_sketch?.friendlyName.toString()
       ctrls["{Board}"] = @_sketch?.board?.friendlyName.toString() or notConf
       ctrls["{Stored_location}"] =
         I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType or "Unknown"}")
-      ctrls["{Startup_file}"] = {
-        type: []
+      bootables = []
+      executables = firmRevision?.executables or []
+      for item in @_sketch.items
+        path = item.path
+        for e in executables
+          if e.test(path)
+            bootables.push(path)
+            break
+      panels["{Startup_settings}"] = ctrls = {}
+      ctrls["{Executable_file}"] = {
+        type: bootables
         get: => @_sketch.bootItem
-        set: (v) => @_sketch.bootItem
+        set: (v) => @_sketch.bootItem = v
       }
-    @_generatePage(panels)
+    ).then(=>
+      @_generatePage(panels)
+    )
     return
 
   _generatePage: (panels) ->
@@ -300,7 +319,9 @@ module.exports = class SketchEditor extends Editor
           if typeof(ctrl) == "string"
             value = ctrl
             ctrl = {type: "fixed", get: => value}
-          switch ctrl?.type
+          type = ctrl?.type
+          type = "list" if type instanceof Array
+          switch type
             when "checkbox"
               input = $("#template-input-checkbox").children().clone()
                 .appendTo(
@@ -326,48 +347,33 @@ module.exports = class SketchEditor extends Editor
               $("#template-tr-td11").children().clone().appendTo(body).children("td")
                 .eq(0).text(I18n.translateText(cname)).end()
                 .eq(1).text(ctrl.get())
+            when "list"
+              td = $("#template-tr-td11").children().clone().appendTo(body).children("td")
+                .eq(0).text(I18n.translateText(cname)).addClass("vmiddle").end()
+                .eq(1)
+              dd = $("#template-dropdown").children().clone().appendTo(td)
+              dd.find("button .placeholder").text("N/A")
+              ul = dd.children("ul")
+              selected = null
+              sel_item = ctrl.get()
+              for item, index in ctrl.type
+                a = $("#template-dropdown-item").children().clone().appendTo(ul)
+                  .find(".placeholder").text(item).closest("a")
+                a[0].dataset.index = index
+                selected = a if item == sel_item
+              if ctrl.type.length == 0
+                dd.find("button").prop("disabled", true)
+              ul.find("a").click((event) =>
+                index = parseInt($(event.currentTarget)[0].dataset.index)
+                item = ctrl.type[index]
+                return unless item?
+                ul.closest(".dropdown").find(".placeholder").eq(0).text(item)
+                ctrl.set(item) if ctrl.get() != item
+                return
+              )
+              selected?.click()
             when undefined
               null  # Do nothing
-    return
-
-  _selectSketch: ->
-    $ = @$
-    div = @_initPage()
-    body = null
-    tr = (titleId, value) =>
-      $("#template-tr-td2").children().clone().appendTo(body).children("td")
-        .eq(0).text(if titleId? then I18n.getMessage(titleId) else "").end()
-        .eq(1).text(value or "").end()
-    notConf = "(#{I18n.getMessage("Not_configured")})"
-
-    body = $("#template-panel-table").children().clone().appendTo(div)
-      .find(".panel-heading").text(I18n.getMessage("Sketch_overview")).end()
-      .find("thead").remove().end()
-      .find("tbody")
-    tr("Name", @_sketch?.friendlyName)
-    tr("Board", @_sketch.board?.friendlyName or notConf)
-    tr("Stored_location", I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType}"))
-    body = $("#template-panel").children().clone().appendTo(div)
-      .find(".panel-heading").text(I18n.getMessage("Startup_file")).end()
-      .find(".panel-body")
-    ul = $("#template-dropdown").children().clone().appendTo(body)
-      .find("button")
-        .addClass("btn-sm").prop("disabled", !(@_sketch?.items?.length > 0))
-        .find(".placeholder")
-          .text(@_sketch?.bootItem or notConf)
-        .end()
-      .end()
-      .find("ul")
-    for item in (@_sketch?.items or [])
-      continue unless item.builder?
-      $('<li><a href="#">').appendTo(ul)
-        .find("a").text(item.path)[0].dataset.path = item.path
-    ul.find("li").click((event) =>
-      path = $(event.currentTarget)[0]?.dataset.path
-      return unless path?
-      @_sketch?.bootItem = path
-      ul.parent().find(".placeholder").text(path)
-    )
     return
 
   _refreshTree: ->
