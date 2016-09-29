@@ -172,6 +172,10 @@ module.exports = class MainController extends WindowController
       return @_updateElementsForBoard()
     ).then(=>
       firstActivation = false
+      @bindKey("mod+o", ".sketch-open-latest")
+      @bindKey("mod+b", ".sketch-build")
+      @bindKey("mod+r", ".sketch-run")
+      @bindKey("mod+s", ".sketch-save-overwrite")
     ).then(=>
       $("body").addClass("controller-main")
     ).then(=>
