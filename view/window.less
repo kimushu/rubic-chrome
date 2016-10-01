@@ -359,7 +359,7 @@ body.left-hidden .hide-left {
 
 #about-rubic-logo {
   max-width: ~"calc(100% + 16px)";
-  height: 48px;
+  max-height: 48px;
 }
 
 .alt-ph {
@@ -1344,7 +1344,13 @@ monospace;
 // Utility classes
 @import "bootstrap-3.3.4/less/utilities.less";
 @import "bootstrap-3.3.4/less/responsive-utilities.less";
+// Theme
 @import "pingendo-custom.less";
 // @import "https://raw.githubusercontent.com/Pingendo/pingendo-bootstrap/gh-pages/less/pingendo-custom.less";
+@import "bootstrap-3.3.4/less/theme.less";
+@screen-sm : @screen-xs;
+@screen-md : @screen-xs;
+@screen-lg : @screen-xs;
+@navbar-height : 34px;
 
 /* PINGENDO COMMENT DO NOT REMOVE */
