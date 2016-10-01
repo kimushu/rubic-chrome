@@ -1,6 +1,7 @@
-api/
-dist/
-node_modules/
+/api
+/dist
+/test
+node_modules
 *.swp
 *.dep
 /*.zip
