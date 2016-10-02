@@ -15,14 +15,6 @@
       <div class="main-inner">
         <div class="row">
           <div class="col-md-12">
-            <div class="panel panel-primary">
-              <div class="panel-heading">
-                <h3 class="panel-title">TODO</h3>
-              </div>
-              <div class="panel-body">
-                <p>TODO</p>
-              </div>
-            </div>
             <div class="panel panel-info">
               <div class="panel-heading">
                 <h3 class="i18n panel-title">
@@ -33,10 +25,10 @@
                 <p class="i18n">{Desc_of_appearance}</p>
                 <div class="form-horizontal">
                   <div class="form-group">
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                       <label class="control-label i18n">{Zoom_ratio}</label>
                     </div>
-                    <div class="col-sm-9">
+                    <div class="col-sm-8">
                       <select class="form-control" id="config-zoom-ratio">
                         <option class="i18n" value="10">{Zoom_1_0}</option>
                         <option class="i18n" value="15">{Zoom_1_5}</option>
@@ -47,7 +39,34 @@
                 </div>
               </div>
             </div>
-            <div class="panel panel-primary">
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="i18n panel-title">
+                  <b>{History}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <div class="col-sm-4">
+                      <label class="control-label i18n">{Max_recent_sketches}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-control" id="config-max-recent-sketches">
+                        <option class="i18n" value="5">{Count_5}</option>
+                        <option class="i18n" value="10">{Count_10}</option>
+                        <option class="i18n" value="20">{Count_20}</option>
+                        <option class="i18n" value="50">{Count_50}</option>
+                      </select>
+                    </div>
+                    <div class="col-sm-12">
+                      <p class="help-block i18n"><small>{Desc_of_max_recent_sketches}</small></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-info">
               <div class="panel-heading">
                 <h3 class="panel-title i18n">
                   <b>{Internet_access}</b>
@@ -59,26 +78,12 @@
                   <label class="i18n">
                     <input type="checkbox" id="config-confirm-internet-access">{Confirm_internet_access}</label>
                 </div>
-                <p class="i18n">
-                  <small>{Privacy_statement_for_internet_access} (<a href="#" class="link-privacy-policy">{Show_privacy_policy}</a>)</small>
+                <p class="help-block i18n">
+                  <small>{Privacy_statement_for_internet_access} <a href="https://github.com/kimushu/rubic#privacy-policy" target="_blank">({Privacy_policy})</a></small>
                 </p>
               </div>
             </div>
-            <div class="panel panel-primary">
-              <div class="panel-heading">
-                <h3 class="panel-title i18n">
-                  <b>{Board_scan}</b>
-                </h3>
-              </div>
-              <div class="panel-body">
-                <p class="i18n">{Desc_of_board_scan}</p>
-                <div class="checkbox">
-                  <label class="i18n">
-                    <input type="checkbox" id="config-device-filter">{Show_matched_boards_only}</label>
-                </div>
-              </div>
-            </div>
-            <div class="panel panel-primary">
+            <!--<div class="panel panel-primary">
               <div class="panel-heading">
                 <h3 class="panel-title i18n">
                   <a id="config-cloud-service"><b>{Cloud_service_auth}</b></a>
@@ -122,7 +127,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div>-->
             <div class="panel panel-danger">
               <div class="panel-heading">
                 <h3 class="i18n panel-title">
@@ -148,8 +153,8 @@
                           <option class="i18n" value="true">{Show_beta_versions}</option>
                         </select>
                       </div>
-                      <div class="col-sm-offset-4 col-sm-8">
-                        <p class="help-block i18n">{Desc_of_beta_firmware}</p>
+                      <div class="col-sm-12">
+                        <p class="help-block i18n"><small>{Desc_of_beta_firmware}</small></p>
                       </div>
                     </div>
                     <div class="form-group">
@@ -162,8 +167,8 @@
                           <option class="i18n" value="1">{Detail_logs}</option>
                         </select>
                       </div>
-                      <div class="col-sm-offset-4 col-sm-8">
-                        <p class="help-block i18n">{Desc_of_log_verbosity}</p>
+                      <div class="col-sm-12">
+                        <p class="help-block i18n"><small>{Desc_of_log_verbosity}</small></p>
                       </div>
                     </div>
                     <div class="form-group">
@@ -176,11 +181,11 @@
                           <option class="i18n" value="true">{Init_cache_at_next_boot}</option>
                         </select>
                       </div>
-                      <div class="col-sm-offset-4 col-sm-8">
-                        <p class="help-block i18n">{Desc_of_init_cache}</p>
+                      <div class="col-sm-12">
+                        <p class="help-block i18n"><small>{Desc_of_init_cache}</small></p>
                       </div>
                     </div>
-                    <div class="form-group">
+                    <!--<div class="form-group">
                       <div class="col-sm-4">
                         <label class="control-label i18n">{Catalog_editor}</label>
                       </div>
@@ -190,7 +195,7 @@
                             <input type="checkbox" id="config-cateditor">{Enable_catalog_editor}</label>
                         </div>
                       </div>
-                    </div>
+                    </div>-->
                   </div>
                 </div>
               </div>
