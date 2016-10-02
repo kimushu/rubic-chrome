@@ -30,6 +30,16 @@ module.exports = class Sketch extends JSONable
   @property("modified", get: -> @_modified)
 
   ###*
+  @property {boolean} itemModified
+    Is any sketch item modified
+  @readonly
+  ###
+  @property("itemModified", get: ->
+    return true for item in @items when item.editor?.modified
+    return false
+  )
+
+  ###*
   @property {boolean} temporary
     Is sketch temporary
   @readonly

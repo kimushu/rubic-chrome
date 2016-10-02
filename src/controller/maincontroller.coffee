@@ -113,6 +113,7 @@ module.exports = class MainController extends WindowController
       $(".sketch-build")        .click(@_buildSketch.bind(this))
       $(".sketch-run")          .click(@_runSketch.bind(this))
       $(".sketch-stop").hide()  .click(@_stopSketch.bind(this))
+      $(".clear-recent-sketch") .click(@_clearRecentSketch.bind(this))
       $(".board-list").parent().on("show.bs.dropdown", (event) =>
         # FIXME
         $("#board-list-tmpl").hide()
@@ -403,8 +404,8 @@ module.exports = class MainController extends WindowController
     $(".sketch-build").prop("disabled", noBoard)
     $(".device-list").prop("disabled", noBoard)
     if noBoard
-      $(".sketch-run").prop("disabled", true).next().prop("disabled", true)
-      $(".board-info").prop("disabled", true)
+      $("button.sketch-run").prop("disabled", true).next().prop("disabled", true)
+      $("button.board-info").prop("disabled", true).next().prop("disabled", true)
     else
       $("a.sketch-debug").parent().toggleClass("disabled", !@_board.debuggable)
     elem = $("#board-selected")
@@ -441,6 +442,8 @@ module.exports = class MainController extends WindowController
   @return {undefined}
   ###
   _setSketch: (sketch) ->
+    $ = @$
+
     # Unregister old sketch and board
     App.sketch?.removeEventListener("setboard.sketch", this)
     App.sketch?.removeEventListener("change.sketch", this)
@@ -453,6 +456,10 @@ module.exports = class MainController extends WindowController
     @_sketch?.addEventListener("setboard.sketch", this)
     @_sketch?.addEventListener("change.sketch", this)
     @_sketch?.addEventListener("save.sketch", this)
+    @clearOutput()
+    @_running = null
+    $(".sketch-stop").hide()
+    $(".sketch-run").closest(".btn-group").show()
     @_editors = []
     tabSet.clearTabs()
     @_updateElementsForSketch()
@@ -496,7 +503,8 @@ module.exports = class MainController extends WindowController
   _closeSketch: (dryrun = false, force = false) ->
     return Promise.resolve(
     ).then(=>
-      return "yes" unless App.sketch?.modified
+      sketch = App.sketch
+      return "yes" if !(sketch?.modified) and !(sketch?.itemModified)
       return "yes" if force
       return App.safeConfirm_yes_no(
         title: "{Current_sketch_has_been_modified}"
@@ -809,6 +817,7 @@ module.exports = class MainController extends WindowController
     return Promise.reject(Error("No sketch to run")) unless sketch?
     board = sketch.board
     return Promise.reject(Error("No board")) unless board?
+    return Promise.reject(Error("Already running")) if @_running
     items = (i for i in sketch.items when i.transfered)
     @clearOutput()
     return Promise.resolve(
@@ -821,12 +830,23 @@ module.exports = class MainController extends WindowController
       unless bootItem?
         App.popupError(I18n.getMessage("No_program_to_boot"))
         return Promise.reject(Error("No program to boot"))
-      @_running = Promise.resolve(
+      return Promise.resolve(
       ).then(=>
         $(".sketch-run").closest(".btn-group").hide()
         $(".sketch-stop").show()
       ).then(=>
-        return board.startSketch(bootItem)
+        started = null
+        @_running = new Promise((resolve, reject) =>
+          started = board.startSketch(bootItem, (result) =>
+            return reject() unless result
+            return resolve()
+          )
+        ).finally(=>
+          $(".sketch-stop").hide()
+          $(".sketch-run").closest(".btn-group").show()
+          @_running = null
+        )
+        return started
       ).then((console) =>
         @_console = console
         @_console.addEventListener("receive.console", this)
@@ -835,12 +855,11 @@ module.exports = class MainController extends WindowController
       ).then(=>
         @printSystem("-------- #{I18n.getMessage("Connected_to_console")} --------")
         return
-      ).finally(=>
+      ).catch((error) =>
         $(".sketch-stop").hide()
         $(".sketch-run").closest(".btn-group").show()
-        @_running = null
+        return Promise.reject(error)
       )
-      return  # Do not wait until sketch finish
     ) # return Promise.resolve().then()...
 
   ###*
@@ -856,6 +875,9 @@ module.exports = class MainController extends WindowController
     board = sketch.board
     return Promise.reject(Error("No board")) unless board?
     return Promise.reject(Error("Already stopped")) unless @_running
+    unless board.stopSketch?
+      App.popupError(I18n.getMessage("This_board_does_not_support_stopping_sketch"))
+      return
     spin = @modalSpin().show()
     return Promise.resolve(
     ).then(=>
@@ -1009,14 +1031,14 @@ module.exports = class MainController extends WindowController
         App.popupInfo(I18n.getMessage("Connected_to_board_at_1", @_boardPath))
         $("body").addClass("board-connected")
         $("#device-selected").text(@_boardPath)
-        $(".sketch-run").prop("disabled", false).next().prop("disabled", false)
-        $(".board-info").prop("disabled", false)
+        $("button.sketch-run").prop("disabled", false).next().prop("disabled", false)
+        $("button.board-info").prop("disabled", false).next().prop("disabled", false)
       when "disconnect.board"
         App.popupWarning(I18n.getMessage("Disconnected_from_board_at_1", @_boardPath))
         $("body").removeClass("board-connected")
         $("#device-selected").text("")
-        $(".sketch-run").prop("disabled", true).next().prop("disabled", true)
-        $(".board-info").prop("disabled", true)
+        $("button.sketch-run").prop("disabled", true).next().prop("disabled", true)
+        $("button.board-info").prop("disabled", true).next().prop("disabled", true)
         @_boardPath = null
       when "changetitle.editor", "change.editor"
         @_updateTabTitle(event.target)
@@ -1148,6 +1170,17 @@ module.exports = class MainController extends WindowController
       App.error(error)
       return false
     ) # return Promise.resolve().then()...
+
+  ###*
+  @private
+  @method
+    Clear recent sketch list
+  @param {Event} event
+    Event object
+  @return {undefined}
+  ###
+  _clearRecentSketch: (event) ->
+    return
 
 # Post dependencies
 I18n = require("util/i18n")

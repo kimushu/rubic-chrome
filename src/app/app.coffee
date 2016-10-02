@@ -53,20 +53,24 @@ module.exports = class App
   # Object disclosure for debugging
   @log("Application: %o", App)
 
-  @_popupMessage: (ntype, etype, icon, message, title) ->
+  @_popupMessage: (ntype, etype, icon, message, title, dir = "ne", settings = {}) ->
     this[etype]("Popup {message: %o, title: %o}", message, title)
     return new Notifier({
       icon: if icon? then "glyphicon glyphicon-#{icon}-sign" else undefined
       title: title
       message: message
-    }, {
+    }, $.extend({
       type: ntype
       allow_dismiss: true
-      placement: {from: "top", align: "right"}
-      delay: 2
+      placement: {
+        from: if dir.includes("s") then "bottom" else "top"
+        align: if dir.includes("w") then "left" else (if dir.includes("e") then "right" else "center")
+      }
+      z_index: 990
+      delay: 2000
       offset: {x: 20, y: 50}
       showProgressbar: true
-    }).show()
+    }, settings)).show()
 
   @popupSuccess: @_popupMessage.bind(this, "success", "log", null)
   @popupInfo:    @_popupMessage.bind(this, "info", "info", "info")

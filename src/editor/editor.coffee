@@ -240,6 +240,9 @@ module.exports = class Editor extends UnJSONable
     @$(@element).show() if @element?
     @_active = true
     @dispatchEvent({type: EVENT_ACTIVATE})
+    if @_firstActivate
+      App.popupInfo(I18n.getMessage("This_content_is_read_only")) unless @editable
+      @_firstActivate = false
     return Promise.resolve()
 
   ###*
@@ -298,7 +301,9 @@ module.exports = class Editor extends UnJSONable
     @_sketchItem?.editor = this
     @_active = false
     @_modified = false
+    @_firstActivate = true
     return
 
 # Post dependencies
-# (none)
+App = require("app/app")
+I18n = require("util/i18n")

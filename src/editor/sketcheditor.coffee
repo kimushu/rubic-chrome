@@ -111,9 +111,11 @@ module.exports = class SketchEditor extends Editor
     @sketch.addEventListener("removeitem.sketch", this)
     return
 
-  #--------------------------------------------------------------------------------
-  # Public methods
-  #
+  ###*
+  @inheritdoc Editor#deactivate
+  ###
+  deactivate: ->
+    return super()
 
   ###*
   @method
@@ -237,6 +239,16 @@ module.exports = class SketchEditor extends Editor
     $(".explorer-rename").prop("disabled", !item? or !!(item?.source?))
     $(".explorer-remove").prop("disabled", !item? or !!(item?.source?))
     return @_generatePageForItems(item) if item?
+    unless App.sketch?.board?
+      App.popupInfo(
+        """
+        <span class="glyphicon glyphicon-share-alt"
+          style="transform: matrix(0, 1, 1, 0, 0, 0);"></span>
+        #{I18n.getMessage("Hint_select_board")}
+        """
+        null
+        "sw"
+      )
     return @_generatePageForSketch()
 
   _generatePageForItems: (item) ->
@@ -283,7 +295,7 @@ module.exports = class SketchEditor extends Editor
     ).then((firmRevision) =>
       panels["{Sketch_overview}"] = ctrls = {}
       ctrls["{Name}"] = @_sketch?.friendlyName.toString()
-      ctrls["{Board}"] = @_sketch?.board?.friendlyName.toString() or notConf
+      ctrls["{Board}"] = @_sketch?.board?.friendlyName.toString() or I18n.getMessage("Not_configured")
       ctrls["{Stored_location}"] =
         I18n.getMessage("fsType_#{@_sketch?.dirFs?.fsType or "Unknown"}")
       bootables = []

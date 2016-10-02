@@ -121,7 +121,7 @@ Log_verbosity:
 Simple_logs:
     "簡易のログ出力 (標準設定)"
 Detail_logs:
-    "詳細なログ出力 (動作が遅くなる可能性があります)"
+    "詳細なログ出力"
 Desc_of_log_verbosity:
     "不具合報告のための追加情報が得られる場合があります。ログはChromeのデベロッパーコンソール上に出力されます。"
 UI_language:
@@ -139,7 +139,7 @@ Do_not_init_cache:
 Init_cache_at_next_boot:
     "次回のRubic起動時にキャッシュを初期化する"
 Desc_of_init_cache:
-    "キャッシュを初期化することにより、このPC上で初めてRubicを起動したときの状態に戻すことができます。すべての設定項目が初期値に戻りますのでご注意ください。"
+    "キャッシュを初期化することにより、このPC上で初めてRubicを起動したときの状態に戻すことができます。スケッチの下書きや設定項目がすべて初期化されますので、ご注意ください。"
 Cache_has_been_initialized:
     "設定データ/キャッシュデータが初期化されました"
 Rubic_about:
@@ -203,19 +203,19 @@ Beta:
 Obsolete:
     "廃止"
 Desc_of_beta_firmware:
-    "ハードウェア構成にて、正式対応前のバージョンのボードやファームウェアを表示することができます。ファームウェア作者向けの設定です。"
-Hidden_devices:
-    "表示しないデバイス"
-Desc_of_hidden_devices:
-    "ここでチェックをつけたデバイスは、シリアル通信デバイスの一覧に表示しません。このPCの組み込みデバイスなどが表示されて邪魔な場合に利用してください。"
+    "ハードウェア構成にて、正式対応前のバージョンのボードやファームウェアを表示することができます。ファームウェア開発者向けの設定です。"
 Internet_access:
     "インターネット接続"
 Desc_of_internet_access:
     "Rubicは、ハードウェアカタログや各ボード用の最新版ファームウェアをインターネット上から取得します。そのため、カタログ表示時やボード接続時にインターネットに接続を行い、Github経由でデータをダウンロードしてPCのキャッシュに保存します。"
 Confirm_internet_access:
-    "オフラインモードで利用する (原則としてオフラインで動作し、インターネット接続が必要な際は接続前に確認画面を表示する)"
+    "インターネット接続前には確認メッセージを表示する"
 Privacy_statement_for_internet_access:
-    "※データのダウンロード時に、ユーザのスケッチデータなどを送信することはありません。"
+    "※カタログデータのダウンロード時には、取得対象の特定のために選択されているボードの種類が送信されますが、スケッチ内のファイルやユーザアカウントの情報を送信することはありません。"
+Max_recent_sketches:
+    "スケッチ編集履歴の個数"
+Desc_of_max_recent_sketches:
+    "下書きスケッチを含む、最近使ったスケッチの最大保存個数を指定します。"
 Change:
     "変更"
 Current_sketch_has_been_modified:
@@ -362,8 +362,6 @@ Clear_sketch_history:
     "スケッチ編集履歴をクリアする"
 Close_sketch:
     "スケッチを閉じる"
-Get_board_info:
-    "ボードの情報を取得"
 Board_info:
     "ボードの情報"
 Info:
@@ -436,5 +434,29 @@ Disconnected_from_console:
     "コンソールから切断されました"
 Connecting:
     "接続中..."
+Write_firmware:
+    "ファームウェアの書き込み"
+Read_board_info:
+    "ボードの情報の取得"
 Reading_board_info:
-    "ボード情報を読み取っています..."
+    "ボードの情報を読み取っています..."
+Hint_select_board:
+    "まず、ハードウェア構成を選択することから始めてください"
+Count_5:
+    "5 個"
+Count_10:
+    "10 個"
+Count_20:
+    "20 個"
+Count_50:
+    "50 個"
+This_content_is_read_only:
+    "このコンテンツは読み取り専用です"
+This_board_does_not_support_stopping_sketch:
+    "このボードはスケッチの中断に対応していません"
+History:
+    "履歴"
+File_remove:
+    "ファイルの削除"
+Are_you_sure_to_remove_file_1:
+    "ファイル $1 を削除してよろしいですか？"
