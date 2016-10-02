@@ -237,6 +237,19 @@ module.exports = class SketchItem extends JSONable
 
   ###*
   @method
+    Remove content
+  @return {Promise}
+    Promise object
+  ###
+  removeContent: ->
+    return Promise.reject(Error("No sketch")) unless @_sketch?
+    return @_sketch.dirFs.unlink(@_path).then(=>
+      @_lastModified = 0
+      return
+    )
+
+  ###*
+  @method
     Set transfered
   @return {undefined}
   ###

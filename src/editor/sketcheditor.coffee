@@ -227,8 +227,11 @@ module.exports = class SketchEditor extends Editor
       )
     ).then((result) =>
       return unless result == "yes"
-      # TODO: remove file
-      return item.sketch.removeItem(item)
+      return item.removeContent().catch(=>
+        return
+      ).then(=>
+        return item.sketch.removeItem(item)
+      )
     ) # return Promise.resolve().then()...
     return
 

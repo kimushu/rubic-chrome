@@ -432,7 +432,7 @@ module.exports = class Sketch extends JSONable
   removeItem: (item) ->
     path = item
     path = item.path unless typeof(item) == "string"
-    index = @_items.findIndex((value) => item.path == path)
+    index = @_items.findIndex((value) => value.path == path)
     return false if index < 0
     itemRemoved = @_items[index]
     itemRemoved.removeEventListener("change.sketchitem", this)
