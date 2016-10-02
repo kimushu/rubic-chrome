@@ -63,10 +63,19 @@
             </li>
           </ul>
         </div>
-        <div class="btn-group btn-group-xs btn-group-lg when-sketch when-main">
-          <button class="btn btn-default i18n board-info" title="{Get_board_info}"><span class="glyphicon glyphicon-info-sign"></span> {Info}</button>
+        <div class="btn-group btn-group-xs btn-group-lg dropup when-sketch when-main">
+          <button class="btn btn-default i18n board-info" title="{Read_board_info}"><span class="glyphicon glyphicon-info-sign"></span> {Info}</button>
+          <button class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
+          <ul class="dropdown-menu" role="menu">
+            <li>
+              <a href="#" class="btn-xs i18n board-program"><span class="glyphicon glyphicon-flash"></span> {Write_firmware}</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n board-info"><span class="glyphicon glyphicon-info-sign"></span> {Read_board_info}</a>
+            </li>
+          </ul>
         </div>
-        <div class="btn-group btn-group-xs btn-group-lg dropup pull-right when-sketch when-main">
+        <!--div class="btn-group btn-group-xs btn-group-lg dropup pull-right when-sketch when-main">
           <button class="btn btn-default dropdown-toggle i18n" id="toolbox-list" data-toggle="dropdown">{Toolbox} <span class="fa fa-caret-up"></span></button>
           <ul class="dropdown-menu" role="menu">
             <li class="disabled">
@@ -87,7 +96,7 @@
               <a href="#" class="btn-xs i18n hide-right hide-output">{Hide_all}</a>
             </li>
           </ul>
-        </div>
+        </div-->
       </div>
     </div>
     <!--end-->
