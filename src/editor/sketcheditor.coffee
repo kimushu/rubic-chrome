@@ -436,6 +436,12 @@ module.exports = class SketchEditor extends Editor
         @_itemNodes[nodeId] = {item: item, path: item.path}
 
     jsTree.open_node(@_rootNodeId)
+    nodeId = null
+    for k, v of @_itemNodes
+      if v.item == @_selectedItem
+        nodeId = k
+        break
+    jsTree.select_node(nodeId or @_rootNodeId)
     return
 
 # Post dependencies
