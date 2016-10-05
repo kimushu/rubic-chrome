@@ -84,7 +84,7 @@ module.exports = class WakayamaRbBoard extends Board
   DELETE_TIMEOUT_MS   = 1000
   V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^,]+),([^(]+)\(H \[ENTER\]\)$/
 
-  VID_PID_LIST = [
+  @VID_PID_LIST: [
     # VID)PID)
     0x21290531  # Tokuden driver
     0x045b0234  # Renesas driver
@@ -163,7 +163,7 @@ module.exports = class WakayamaRbBoard extends Board
           path: port.path
           productId: port.productId
           vendorId: port.vendorId
-          hidden: !VID_PID_LIST.includes(id)
+          hidden: !@constructor.VID_PID_LIST.includes(id)
         })
       return devices
     )

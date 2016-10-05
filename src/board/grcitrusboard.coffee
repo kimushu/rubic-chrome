@@ -78,6 +78,13 @@ module.exports = class GrCitrusBoard extends WakayamaRbBoard
   RXPIN = new I18n({en: "Pin number of RX631", ja: "RX631ピン番号"})
   ANPIN = new I18n({en: "Analog pins", ja: "アナログピン名称"})
 
+  @VID_PID_LIST: [
+    # VID)PID)
+    0x2a500277  # Akiduki (GR-CITRUS)
+  ].concat(
+    WakayamaRbBoard.VID_PID_LIST
+  )
+
   #--------------------------------------------------------------------------------
   # Public methods
   #
