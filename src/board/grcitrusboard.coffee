@@ -85,9 +85,28 @@ module.exports = class GrCitrusBoard extends WakayamaRbBoard
     WakayamaRbBoard.VID_PID_LIST
   )
 
+  @POLL_BY_FEH: null  # Disable polling by 0xfe
+  @BINARY_MODE: false
+
   #--------------------------------------------------------------------------------
   # Public methods
   #
+
+  ###*
+  @inheritdoc Board#getProgrammer
+  ###
+  getProgrammer: ->
+    return new MbedProgrammer(
+      this
+      {
+        name: "GR-CITRUS"
+        guidance: "Gadget Renesas Project Home.html"
+      }
+      {
+        message: I18n.getMessage("Push_switch_1", "RESET")
+        image: null
+      }
+    )
 
   ###*
   @inheritdoc Board#getPinList
@@ -128,4 +147,4 @@ module.exports = class GrCitrusBoard extends WakayamaRbBoard
     } # return {}
 
 # Post dependencies
-# (none)
+# MbedProgrammer = require("programmer/mbedprogrammer")

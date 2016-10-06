@@ -1,17 +1,27 @@
 "use strict"
 # Pre dependencies
-# (none)
+UnJSONable = require("util/unjsonable")
 
 ###*
 @class Programmer
   Firmware updater class
 ###
-module.exports = class Programmer
+module.exports = class Programmer extends UnJSONable
   null
 
   #--------------------------------------------------------------------------------
   # Public methods
   #
+
+  ###*
+  @method
+    Execute firmware update
+  @param {ArrayBuffer} data
+    Data to write
+  @return {Promise}
+    Promise object
+  ###
+  update: null  # pure virtual
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -21,8 +31,10 @@ module.exports = class Programmer
   @protected
   @method constructor
     Constructor of Programmer class
+  @param {Board} _board
+    Board instance
   ###
-  constructor: ->
+  constructor: (@_board) ->
     return
 
 # Post dependencies

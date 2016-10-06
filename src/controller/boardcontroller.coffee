@@ -219,7 +219,7 @@ module.exports = class BoardController extends WindowController
       return BoardCatalog.load(false)
     ).then((@_boardCatalog) =>
       # Clear DOM elements
-      (tmpl = $("#board-catalog-tmpl")).hide().siblings().remove()
+      (tmpl = $("#board-catalog-tmpl")).hide().siblings(".media").remove()
       # Update
       return @_boardCatalog.update(force).timeout(
         UPDATE_TIMEOUT
