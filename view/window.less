@@ -146,6 +146,14 @@ body.left-hidden .hide-left {
   transition-duration: 0.2s;
 }
 
+.when-not-first-child:not(:first-child) {
+  display: none;
+}
+
+.when-not-last-child:not(:last-child) {
+  display: none;
+}
+
 #welcome-page .list-group:first-child {
   margin-top: 16px;
 }

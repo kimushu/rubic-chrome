@@ -208,8 +208,8 @@ Internet_access:
     "インターネット接続"
 Desc_of_internet_access:
     "Rubicは、ハードウェアカタログや各ボード用の最新版ファームウェアをインターネット上から取得します。そのため、カタログ表示時やボード接続時にインターネットに接続を行い、Github経由でデータをダウンロードしてPCのキャッシュに保存します。"
-Confirm_internet_access:
-    "インターネット接続前には確認メッセージを表示する"
+Do_not_confirm_internet_access:
+    "インターネット接続前に確認メッセージを表示しない (常に接続を許可する)"
 Privacy_statement_for_internet_access:
     "※カタログデータのダウンロード時には、取得対象の特定のために選択されているボードの種類が送信されますが、スケッチ内のファイルやユーザアカウントの情報を送信することはありません。"
 Max_recent_sketches:
@@ -460,3 +460,21 @@ File_remove:
     "ファイルの削除"
 Are_you_sure_to_remove_file_1:
     "ファイル $1 を削除してよろしいですか？"
+Push_switch_1:
+    "$1 スイッチを押してください"
+Preparation_for_firmware_update:
+    "ファームウェア更新の準備"
+Confirm_before_catalog_update:
+    "最新のカタログ情報を取得するため、インターネットにアクセスします。よろしいですか？"
+Do_not_ask_again:
+    "今後は確認を表示しない (常にインターネットアクセスを許可する)"
+OK:
+    "OK"
+Cancel:
+    "キャンセル"
+No_catalog_data_available:
+    "有効なカタログ情報がありません"
+Kind_of_board:
+    "ボード種別"
+Embedded_script_engine:
+    "搭載スクリプト実行エンジン"

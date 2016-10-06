@@ -34,24 +34,26 @@ module.exports = class PrefController extends WindowController
   @inheritdoc Controller#activate
   ###
   activate: ->
+    $ = @$
     return super(
     ).then(=>
-      @$("#config-for-testers").prop("checked", false).click((event) =>
-        state = @$(event.target).prop("checked")
-        @$("body")[if state then "addClass" else "removeClass"]("show-testers")
+      $("#config-for-testers").prop("checked", false).click((event) =>
+        state = $(event.target).prop("checked")
+        $("body").toggleClass("show-testers", state)
       )
       return Preferences.get({
         zoom_ratio_x10: 10
-        device_filter: true
+        # device_filter: true
+        confirm_net: true
         beta_firmware: false
         log_verbosity: 0
         reset_all: false
-        catalog_editor: false
+        # catalog_editor: false
       })
     ).then((items) =>
       App.info.verbose({"PrefController#activate": items})
-      @$("#config-zoom-ratio").val("#{items.zoom_ratio_x10}").change((event) =>
-        value = parseInt(@$(event.target).val())
+      $("#config-zoom-ratio").val("#{items.zoom_ratio_x10}").change((event) =>
+        value = parseInt($(event.currentTarget).val())
         Preferences.set({zoom_ratio_x10: value})
         curRatio = (parseFloat(window.document.body.style.zoom) or 1)
         newRatio = value / 10
@@ -66,29 +68,33 @@ module.exports = class PrefController extends WindowController
         bounds?.setMinimumSize(newMinWidth, newMinHeight)
         window.document.body.style.zoom = newRatio
       )
-      @$("#config-device-filter").prop("checked", !!items.device_filter).click((event) =>
-        value = !!@$(event.target).prop("checked")
-        Preferences.set({device_filter: value})
+      # $("#config-device-filter").prop("checked", !!items.device_filter).click((event) =>
+      #   value = !!$(event.target).prop("checked")
+      #   Preferences.set({device_filter: value})
+      # )
+      $("#config-noconfirm-net").prop("checked", !items.confirm_net).click((event) =>
+        value = !($(event.currentTarget).prop("checked"))
+        Preferences.set({confirm_net: value})
       )
-      @$("#config-beta-firmware").val("#{items.beta_firmware}").change((event) =>
-        value = (@$(event.target).val() != "false")
+      $("#config-beta-firmware").val("#{items.beta_firmware}").change((event) =>
+        value = ($(event.currentTarget).val() != "false")
         Preferences.set({beta_firmware: value})
       )
-      @$("#config-log-verbosity").val("#{items.log_verbosity}").change((event) =>
-        value = parseInt(@$(event.target).val())
+      $("#config-log-verbosity").val("#{items.log_verbosity}").change((event) =>
+        value = parseInt($(event.currentTarget).val())
         Preferences.set({log_verbosity: value})
       )
-      @$("#config-reset-all").val("#{items.reset_all}").change((event) =>
-        value = (@$(event.target).val() != "false")
+      $("#config-reset-all").val("#{items.reset_all}").change((event) =>
+        value = ($(event.currentTarget).val() != "false")
         Preferences.set({reset_all: value})
         App.warn("All preferences will be cleared at the next boot!") if value
       )
-      @$("#config-cateditor").prop("checked", !!items.catalog_editor).click((event) =>
-        value = !!@$(event.target).prop("checked")
-        Preferences.set({catalog_editor: value})
-      )
+      # $("#config-cateditor").prop("checked", !!items.catalog_editor).click((event) =>
+      #   value = !!$(event.target).prop("checked")
+      #   Preferences.set({catalog_editor: value})
+      # )
     ).then(=>
-      @$("body").addClass("controller-pref")
+      $("body").addClass("controller-pref")
       return
     ) # return super().then()...
 
@@ -97,12 +103,14 @@ module.exports = class PrefController extends WindowController
   @inheritdoc Controller#deactivate
   ###
   deactivate: ->
-    @$("body").removeClass("controller-pref show-testers")
-    @$("#config-for-testers").unbind("click")
-    @$("#config-zoom-ratio").unbind("change")
-    @$("#config-beta-firmware").unbind("change")
-    @$("#config-log-verbosity").unbind("change")
-    @$("#config-reset-all").unbind("change")
+    $ = @$
+    $("body").removeClass("controller-pref show-testers")
+    $("#config-for-testers").unbind("click")
+    $("#config-zoom-ratio").unbind("change")
+    $("#config-noconfirm-net").unbind("click")
+    $("#config-beta-firmware").unbind("change")
+    $("#config-log-verbosity").unbind("change")
+    $("#config-reset-all").unbind("change")
     return super()
 
   #--------------------------------------------------------------------------------
