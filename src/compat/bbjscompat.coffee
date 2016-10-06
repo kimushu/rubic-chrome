@@ -68,6 +68,7 @@ Promise.TimeoutError or= class TimeoutError
 # http://bluebirdjs.com/docs/api/timeout.html
 Promise::timeout or= (ms, error) ->
   error = new Promise.TimeoutError(error) unless error instanceof Error
+  return this unless isFinite(ms)
   return Promise.race([this, new Promise((resolve, reject) ->
     window.setTimeout((-> reject(error)), ms)
   )])
