@@ -82,7 +82,8 @@ module.exports = class WakayamaRbBoard extends Board
   READ1K_TIMEOUT_MS   = 1000
   WRITE1K_TIMEOUT_MS  = 2000
   DELETE_TIMEOUT_MS   = 1000
-  V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^,]+),([^(]+)\(H \[ENTER\]\)$/
+  V1_VERSION_NEEDLE   = "H [ENTER])"
+  V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^-]+)-([^,]+),([^(]+)\((?:help->)?H \[ENTER\]\)$/
 
   @VID_PID_LIST: [
     # VID)PID)
@@ -218,7 +219,7 @@ module.exports = class WakayamaRbBoard extends Board
     ).then(=>
       return @_send("H\r")
     ).then(=>
-      return @_pull(@_wait("(H [ENTER])"))
+      return @_pull(@_wait(V1_VERSION_NEEDLE))
     ).then((readdata) =>
       return ab2str(readdata)
     ).then((readdata) =>
@@ -227,9 +228,9 @@ module.exports = class WakayamaRbBoard extends Board
       v = verline.match(V1_VERSION_LINE)
       return Promise.reject(Error("Bad response")) unless v?
       return {
-        "{Kind_of_board}": v[1]?.trim()
-        "{Firmware_revision}": v[2]?.trim()
-        "{Embedded_script_engine}": v[3]?.trim()
+        "{Kind_of_board}": v[2]?.trim()
+        "{Firmware_revision}": v[3]?.trim()
+        "{Embedded_script_engine}": v[4]?.trim()
       } # Last PromiseValue
     ).finally(=>
       return @_unlock(lock)
