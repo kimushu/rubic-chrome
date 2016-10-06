@@ -89,52 +89,90 @@ module.exports = class CatalogCache
     Update cache contents
   @param {boolean} [force=false]
     Force update (Ignore timestamp)
+  @param {number} [timeout=Infinity]
+    Timeout in milliseconds
   @return {Promise}
     Promise object
   @return {boolean} updated
     Result (true:yes, false:skipped)
   ###
-  update: (force = false) ->
+  update: (force = false, timeout = Infinity) ->
     now = Date.now()
     return Promise.resolve(false) if !force and now < ((@_lastFetched or 0) + EXPIRE_MS)
-    root = new GitHubFetcher(ROOT_OWNER, ROOT_REPO, ROOT_BRANCH)
-    obj = null
-    boards = new Map()
     return Promise.resolve(
     ).then(=>
-      return root.getAsJSON(ROOT_PATH)
-    ).then((data) =>
-      obj = data
-      return (obj.boards or []).reduce(
-        (promise, b) =>
-          v = b[1]
-          boards.set("#{b[0]}", v)
-          if v.content?
-            v.lastFetched = now
-            return promise
-          return promise unless v.path?
-          now2 = Date.now()
-          return promise.then(=>
-            fetch = new GitHubFetcher(
-              v.owner or ROOT_OWNER
-              v.repo or ROOT_REPO
-              v.branch or ROOT_BRANCH
+      return Preferences.get({confirm_net: true})
+    ).then((values) =>
+      return unless values.confirm_net
+      return new Promise((resolve, reject) =>
+        global.bootbox.dialog({
+          title: I18n.getMessage("Refresh_catalog")
+          message: I18n.translateText("""
+          {Confirm_before_catalog_update}
+          <div class="checkbox">
+            <label><input type="checkbox" class="bootbox-input">{Do_not_ask_again}</label>
+          </div>
+          """)
+          inputType: "checkbox"
+          closeButton: false
+          buttons: {
+            cancel: {
+              label: I18n.getMessage("Cancel")
+              className: "btn-default"
+              callback: ->  # thin arrow
+                reject(Error("Cancelled"))
+            }
+            confirm: {
+              label: I18n.getMessage("OK")
+              className: "btn-primary"
+              callback: ->  # thin arrow
+                resolve(this.find("input.bootbox-input").prop("checked"))
+            }
+          }
+        })
+      ).then((always) =>
+        return Preferences.set({confirm_net: false}) if always
+      ) # return new Promise().then()
+    ).then(=>
+      root = new GitHubFetcher(ROOT_OWNER, ROOT_REPO, ROOT_BRANCH)
+      obj = null
+      boards = new Map()
+      return Promise.resolve(
+      ).then(=>
+        return root.getAsJSON(ROOT_PATH)
+      ).then((data) =>
+        obj = data
+        return (obj.boards or []).reduce(
+          (promise, b) =>
+            v = b[1]
+            boards.set("#{b[0]}", v)
+            if v.content?
+              v.lastFetched = now
+              return promise
+            return promise unless v.path?
+            now2 = Date.now()
+            return promise.then(=>
+              fetch = new GitHubFetcher(
+                v.owner or ROOT_OWNER
+                v.repo or ROOT_REPO
+                v.branch or ROOT_BRANCH
+              )
+              return fetch.getAsJSON(v.path)
+            ).then((data) =>
+              v.content = data
+              v.content.lastFetched = now2
+              return
             )
-            return fetch.getAsJSON(v.path)
-          ).then((data) =>
-            v.content = data
-            v.content.lastFetched = now2
-            return
-          )
-        Promise.resolve()
-      )
-    ).then(=>
-      @_lastModified = obj.lastModified
-      @_lastFetched = now
-      @_boards = boards
-      return @_store()
-    ).then(=>
-      return true # Last PromiseValue
+          Promise.resolve()
+        )
+      ).timeout(timeout).then(=>
+        @_lastModified = obj.lastModified
+        @_lastFetched = now
+        @_boards = boards
+        return @_store()
+      ).then(=>
+        return true # Last PromiseValue
+      ) # return Promise.resolve().then()...
     ) # return Promise.resolve().then()...
 
   #--------------------------------------------------------------------------------
@@ -172,3 +210,4 @@ module.exports = class CatalogCache
 # Post dependencies
 Preferences = require("app/preferences")
 GitHubFetcher = require("util/githubfetcher")
+I18n = require("util/i18n")
