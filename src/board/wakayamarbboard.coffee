@@ -91,6 +91,9 @@ module.exports = class WakayamaRbBoard extends Board
     0x045b0234  # Renesas driver
   ]
 
+  @POLL_BY_FEH: 100   # Enable polling by 0xfe at 100ms intervals
+  @BINARY_MODE: true
+
   TOL5V = new I18n({en: "5V tolerant", ja: "5Vトレラント"})
   ADPIN = new I18n({en: "With analog input", ja: "アナログ入力対応"})
   DAPIN = new I18n({en: "With analog output", ja: "アナログ出力対応"})
@@ -336,8 +339,8 @@ module.exports = class WakayamaRbBoard extends Board
   @private
   @method
     Receive data
-  @param {string/ArrayBuffer} expect
-    Wait data
+  @param {string/ArrayBuffer/number} expect
+    Wait data or number of bytes
   @return {Promise}
     Promise object
   @return {ArrayBuffer} return.PromiseValue
@@ -355,9 +358,12 @@ module.exports = class WakayamaRbBoard extends Board
       App.log.verbose("WakayamaRbBoard#_wait(%o)", expect)
       return str2ab(expect) if typeof(expect) == "string"
       return expect
-    ).then((ab) =>
+    ).then((ab_len) =>
+      token = new Uint8Array(ab_len) if ab_len instanceof ArrayBuffer
+      length = ab_len if typeof(ab_len) == "number"
       return new Promise((resolve, reject) =>
-        @_waiter = {token: new Uint8Array(ab), resolve: resolve, reject: reject}
+        @_waiter = {token: token, length: length, resolve: resolve, reject: reject}
+        @_receiveHandler(null)
       )
     ) # return Promise.resolve().then()...
 
@@ -394,13 +400,21 @@ module.exports = class WakayamaRbBoard extends Board
     Received data
   ###
   _receiveHandler: (ab) ->
-    return unless ab.byteLength > 0
-    do (ab) ->
-      pro = null
-      Object.defineProperty(ab, "ab2str", get: -> pro or= ab2str(ab))
-      App.log.verbose("WakayamaRbBoard#_recv(%o, %i bytes)", ab, ab.byteLength)
-    @_recvBuffer or= new FifoBuffer()
-    @_recvBuffer.push(ab)
+    if ab?.byteLength > 0
+      do (ab) ->
+        pro = null
+        Object.defineProperty(ab, "ab2str", get: -> pro or= ab2str(ab))
+        App.log.verbose("WakayamaRbBoard#_recv(%o, %i bytes)", ab, ab.byteLength)
+      @_recvBuffer or= new FifoBuffer()
+      @_recvBuffer.push(ab)
+    tlen = @_waiter?.length
+    if tlen?
+      return if tlen < @_recvBuffer.byteLength
+      data = @_recvBuffer.shift(tlen)
+      resolve = @_waiter.resolve
+      @_waiter = null
+      resolve?(data)
+      return
     token = @_waiter?.token
     return unless token?
     tlen = token.byteLength
@@ -456,6 +470,7 @@ module.exports = class WakayamaRbBoard extends Board
       ).then(=>
         return @_wrbb._lock(lock)
       ).then(=>
+        return @_wrbb._send("G #{@_dir}#{path}\r") if @_binaryMode
         return @_wrbb._send("F #{@_dir}#{path}\r")
       ).then(=>
         return @_wrbb._wait("\r\nWaiting").timeout(CMD_TIMEOUT_MS)
@@ -470,15 +485,19 @@ module.exports = class WakayamaRbBoard extends Board
         )
         return @_wrbb._send("\r")
       ).then(=>
+        return @_wrbb._wait(result.byteLength) if @_binaryMode
         return @_wrbb._wait("\r\n").timeout(CMD_TIMEOUT_MS)
       ).then(=>
         return @_wrbb._wait("\r\n").timeout(READ1K_TIMEOUT_MS * ((length + 1024) / 1024))
       ).then((readdata) =>
         src = new Uint8Array(readdata)
-        for i in [0...result.byteLength] by 1
-          byte = (HEX2BIN[src[i*2+0]] << 4) + (HEX2BIN[src[i*2+1]])
-          return Promise.reject("Receive data error at byte ##{i}") if isNaN(byte)
-          result[i] = byte
+        if @_binaryMode
+          result.set(src)
+        else
+          for i in [0...result.byteLength] by 1
+            byte = (HEX2BIN[src[i*2+0]] << 4) + (HEX2BIN[src[i*2+1]])
+            return Promise.reject("Receive data error at byte ##{i}") if isNaN(byte)
+            result[i] = byte
         return result.buffer unless options.encoding?   # Last PromiseValue (ArrayBuffer)
         return ab2str(result.buffer, options.encoding)  # Last PromiseValue (string)
       ).finally(=>
@@ -499,16 +518,20 @@ module.exports = class WakayamaRbBoard extends Board
         return str2ab(data, options.encoding)
       ).then((buffer) =>
         src = new Uint8Array(buffer)
+        return @_wrbb._send("W #{@_dir}#{path} #{src.byteLength}\r") if @_binaryMode
         return @_wrbb._send("U #{@_dir}#{path} #{src.byteLength * 2}\r")
       ).then(=>
         return @_wrbb._wait("\r\nWaiting").timeout(CMD_TIMEOUT_MS)
       ).then(=>
-        dump = ""
-        for i in [0...src.byteLength] by 1
-          dump += BIN2HEX[src[i]]
+        if @_binaryMode
+          dump = data
+        else
+          dump = ""
+          for i in [0...src.byteLength] by 1
+            dump += BIN2HEX[src[i]]
         return @_wrbb._send(dump)
       ).then(=>
-        return @_wrbb._wait("Saving").timeout(CMD_TIMEOUT_MS)
+        return @_wrbb._wait("Saving").timeout(WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024))
       ).then(=>
         return @_wrbb._pull(
           @_wrbb._wait("\r\n>")
@@ -556,6 +579,7 @@ module.exports = class WakayamaRbBoard extends Board
       Base directory
     ###
     constructor: (@_wrbb, @_dir = "") ->
+      @_binaryMode = @_wrbb.constructor.BINARY_MODE
       super(AsyncFs.BOARD_INTERNAL)
       return
 
