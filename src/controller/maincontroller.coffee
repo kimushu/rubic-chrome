@@ -1031,14 +1031,18 @@ module.exports = class MainController extends WindowController
         App.popupInfo(I18n.getMessage("Connected_to_board_at_1", @_boardPath))
         $("body").addClass("board-connected")
         $("#device-selected").text(@_boardPath)
-        $("button.sketch-run").prop("disabled", false).next().prop("disabled", false)
-        $("button.board-info").prop("disabled", false).next().prop("disabled", false)
+        $("button.sketch-run,button.sketch-stop,button.board-info")
+          .prop("disabled", false)
+          .next(".dropdown-toggle").prop("disabled", false)
       when "disconnect.board"
         App.popupWarning(I18n.getMessage("Disconnected_from_board_at_1", @_boardPath))
         $("body").removeClass("board-connected")
         $("#device-selected").text("")
-        $("button.sketch-run").prop("disabled", true).next().prop("disabled", true)
-        $("button.board-info").prop("disabled", true).next().prop("disabled", true)
+        $("button.sketch-run,button.sketch-stop,button.board-info")
+          .prop("disabled", true)
+          .next(".dropdown-toggle").prop("disabled", true)
+        $(".sketch-stop").hide()
+        $(".sketch-run").closest(".btn-group").show()
         @_boardPath = null
       when "changetitle.editor", "change.editor"
         @_updateTabTitle(event.target)
