@@ -437,7 +437,27 @@ module.exports = class MainController extends WindowController
     return unless @_needRegenerate
     @_needRegenerate = false
     return unless @_sketch?
-    return @_sketch.generateSkeleton()
+    return Promise.resolve(
+    ).then(=>
+      return @_sketch.generateSkeleton()
+    ).then(=>
+      item = @_sketch.bootItem
+      return unless item?
+      while true
+        source = item.source
+        break unless source?
+        item = source
+
+      editor = item.editor
+      unless editor?
+        editorClass = Editor.findEditor(item)
+        unless editorClass?
+          App.popupError(I18n.getMessage("Cannot_find_editor"))
+          return false
+        editor = new editorClass(@$, @_sketch, item)
+      @addEditor(editor, null, true)
+      return true
+    ) # return Promise.resolve()
 
   ###*
   @private
