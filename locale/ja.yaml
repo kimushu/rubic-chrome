@@ -454,6 +454,8 @@ This_content_is_read_only:
     "このコンテンツは読み取り専用です"
 This_board_does_not_support_stopping_sketch:
     "このボードはスケッチの中断に対応していません"
+Reset_board_by_power_cycle:
+    "ボードの電源を入れ直してリセットしてください"
 History:
     "履歴"
 File_remove:
