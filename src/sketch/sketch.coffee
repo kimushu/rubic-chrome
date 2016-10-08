@@ -67,8 +67,9 @@ module.exports = class Sketch extends JSONable
   @property("bootItem",
     get: -> @_bootItem
     set: (v) -> @_modify =>
-      found = @_items.find((item) => item.path == v)
-      throw Error("No item `#{v}'") unless found?
+      if v?
+        found = @_items.find((item) => item.path == v)
+        throw Error("No item `#{v}'") unless found?
       @_bootItem = v
       return true
   )
@@ -348,22 +349,29 @@ module.exports = class Sketch extends JSONable
           builderClass = cls
           break
       return Promise.reject(Error("No builder class")) unless builderClass?
-      bootPath = "main.#{template.suffix}"
-      if @hasItem(bootPath)
-        # Configure existing file as boot item
-        @bootItem = bootPath
-        return
-
-      # Create new boot item
-      item = @getItem(bootPath, true)
-      @bootItem = bootPath
-      return item.writeContent(
-        template.content?.toString() or ""
-        {encoding: "utf8"}
+      mainPrefix = "main."
+      mainPath = "#{mainPrefix}#{template.suffix}"
+      return Promise.resolve(
       ).then(=>
-        # Execute setup again to bind builder to new item
-        return @setupItems()
-      ) # return item.writeContent().then()
+        return if @hasItem(mainPath)
+
+        # Create new boot item
+        item = @getItem(mainPath, true)
+        return item.writeContent(
+          template.content?.toString() or ""
+          {encoding: "utf8"}
+        ).then(=>
+          # Execute setup again to bind builder to new item
+          return @setupItems()
+        )
+      ).then(=>
+        exes = firmRevision.executables
+        exe = null
+        for item in @_items
+          (exe = item) for e in exes when e.test(item.path)
+          break if exe?.path.startsWith(mainPrefix)
+        @bootItem = exe?.path
+      ) # return Promise.resolve().then()...
     ).then(=>
       return  # Last PromiseValue
     ) # return Promise.resolve().then()...
