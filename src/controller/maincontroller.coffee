@@ -843,7 +843,7 @@ module.exports = class MainController extends WindowController
       ).then(=>
         started = null
         @_running = new Promise((resolve, reject) =>
-          started = board.startSketch(bootItem, (result) =>
+          started = board.startSketch(bootItem.path, (result) =>
             return reject() unless result
             return resolve()
           )

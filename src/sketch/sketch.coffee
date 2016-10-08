@@ -61,17 +61,30 @@ module.exports = class Sketch extends JSONable
   @property("items", get: -> Object.freeze(item for item in @_items))
 
   ###*
-  @property {string} bootItem
+  @property {string} bootPath
     Path of boot item
   ###
-  @property("bootItem",
-    get: -> @_bootItem
+  @property("bootPath",
+    get: -> @bootItem?.path
     set: (v) -> @_modify =>
       if v?
         found = @_items.find((item) => item.path == v)
         throw Error("No item `#{v}'") unless found?
-      @_bootItem = v
+      @_bootPath = v
       return true
+  )
+
+  ###*
+  @property {SketchItem} bootItem
+    SketchItem instance of boot item
+  @readonly
+  ###
+  @property("bootItem",
+    get: ->
+      bootPath = @_bootPath
+      for item in @_items
+        return item if item.path == bootPath
+      return
   )
 
   ###*
@@ -339,7 +352,7 @@ module.exports = class Sketch extends JSONable
     ).then(=>
       return @_board.loadFirmRevision()
     ).then((firmRevision) =>
-      item = @getItem(@_bootItem) if @_bootItem?
+      item = @bootItem
       return if item?.builder?
       builderClass = null
       template = null
@@ -370,7 +383,7 @@ module.exports = class Sketch extends JSONable
         for item in @_items
           (exe = item) for e in exes when e.test(item.path)
           break if exe?.path.startsWith(mainPrefix)
-        @bootItem = exe?.path
+        @bootPath = exe?.path
       ) # return Promise.resolve().then()...
     ).then(=>
       return  # Last PromiseValue
@@ -612,7 +625,7 @@ module.exports = class Sketch extends JSONable
     @_rubicVersion = obj.rubicVersion?.toString()
     @_items = []
     @addItem(SketchItem.parseJSON(item), true) for item in (obj?.items or [])
-    @_bootItem = obj.bootItem?.toString()
+    @_bootPath = obj.bootPath?.toString()
     @_board = Board.parseJSON(obj.board) if obj.board?
     @_workspace = obj.workspace
     @_modified = false
@@ -626,7 +639,7 @@ module.exports = class Sketch extends JSONable
     return super().extends({
       rubicVersion: @_rubicVersion
       items: @_items
-      bootItem: @_bootItem
+      bootPath: @bootItem?.path
       board: @_board
       workspace: @_workspace
     })
@@ -690,7 +703,7 @@ module.exports = class Sketch extends JSONable
               transfer: true
             })
           ]
-          bootItem: "main.mrb"
+          bootPath: "main.mrb"
           board: {
             __class__: src.sketch.board.class
           }

@@ -312,8 +312,8 @@ module.exports = class SketchEditor extends Editor
       panels["{Startup_settings}"] = ctrls = {}
       ctrls["{Executable_file}"] = {
         type: bootables
-        get: => @_sketch.bootItem
-        set: (v) => @_sketch.bootItem = v
+        get: => @_sketch.bootPath
+        set: (v) => @_sketch.bootPath = v
       }
     ).then(=>
       @_generatePage(panels)
