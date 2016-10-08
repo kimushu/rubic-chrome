@@ -74,6 +74,7 @@ module.exports = class Firmware extends JSONable
     @_author        = I18n.parseJSON(obj.author)
     @_beta          = !!obj.beta
     @_obsolete      = !!obj.obsolete
+    @_boardSpecific = obj.boardSpecific or {}
     return
 
   ###*
@@ -89,6 +90,7 @@ module.exports = class Firmware extends JSONable
       author        : @_author
       beta          : @_beta
       obsolete      : @_obsolete
+      boardSpecific : @_boardSpecific
     })
 
 # Post dependencies

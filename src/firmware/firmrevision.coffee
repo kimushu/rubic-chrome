@@ -169,6 +169,7 @@ module.exports = class FirmRevision extends JSONable
     @_beta            = !!obj.beta
     @_obsolete        = !!obj.obsolete
     @_assets          = obj.assets or {}
+    @_boardSpecific   = obj.boardSpecific or {}
     return
 
   ###*
@@ -187,6 +188,7 @@ module.exports = class FirmRevision extends JSONable
       beta            : @_beta
       obsolete        : @_obsolete
       assets          : @_assets
+      boardSpecific   : @_boardSpecific
     })
 
 # Post dependencies
