@@ -409,8 +409,9 @@ module.exports = class MainController extends WindowController
     $(".sketch-build").prop("disabled", noBoard)
     $(".device-list").prop("disabled", noBoard)
     if noBoard
-      $("button.sketch-run").prop("disabled", true).next().prop("disabled", true)
-      $("button.board-info").prop("disabled", true).next().prop("disabled", true)
+      $(".sketch-run,.sketch-stop,.board-info,.board-program")
+        .prop("disabled", true)
+        .next(".dropdown-toggle").prop("disabled", true)
     else
       $("a.sketch-debug").parent().toggleClass("disabled", !@_board.debuggable)
     elem = $("#board-selected")
@@ -1041,14 +1042,14 @@ module.exports = class MainController extends WindowController
         App.popupInfo(I18n.getMessage("Connected_to_board_at_1", @_boardPath))
         $("body").addClass("board-connected")
         $("#device-selected").text(@_boardPath)
-        $("button.sketch-run,button.sketch-stop,button.board-info")
+        $(".sketch-run,.sketch-stop,.board-info")
           .prop("disabled", false)
           .next(".dropdown-toggle").prop("disabled", false)
       when "disconnect.board"
         App.popupWarning(I18n.getMessage("Disconnected_from_board_at_1", @_boardPath))
         $("body").removeClass("board-connected")
         $("#device-selected").text("")
-        $("button.sketch-run,button.sketch-stop,button.board-info")
+        $(".sketch-run,.sketch-stop,.board-info")
           .prop("disabled", true)
           .next(".dropdown-toggle").prop("disabled", true)
         $(".sketch-stop").hide()
