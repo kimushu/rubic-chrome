@@ -32,6 +32,7 @@ module.exports = class MainController extends WindowController
   SCAN_TIMEOUT = 2000
   SCAN_PERIOD_MS = 1000
   CONNECT_TIMEOUT = 5000
+  BOARD_INFO_TIMEOUT = 5000
   KEY_RECENT_SKETCHES_MAX = "recent_sketches.max"
   DEF_RECENT_SKETCHES_MAX = 10
   KEY_RECENT_SKETCHES_ITEMS = "recent_sketches.items"
@@ -146,6 +147,8 @@ module.exports = class MainController extends WindowController
         return Promise.resolve(
         ).then(=>
           return @_board?.getBoardInfo()
+        ).timeout(
+          BOARD_INFO_TIMEOUT
         ).finally(=>
           return spin.hide(500)
         ).then((info) =>
@@ -163,7 +166,9 @@ module.exports = class MainController extends WindowController
             # title: I18n.getMessage("Board_info")
             message: table
           })
-        ) # @_board?.getBoardInfo().then()
+        ).catch((error) =>
+          App.popupError(error?.message or error)
+        ) # return Promise.resolve().then()...
       )
     ).then(=>
       return unless firstActivation
@@ -876,7 +881,12 @@ module.exports = class MainController extends WindowController
     return Promise.reject(Error("No board")) unless board?
     return Promise.reject(Error("Already stopped")) unless @_running
     unless board.stopSketch?
-      App.popupError(I18n.getMessage("This_board_does_not_support_stopping_sketch"))
+      App.popupError(
+        I18n.translateText("""
+          {This_board_does_not_support_stopping_sketch}<br>
+          {Reset_board_by_power_cycle}
+        """)
+      )
       return
     spin = @modalSpin().show()
     return Promise.resolve(
@@ -1043,6 +1053,7 @@ module.exports = class MainController extends WindowController
           .next(".dropdown-toggle").prop("disabled", true)
         $(".sketch-stop").hide()
         $(".sketch-run").closest(".btn-group").show()
+        @_running = null
         @_boardPath = null
       when "changetitle.editor", "change.editor"
         @_updateTabTitle(event.target)
