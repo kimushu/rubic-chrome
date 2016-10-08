@@ -390,6 +390,7 @@ module.exports = class WakayamaRbBoard extends Board
     reject = @_waiter?.reject
     @_waiter = null
     reject?()
+    @_lockPromise = null
     if @_serial?
       @_serial = {}
       @disconnect()
