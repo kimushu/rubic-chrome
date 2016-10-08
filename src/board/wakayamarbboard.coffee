@@ -364,6 +364,9 @@ module.exports = class WakayamaRbBoard extends Board
       return new Promise((resolve, reject) =>
         @_waiter = {token: token, length: length, resolve: resolve, reject: reject}
         @_receiveHandler(null)
+      ).then((ab) =>
+        App.log.verbose("WakayamaRbBoard#found(%o, %i bytes)", ab, ab.byteLength)
+        return ab
       )
     ) # return Promise.resolve().then()...
 
@@ -400,12 +403,12 @@ module.exports = class WakayamaRbBoard extends Board
     Received data
   ###
   _receiveHandler: (ab) ->
+    @_recvBuffer or= new FifoBuffer()
     if ab?.byteLength > 0
       do (ab) ->
         pro = null
         Object.defineProperty(ab, "ab2str", get: -> pro or= ab2str(ab))
         App.log.verbose("WakayamaRbBoard#_recv(%o, %i bytes)", ab, ab.byteLength)
-      @_recvBuffer or= new FifoBuffer()
       @_recvBuffer.push(ab)
     tlen = @_waiter?.length
     if tlen?
