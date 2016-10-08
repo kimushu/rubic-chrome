@@ -259,16 +259,21 @@ module.exports = class Sketch extends JSONable
     File system object at the sketch directory
   @return {Promise}
     Promise object
-  @return {Sketch} return.PromiseValue
+  @return {Object} return.PromiseValue
+  @return {Sketch} return.PromiseValue.sketch
     The instance of sketch
+  @return {Object} return.PromiseValue.migration
+    Migration info (from,to,regenerate)
   ###
   @open: (dirFs) ->
+    migration = null
     return dirFs.readFile(SKETCH_CONFIG, SKETCH_ENCODING).then((data) =>
       obj = @_migrateAtOpen(JSON.parse(data))
+      migration = obj.__migration__
       return Sketch.parseJSON(obj)
     ).then((sketch) =>
       sketch._dirFs = dirFs
-      return sketch
+      return {sketch: sketch, migration: migration}
     ).catch(=>
       return I18n.rejectPromise("Invalid_sketch")
     ) # return dirFs.readFile().then()...
@@ -638,9 +643,9 @@ module.exports = class Sketch extends JSONable
   toJSON: ->
     return super().extends({
       rubicVersion: @_rubicVersion
-      items: @_items
-      bootPath: @bootItem?.path
-      board: @_board
+      items: (item.toJSON() for item in @_items)
+      bootPath: @_bootPath
+      board: @_board?.toJSON()
       workspace: @_workspace
     })
 
@@ -689,25 +694,45 @@ module.exports = class Sketch extends JSONable
     switch src.rubicVersion
       when undefined
         # Migration from 0.2.x
-        return {
+        result = {
+          __class__: "Sketch"
           rubicVersion: src.sketch.rubicVersion
           items: [
             new SketchItem({
               path: "main.rb"
-              builder: new MrubyBuilder({}, this).toJSON()
+              builder: new MrubyBuilder({}, null).toJSON()
               transfer: false
-            })
-            new SketchItem({
-              path: "main.mrb"
-              sourcePath: ["main.rb"]
-              transfer: true
-            })
+            }).toJSON()
           ]
-          bootPath: "main.mrb"
-          board: {
-            __class__: src.sketch.board.class
+          workspace: {
+            editors: [
+              {className: "SketchEditor"}
+              {className: "RubyEditor", path: "main.rb", active: true}
+            ]
+          }
+          __migration__: {
+            from: src.__migration__?.from or "0.2.x"
+            to: "0.9.0"
+            regenerate: true
           }
         }
+        switch src.sketch.board.class
+          when "PeridotBoard"
+            result.board = new PeridotBoard({
+              firmwareId:     "d0a9b0f1-ff57-4f3b-b121-d8e5ad173725"
+              firmRevisionId: "56624804-fc8d-4388-8560-5e5eec08067d"
+            }).toJSON()
+          when "WakayamaRbBoard"
+            result.board = new WakayamaRbBoard({
+              firmwareId:     "1ac3a112-1640-482f-8ca3-cf5afc181fe6"
+              firmRevisionId: "6a253d8b-bf94-4bff-a3e6-9a5d8b60bdb3"
+            }).toJSON()
+          when "GrCitrusBoard"
+            result.board = new GrCitrusBoard({
+              firmwareId:     "809d1206-8cd8-46f6-a657-2f60c050d7c9"
+              firmRevisionId: "bf956a8a-0f0d-41c2-8943-d46067162c79"
+            }).toJSON()
+        return result
       else
         # No migration needed from >= 0.9.x
         return src
@@ -719,3 +744,7 @@ AsyncFs = require("filesystem/asyncfs")
 App = require("app/app")
 Board = require("board/board")
 SketchItem = require("sketch/sketchitem")
+MrubyBuilder = require("builder/mrubybuilder")
+PeridotBoard = require("board/peridotboard")
+WakayamaRbBoard = require("board/wakayamarbboard")
+GrCitrusBoard = require("board/grcitrusboard")

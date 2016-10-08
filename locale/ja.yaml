@@ -480,3 +480,7 @@ Kind_of_board:
     "ボード種別"
 Embedded_script_engine:
     "搭載スクリプト実行エンジン"
+This_sketch_was_migrated_from_1:
+    "旧バージョン $1 で作成されたスケッチを変換して開きました。"
+Saved_as_new_version_at_next_save:
+    "次回の保存から、新バージョンのスケッチとして保存されます。"

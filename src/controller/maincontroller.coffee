@@ -591,14 +591,23 @@ module.exports = class MainController extends WindowController
       ) # return Promise.resolve().then()...
     ).then((fs) =>
       return unless fs?
-      return Sketch.open(fs).then((sketch) =>
+      return Sketch.open(fs).then(({sketch, migration}) =>
         @_setSketch(sketch)
         return Promise.resolve(
         ).then(=>
           return @_restoreWorkspace()
         ).then(=>
           return @constructor._updateRecentSketch(sketch)
-        )
+        ).then(=>
+          return unless migration?
+          App.popupInfo("""
+            #{I18n.getMessage("This_sketch_was_migrated_from_1", migration.from)}<br>
+            #{I18n.getMessage("Saved_as_new_version_at_next_save")}
+          """)
+          return unless migration.regenerate
+          @_needRegenerate = true
+          return @_regenerate()
+        ) # return Promise.resolve().then()...
       ).then(=>
         return  # Last PromiseValue
       ).catch((error) =>

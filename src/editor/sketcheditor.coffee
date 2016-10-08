@@ -441,6 +441,7 @@ module.exports = class SketchEditor extends Editor
       if v.item == @_selectedItem
         nodeId = k
         break
+    @_selectedItem = null
     jsTree.select_node(nodeId or @_rootNodeId)
     return
 

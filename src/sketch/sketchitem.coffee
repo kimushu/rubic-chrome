@@ -174,8 +174,8 @@ module.exports = class SketchItem extends JSONable
   toJSON: ->
     return super().extends({
       path: @_path
-      builder: @_builder
-      fileType: @_fileType
+      builder: @_builder?.toJSON()
+      fileType: @_fileType?.toJSON()
       sourcePath: @_sourcePath
       transfer: @_transfer
     })
