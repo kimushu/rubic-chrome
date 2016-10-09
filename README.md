@@ -13,8 +13,7 @@ Rubic(ルービック)は、Ruby言語を用いた組込みボードのプロト
 
 ## 対応ボード (バージョン 0.9.0 時点)
 - PERIDOT (http://osafune.github.io/peridot.html)
-  - 0.1.\* 時点ではボード側ファームウェアの書き込みに対応していません。
-    RBF-Writer (https://chrome.google.com/webstore/detail/peridot-rbf-writer/lchhhfhfikpnikljdaefcllbfblabibg) を用いて、下記のファームウェアを事前に書き込んでおく必要があります。
+  - ボード側ファームウェアは、RBF-Writer (https://chrome.google.com/webstore/detail/peridot-rbf-writer/lchhhfhfikpnikljdaefcllbfblabibg) を用いて、下記のファームウェアを事前に書き込んでおく必要があります。
 
     https://github.com/kimushu/rubic-catalog/tree/v0.1.x/PERIDOT
 
@@ -23,7 +22,7 @@ Rubic(ルービック)は、Ruby言語を用いた組込みボードのプロト
   - ボードは秋月電子通商 (http://akizukidenshi.com/) から購入できます。
 
 - Wakayama.rb ボード (https://github.com/tarosay/Wakayama-mruby-board)
-  - 0.2.\* から対応しました。ボード側ファームウェアのバージョンは「ARIDA4-1.29(2015/12/8)f3」以降を用いて下さい。
+  - 0.2.0 から対応しました。ボード側ファームウェアのバージョンは「ARIDA4-1.29(2015/12/8)f3」以降を用いて下さい。
 
 ## 仕組み
 Rubicアプリ本体はCoffeeScriptから変換されたJavaScriptで構成されており、その内部には、emscriptenでビルドすることでJavaScriptに変換されたmrubyが同梱されています。

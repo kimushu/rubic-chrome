@@ -31,7 +31,8 @@ clean: recursive-clean
 clobber: recursive-clobber
 
 release: recursive-release
-	d=$(shell pwd)/rubic-$(dist_ver).zip && cd $(DIST_DIR) && test ! -e $$d && zip -r $$d *
+	mv $(DIST_DIR)/window.min.js $(DIST_DIR)/window.js
+	d=$(shell pwd)/rubic-$(dist_ver).zip && cd $(DIST_DIR) && test ! -e $$d && zip -r $$d $$(find -type f)
 
 recursive-%:
 	$(Q)$(MAKE) -C $(SRC_DIR) $*

@@ -62,8 +62,8 @@ module.exports = class GitHubFetcher
   @property {string} rawContentUrl
     URL for raw GitHub user content
   ###
-  # @rawContentUrl: "https://raw.githubusercontent.com/$owner/$repo/$branch$tag/$path"
-  @rawContentUrl: "$prot//$host/api/repos/$owner/$repo/contents/$path"
+  @rawContentUrl: "https://raw.githubusercontent.com/$owner/$repo/$branch$tag/$path"
+  # @rawContentUrl: "$prot//$host/api/repos/$owner/$repo/contents/$path"
 
   ###*
   @method constructor
