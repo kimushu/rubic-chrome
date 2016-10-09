@@ -263,7 +263,7 @@ module.exports = class Sketch extends JSONable
   @return {Sketch} return.PromiseValue.sketch
     The instance of sketch
   @return {Object} return.PromiseValue.migration
-    Migration info (from,to,regenerate)
+    Migration info (from,to,regenerate,catalogUpdate)
   ###
   @open: (dirFs) ->
     migration = null
@@ -714,6 +714,7 @@ module.exports = class Sketch extends JSONable
             from: src.__migration__?.from or "0.2.x"
             to: "0.9.0"
             regenerate: true
+            catalogUpdate: true
           }
         }
         switch src.sketch.board.class

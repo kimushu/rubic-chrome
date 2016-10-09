@@ -33,6 +33,7 @@ module.exports = class MainController extends WindowController
   SCAN_PERIOD_MS = 1000
   CONNECT_TIMEOUT = 5000
   BOARD_INFO_TIMEOUT = 5000
+  CATALOG_TIMEOUT = 10000
   KEY_RECENT_SKETCHES_MAX = "recent_sketches.max"
   DEF_RECENT_SKETCHES_MAX = 10
   KEY_RECENT_SKETCHES_ITEMS = "recent_sketches.items"
@@ -592,8 +593,12 @@ module.exports = class MainController extends WindowController
     ).then((fs) =>
       return unless fs?
       return Sketch.open(fs).then(({sketch, migration}) =>
-        @_setSketch(sketch)
         return Promise.resolve(
+        ).then(=>
+          return unless migration?.catalogUpdate
+          return BoardCatalog.load(true)
+        ).then(=>
+          @_setSketch(sketch)
         ).then(=>
           return @_restoreWorkspace()
         ).then(=>
@@ -1095,6 +1100,8 @@ module.exports = class MainController extends WindowController
       when "close.console"
         @printSystem("-------- #{I18n.getMessage("Disconnected_from_console")} --------")
         @_console = null
+        $(".sketch-stop").hide()
+        $(".sketch-run").closest(".btn-group").show()
     return
 
   ###*
@@ -1236,5 +1243,6 @@ AsyncFs = require("filesystem/asyncfs")
 SketchItem = require("sketch/sketchitem")
 Editor = require("editor/editor")
 SketchEditor = require("editor/sketcheditor")
+BoardCatalog = require("firmware/boardcatalog")
 sprintf = require("util/sprintf")
 ab2str = require("util/ab2str")
