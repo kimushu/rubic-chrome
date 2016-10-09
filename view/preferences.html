@@ -1,0 +1,212 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="controller-pref right-hidden">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <div class="sidebar-left"></div>
+    <!--begin-->
+    <div class="controller-body when-pref vert-scroll">
+      <div class="main-inner">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="i18n panel-title">
+                  <b>{Appearance}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_appearance}</p>
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <div class="col-sm-4">
+                      <label class="control-label i18n">{Zoom_ratio}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-control" id="config-zoom-ratio">
+                        <option class="i18n" value="10">{Zoom_1_0}</option>
+                        <option class="i18n" value="15">{Zoom_1_5}</option>
+                        <option class="i18n" value="20">{Zoom_2_0}</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="i18n panel-title">
+                  <b>{History}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <div class="col-sm-4">
+                      <label class="control-label i18n">{Max_recent_sketches}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-control" id="config-max-recent-sketches">
+                        <option class="i18n" value="5">{Count_5}</option>
+                        <option class="i18n" value="10">{Count_10}</option>
+                        <option class="i18n" value="20">{Count_20}</option>
+                        <option class="i18n" value="50">{Count_50}</option>
+                      </select>
+                    </div>
+                    <div class="col-sm-12">
+                      <p class="help-block i18n"><small>{Desc_of_max_recent_sketches}</small></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title i18n">
+                  <b>{Internet_access}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_internet_access}</p>
+                <div class="checkbox">
+                  <label class="i18n">
+                    <input type="checkbox" id="config-noconfirm-net">{Do_not_confirm_internet_access}</label>
+                </div>
+                <p class="help-block i18n">
+                  <small>{Privacy_statement_for_internet_access} <a href="https://github.com/kimushu/rubic#privacy-policy" target="_blank">({Privacy_policy})</a></small>
+                </p>
+              </div>
+            </div>
+            <!--<div class="panel panel-primary">
+              <div class="panel-heading">
+                <h3 class="panel-title i18n">
+                  <a id="config-cloud-service"><b>{Cloud_service_auth}</b></a>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_cloud_services}
+                  <a href="#" class="link-privacy-policy">{See_privacy_policy}</a>
+                  <br>
+                  <br>{Desc_of_cloud_auth}</p>
+                <div class="form-horizontal">
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label for="inputEmail3" class="control-label i18n">{Google_Drive}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <button type="button" class="btn btn-success i18n when-not-googledrive">{Acquire_access}</button>
+                      <button type="button" class="btn btn-danger i18n when-googledrive">{Revoke_access}</button>
+                      <span class="i18n when-googledrive">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label for="inputEmail3" class="control-label i18n">{Dropbox}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <button type="button" class="btn btn-success i18n when-not-dropbox">{Acquire_access}</button>
+                      <button type="button" class="btn btn-danger i18n when-dropbox">{Revoke_access}</button>
+                      <span class="i18n when-dropbox">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-3">
+                      <label for="inputEmail3" class="control-label i18n">{OneDrive}</label>
+                    </div>
+                    <div class="col-sm-9">
+                      <button type="button" class="btn btn-success i18n when-not-onedrive">{Acquire_access}</button>
+                      <button type="button" class="btn btn-danger i18n when-onedrive">{Revoke_access}</button>
+                      <span class="i18n when-onedrive">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>-->
+            <div class="panel panel-danger">
+              <div class="panel-heading">
+                <h3 class="i18n panel-title">
+                  <b>{For_Rubic_testers}</b>
+                </h3>
+              </div>
+              <div class="panel-body">
+                <p class="i18n">{Desc_of_for_testers}</p>
+                <div class="checkbox">
+                  <label class="i18n">
+                    <input type="checkbox" id="config-for-testers">{Show_tester_settings}</label>
+                </div>
+                <div class="only-testers">
+                  <p class="i18n">{Thanks_testers}</p>
+                  <div class="form-horizontal">
+                    <div class="form-group">
+                      <div class="col-sm-4">
+                        <label class="control-label i18n">{Beta_firmware}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <select class="form-control" id="config-beta-firmware">
+                          <option class="i18n" value="false">{Hide_beta_versions}</option>
+                          <option class="i18n" value="true">{Show_beta_versions}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-12">
+                        <p class="help-block i18n"><small>{Desc_of_beta_firmware}</small></p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-4">
+                        <label class="control-label i18n">{Log_verbosity}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <select class="form-control" id="config-log-verbosity">
+                          <option class="i18n" value="0">{Simple_logs}</option>
+                          <option class="i18n" value="1">{Detail_logs}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-12">
+                        <p class="help-block i18n"><small>{Desc_of_log_verbosity}</small></p>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-4">
+                        <label class="control-label i18n">{Init_cache}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <select class="form-control" id="config-reset-all">
+                          <option class="i18n" value="false">{Do_not_init_cache}</option>
+                          <option class="i18n" value="true">{Init_cache_at_next_boot}</option>
+                        </select>
+                      </div>
+                      <div class="col-sm-12">
+                        <p class="help-block i18n"><small>{Desc_of_init_cache}</small></p>
+                      </div>
+                    </div>
+                    <!--<div class="form-group">
+                      <div class="col-sm-4">
+                        <label class="control-label i18n">{Catalog_editor}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <div class="checkbox">
+                          <label class="i18n">
+                            <input type="checkbox" id="config-cateditor">{Enable_catalog_editor}</label>
+                        </div>
+                      </div>
+                    </div>-->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end-->
+    <div class="sidebar-right"></div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse"></div>
+  
+
+</body></html>

@@ -1,0 +1,104 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="right-hidden">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <!--begin-->
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse">
+      <div class="container">
+        <div class="btn-group btn-group-xs btn-group-lg dropup when-sketch when-main">
+          <button class="btn btn-default dropdown-toggle board-list" data-toggle="dropdown">
+            <span class="alt-body" id="board-selected"></span>
+            <span class="alt-ph i18n">{Select_hardware}</span> <span class="fa fa-caret-up"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li id="board-list-tmpl" class="board-list-item">
+              <a href="#" class="btn-xs"><span class="placeholder"></span><br><span class="placeholder grayed-sub"></span></a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n activate-board">{Edit_hardware}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs when-not-main">
+          <button class="btn btn-default i18n activate-main" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{Back_to_editor}">
+            <span class="fa fa-fw fa-arrow-circle-left"></span> {Back_to_editor}
+          </button>
+        </div>
+        <div class="btn-group btn-group-xs btn-group-lg dropup when-sketch when-main">
+          <button class="btn btn-default dropdown-toggle device-list" data-toggle="dropdown">
+            <span class="alt-body" id="device-selected"></span>
+            <span class="alt-ph i18n">{Select_connection}</span> <span class="fa fa-caret-up"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li id="device-list-searching">
+              <a href="#" class="btn-xs i18n"><span class="fa fa-spin fa-pulse fa-fw fa-spinner"></span> {Searching}</a>
+            </li>
+            <li id="device-list-noboard" class="disabled">
+              <a href="#" class="btn-xs i18n">{No_board_specified}</a>
+            </li>
+            <li id="device-list-hide">
+              <a href="#" class="btn-xs i18n">{Hide_unknown_devices}</a>
+            </li>
+            <li id="device-list-showall">
+              <a href="#" class="btn-xs i18n">{Show_all_devices}</a>
+            </li>
+            <li class="divider"></li>
+            <li id="device-list-tmpl" class="device-list-item">
+              <a href="#" class="btn-xs">
+                <span class="glyphicon glyphicon-warning-sign device-list-warn text-danger"></span>
+                <span class="placeholder"></span><br><span class="placeholder grayed-sub"></span>
+              </a>
+            </li>
+            <li class="divider when-connected"></li>
+            <li class="when-connected" id="device-list-disconnect">
+              <a href="#" class="btn-xs i18n"><span class="glyphicon glyphicon-remove"></span> {Disconnect}</a>
+            </li>
+          </ul>
+        </div>
+        <div class="btn-group btn-group-xs btn-group-lg dropup when-sketch when-main">
+          <button class="btn btn-default i18n board-info" title="{Read_board_info}"><span class="glyphicon glyphicon-info-sign"></span> {Info}</button>
+          <button class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
+          <ul class="dropdown-menu" role="menu">
+            <li class="disabled">
+              <a href="#" class="btn-xs i18n board-program"><span class="glyphicon glyphicon-flash"></span> {Write_firmware}</a>
+            </li>
+            <li>
+              <a href="#" class="btn-xs i18n board-info"><span class="glyphicon glyphicon-info-sign"></span> {Read_board_info}</a>
+            </li>
+          </ul>
+        </div>
+        <!--div class="btn-group btn-group-xs btn-group-lg dropup pull-right when-sketch when-main">
+          <button class="btn btn-default dropdown-toggle i18n" id="toolbox-list" data-toggle="dropdown">{Toolbox} <span class="fa fa-caret-up"></span></button>
+          <ul class="dropdown-menu" role="menu">
+            <li class="disabled">
+              <a href="#" class="btn-xs i18n">{Hardware_info}</a>
+            </li>
+            <li class="disabled">
+              <a href="#" class="btn-xs">(Language manual)</a>
+            </li>
+            <li class="disabled">
+              <a href="#" class="btn-xs i18n">{Library_manual}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n toggle-output">{Output_window}</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="#" class="btn-xs i18n hide-right hide-output">{Hide_all}</a>
+            </li>
+          </ul>
+        </div-->
+      </div>
+    </div>
+    <!--end-->
+
+</body></html>

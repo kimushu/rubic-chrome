@@ -1,21 +1,25 @@
 {
   "manifest_version": 2,
   "name": "Rubic",
-  "version": "0.1.0",
-  "description": "Prototyping tool for embedded-boards with Ruby language",
+  "version": "0.9.0",
+  "default_locale": "en",
+  "description": "__MSG_Manifest_Desc__",
   "icons": {
      "16": "images/rubic_cube2x2_16.png",
      "32": "images/rubic_cube2x2_32.png",
      "48": "images/rubic_cube2x2_48.png",
     "128": "images/rubic_cube2x2_128.png"
   },
-  "app": {
-    "background": {
-      "scripts": ["background.js"]
-    }
-  },
   "permissions": [
+    "https://github.com/",
+    "https://api.github.com/",
+    "https://raw.githubusercontent.com/",
     "serial",
-    {"fileSystem": ["directory", "write"]}
-  ]
+    "storage",
+    "unlimitedStorage",
+    {"fileSystem": ["directory", "write", "retainEntries"]}
+  ],
+  "app": {
+    "background": {"scripts": ["__BACKGROUND__"]}
+  }
 }

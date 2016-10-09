@@ -1,0 +1,116 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="rubic.js"></script>
+    <script type="text/javascript" src="messages.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="hide-right">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <div class="sidebar-left"></div>
+    <div class="controller-body">
+      <div class="editor-header">
+      </div>
+      <!--begin-->
+      <div class="editor-body vert-scroll" id="board-page-features">
+        <div class="col-md-12">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <h3 class="panel-title i18n"><b>{Select_firmware}</b></h3>
+            </div>
+            <div class="panel-body">
+              <div class="form-horizontal">
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Selected_board}</label>
+                  </div>
+                  <div class="col-sm-8">
+                    <div class="input-group">
+                      <span class="form-control" id="feature-board"></span>
+                      <span class="input-group-btn">
+                        <button class="btn btn-default i18n board-page-select" data-page="catalog">{Change}</button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Board_revision}</label>
+                  </div>
+                  <div class="col-sm-8">
+                    <div class="dropdown">
+                      <button class="btn btn-default dropdown-toggle i18n" id="brdrev-sel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span class="placeholder">(Select one)</span>
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li id="brdrev-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Firmware}</label>
+                  </div>
+                  <div class="col-sm-8">
+                    <div class="dropdown">
+                      <button class="btn btn-default dropdown-toggle i18n" id="fw-sel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span class="placeholder">(Select one)</span>
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li id="fw-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger label-bigger i18n">{Obsolete}</span> <span class="label label-warning label-bigger i18n">{Beta}</span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Firmware_revision}</label>
+                  </div>
+                  <div class="col-sm-8">
+                    <div class="dropdown">
+                      <button class="btn btn-default dropdown-toggle i18n" id="fwrev-sel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span class="placeholder">(Select one)</span>
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li id="fwrev-tmpl"><a href="#"><img src="" class="list-icon"><span class="placeholder"></span> <span class="label label-danger i18n">{Obsolete}</span><span class="label label-warning i18n">{Beta}</span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-sm-offset-4 col-sm-8 i18n" id="fwrev-dl-required">
+                    <span class="glyphicon glyphicon-info-sign"></span> {Firmware_download_required}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-primary" style="display: none;">
+            <div class="panel-heading">
+              <h3 class="panel-title i18n"><b>{Firmware_information}</b></h3>
+            </div>
+            <div class="panel-body">
+              <div class="form-horizontal">
+                <div class="form-group">
+                  <div class="col-sm-4">
+                    <label class="control-label i18n">{Included_script_engines}</label>
+                  </div>
+                  <div class="col-sm-8">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--end-->
+    </div>
+    <div class="sidebar-right"></div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse"></div>
+  
+
+</body></html>

@@ -1,153 +1,88 @@
+include ../common.mk
 
-COFFEE    := $(shell which coffee 2>/dev/null)
-JSDUCKIFY := $(shell which jsduckify 2>/dev/null)
-UGLIFYJS  := $(shell which uglifyjs 2>/dev/null)
+browserify_envs = NODE_PATH=$(SRC_DIR)
 
-Q ?= @
-TARGET = rubic.js lib.js
-RELEASE = $(TARGET:.js=.min.js)
-RUNNER = node
-DOCDIR = docs
-SOURCES = \
-	utils.coffee \
-	async.coffee \
-	app.coffee \
-	port.coffee \
-		serialport.coffee \
-	memhttprequest.coffee \
-	board.coffee \
-		peridotboard.coffee \
-	editor.coffee \
-		rubyeditor.coffee \
-		yamleditor.coffee \
-	fileutil.coffee \
-	builder.coffee \
-		mrubybuilder.coffee \
-		mrbviewer.coffee \
-	sketch.coffee \
-	filesystem.coffee \
-		localfilesystem.coffee \
-		googledrivefilesystem.coffee \
-	about.coffee \
-#	marshal.coffee \
-#	sandbox.coffee
-#		de0board.coffee \
-#		de0nanoboard.coffee \
-#		wakayamarbboard.coffee \
+browserify_opts = \
+	--transform=coffeeify --extension=coffee --debug \
+	$(addprefix --external=,crypto serialport)
 
-LIB_SOURCES = \
-	mruby/build/emscripten/bin/mrbc.js
+jsduck_opts = --external=ArrayBuffer,DirectoryEntry,Document,Element,Promise,jQuery
 
-.PHONY: all
-all: $(TARGET)
+uglifyjs_opts = -c warnings=false
 
-.PHONY: run
-run: all
-	@echo "[Running]"
-	$(Q)$(RUNNER) $(RELEASE) $(LIB)
+dep      = $(dir $1)/.$(notdir $1).dep
 
-.PHONY: release
-release: $(RELEASE)
+bkg_src  = $(SRC_DIR)/background.coffee
+bkg_out  = $(DIST_DIR)/background.js
+bkg_dep  = $(call dep,$(bkg_src))
+bkg_min  = $(DIST_DIR)/background.min.js
 
-.PHONY: clean
+top_src  = $(SRC_DIR)/top.coffee
+top_out  = $(DIST_DIR)/window.js
+top_dep  = $(call dep,$(top_src))
+top_min  = $(DIST_DIR)/window.min.js
+
+stub_src = $(SRC_DIR)/stubs.coffee
+stub_min = $(DIST_DIR)/stubs.min.js
+
+mani_src = $(SRC_DIR)/manifest.json
+mani_out = $(DIST_DIR)/$(notdir $(mani_src))
+
+define compile_coffee
+	$(call ECHO_W,"Compiling coffee scripts ($@)")
+	$(Q)echo "$@: \\" > $(call dep,$<).new
+	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) --list $< | \
+		sort | sed -e 's/$$/ \\/' >> $(call dep,$<).new; \
+		$(TEST0) || (rm -f $(call dep,$<).new; false)
+	$(Q)echo "$(filter-out %.dep,$(MAKEFILE_LIST))" >> $(call dep,$<).new
+	$(Q)touch $(call dep,$<)
+	$(Q)diff -u $(call dep,$<) $(call dep,$<).new; true
+	$(Q)mv $(call dep,$<).new $(call dep,$<)
+	$(Q)mkdir -p $(dir $@)
+	$(Q)$(browserify_envs) $(BROWSERIFY) $(browserify_opts) $< $1 > $@ || (rm -f $@; false)
+endef
+
+all: $(bkg_min) $(top_out) $(stub_min) $(mani_out)
+
+release: all $(top_min)
+
 clean:
-	@echo "[Cleaning]"
-	$(Q)rm -f $(TARGET) $(RELEASE)
+	$(Q)rm -f $(bkg_dep) $(bkg_dep).new $(bkg_out)
+	$(Q)rm -f $(top_dep) $(top_dep).new $(top_out)
+	$(Q)rm -f $(stub_min)
+	$(Q)rm -f $(mani_out)
 
-%.min.js: %.js $(firstword $(UGLIFYJS) uglifyjs-is-missing)
-	@echo "[Minimizing $<]"
-	$(Q)$(UGLIFYJS) -o $@ $< || (rm -f $@; false)
+clobber: clean
 
-%.js: %.coffee $(firstword $(COFFEE) coffee-is-missing) $(MAKEFILE_LIST)
-	@echo "[Compiling CoffeeScript files]"
-	$(Q)coffee -c $< > $@ || (rm -f $@; false)
+$(bkg_out): $(bkg_src) $(BROWSERIFY)
+	$(call compile_coffee)
 
-rubic.coffee: $(SOURCES) $(MAKEFILE_LIST)
-	$(Q)cat /dev/null $(filter %.coffee,$^) > $@ || (rm -f $@; false)
+$(bkg_min): $(bkg_out) $(UGLIFYJS)
+	$(call ECHO_W,"Minimizing script ($@)")
+	$(Q)$(UGLIFYJS) $(uglifyjs_opts) -o $@ $<
 
-lib.js: $(LIB_SOURCES) $(MAKEFILE_LIST)
-	@echo "[Importing external libraries]"
-	$(Q)echo "var Lib;Lib=(function(){function Lib(){}" > $@.tmp
-	$(Q)true $(foreach f,$(filter %.js,$^), \
-		&& echo "\
-		Lib.$(notdir $(basename $(f)))=function(Module){\
-		Module['preInit'] = Module['preInit'] || [];\
-		Module['preInit'].unshift(function(){\
-		  Module['exports'] = {FS: FS, MEMFS: MEMFS};\
-		});" >> $@.tmp \
-		&& cat $(f) >> $@.tmp \
-		&& echo "};" >> $@.tmp)
-	$(Q)echo "return Lib;})();" >> $@.tmp
-	$(Q)mv $@.tmp $@
-#		&& echo "Module.exports={};" >> $@.tmp \
-#		&& echo "Module.exports.fs=FS;" >> $@.tmp \
+$(top_out): $(top_src) $(BROWSERIFY)
+	$(call compile_coffee)
+
+$(top_min): $(top_out) $(UGLIFYJS)
+	$(call ECHO_W,"Minimizing script ($@)")
+	$(Q)$(UGLIFYJS) $(uglifyjs_opts) -o $@ $<
+
+$(stub_min): $(stub_src) $(COFFEE) $(UGLIFYJS)
+	$(call ECHO_W,"Generating stub scripts ($@)")
+	$(Q)mkdir -p $(dir $@)
+	$(Q)cat $< | $(COFFEE) -c -s | $(UGLIFYJS) $(uglifyjs_opts) -o $@
+
+$(mani_out): $(mani_src) $(MAKEFILE_LIST)
+	$(call ECHO_W,"Generating manifest ($@)")
+	$(Q)mkdir -p $(dir $@)
+	$(Q)sed -e 's/__BACKGROUND__/$(notdir $(bkg_min))/' $< > $@
 
 .PHONY: doc
-doc: $(TARGET) $(firstword $(JSDUCKIFY) jsduckify-is-missing)
-	@echo "[Generating document]"
-	$(Q)$(JSDUCKIFY) -o doc
+doc: $(top_out) $(JSDUCK)
+	$(call ECHO_W,"Generating document ($@)")
+	$(Q)$(JSDUCK) $(jsduck_opts) -o $@ $<
 
-.PHONY: uglifyjs-is-missing
-uglifyjs-is-missing:
-	@echo "**** UglifyJS is required to build this project."
-	@echo "**** Please visit https://github.com/mishoo/UglifyJS"
-	@false
-
-.PHONY: coffee-is-missing
-coffee-is-missing:
-	@echo "**** CoffeeScript is required to build this project."
-	@echo "**** Please visit http://coffeescript.org/"
-	@false
-
-.PHONY: jsduckify-is-missing
-jsduckify-is-missing:
-	@echo "**** jsduckify is required to generate document for this project."
-	@echo "**** Please visit https://github.com/lmaccherone/jsduckify"
-	@false
-
-DIST_DIR = ../dist
-
-# Main files and mruby
-DIST_FILES = manifest.json background.js window.html window.css $(TARGET)
-# Embedded images
-DIST_FILES += $(wildcard images/rubic_cube2x2_*.png) \
-	images/mruby_logo_red_cropped.png \
-	images/peridotcraft_logo_1.png \
-	images/Emscripten_logo_full_cropped.png
-# canarium
-DIST_FILES += canarium.js
-# jQuery
-DIST_FILES += jquery-2.1.1.min.js
-# Bootstrap (css, js and fonts)
-DIST_FILES += $(addprefix bootstrap/dist/,css/bootstrap.min.css js/bootstrap.min.js)
-DIST_FILES += $(addprefix bootstrap/dist/fonts/glyphicons-halflings-regular.,woff2)
-# Ace (body and mode files)
-DIST_FILES += $(addprefix ace-builds/src-noconflict/,ace.js mode-ruby.js mode-yaml.js)
-# Bootstrap Notify
-DIST_FILES += bootstrap-notify/dist/bootstrap-notify.min.js
-# Bootbox.js
-DIST_FILES += bootbox/bootbox.js
-# js-yaml
-DIST_FILES += js-yaml/dist/js-yaml.min.js
-# spin.js
-DIST_FILES += spin.min.js jquery.spin.js
-
-DIST_INFO = $(DIST_DIR)/dist.txt
-
-.PHONY: dist
-dist: $(DIST_FILES)
-	@echo "[Packing distribution files]"
-	$(Q)test -z "$$(git status -uno --porcelain)" || \
-		(echo "**** You must commit all files before distribution."; \
-		 git status -uno; false)
-	$(Q)mkdir -p $(DIST_DIR)
-	$(Q)rm -rf $(DIST_DIR)/*
-	$(Q)echo -n " " > $(DIST_INFO)
-	$(Q)git log -1 --pretty=oneline >> $(DIST_INFO)
-	$(Q)git submodule >> $(DIST_INFO)
-	$(Q)cp --parent $^ $(DIST_DIR)
-	$(Q)rm -f $(DIST_DIR)/../rubic.zip
-	$(Q)cd $(DIST_DIR)/.. && zip -r rubic.zip $(notdir $(DIST_DIR))
-	@echo "[Commits]"
-	$(Q)cat $(DIST_INFO)
+-include $(bkg_dep)
+-include $(top_dep)
 

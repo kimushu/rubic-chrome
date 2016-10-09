@@ -1,0 +1,19 @@
+{
+  "name": "rubic-src",
+  "version": "0.0.0",
+  "private": true,
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "canarium": "^0.9.12",
+    "coffee-script": "^1.10.0",
+    "coffeeify": "^2.0.1",
+    "github-api": "2.2.0",
+    "js-yaml": "^3.6.1",
+    "jszip": "3.0.0",
+    "less": "^2.7.1",
+    "less-plugin-cache": "^1.0.0",
+    "less-plugin-clean-css": "^1.5.1",
+    "node-uuid": "^1.4.7",
+    "uglifyjs": "^2.4.10"
+  }
+}

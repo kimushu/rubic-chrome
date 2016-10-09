@@ -1,0 +1,90 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="stubs.min.js"></script>
+    <script type="text/javascript" src="jquery-2.2.4.min.js"></script>
+    <script type="text/javascript" src="bootstrap.min.js"></script>
+    <script type="text/javascript" src="spin.min.js"></script>
+    <script type="text/javascript" src="jquery.spin.js"></script>
+    <script type="text/javascript" src="bootbox.min.js"></script>
+    <script type="text/javascript" src="bootstrap-notify.min.js"></script>
+    <script type="text/javascript" src="jquery.scrolltabs.js"></script>
+    <script type="text/javascript" src="jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="jstree.min.js"></script>
+    <script type="text/javascript" src="nodemodules.min.js"></script>
+    <script type="text/javascript" src="mrbc.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <script type="text/javascript" src="ace/ace.js"></script>
+    <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="css/scrolltabs.css" rel="stylesheet" type="text/css">
+    <link href="css/window.css" rel="stylesheet" type="text/css">
+    <link href="jstree/style.min.css" rel="stylesheet" type="text/css">
+  </head><body class="loading left-hidden right-hidden">
+    <!--include(navbar_top.html)-->
+    <!--include(sidebar_left.html)-->
+    <div class="controller-body when-main">
+      <div class="editor-header">
+        <ul class="scroll_tabs_theme_compact" id="editor-tabs"></ul>
+      </div>
+      <div class="editor-body" id="sketch-editor">
+        <div class="explorer-left vert-scroll"></div>
+        <div class="explorer-right vert-scroll"></div>
+        <div class="explorer-footer">
+          <div class="btn-group btn-group-xs dropup">
+            <button class="btn btn-default i18n explorer-add"><span class="glyphicon glyphicon-plus"></span> {Add_item}</button>
+            <button class="btn btn-default btn-thin dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&nbsp;<span class="caret"></span>&nbsp;</button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="#" class="btn-xs i18n explorer-add-existing">{Add_existing_file}</a>
+              </li>
+              <li class="divider"></li>
+            </ul>
+          </div>
+          <div class="btn-group btn-group-xs pull-right">
+            <button class="btn btn-default i18n explorer-remove"><span class="glyphicon glyphicon-remove"></span> {Remove_item}</button>
+          </div>
+          <div class="btn-group btn-group-xs pull-right">
+            <button class="btn btn-default i18n explorer-rename"><span class="fa fa-fw fa-pencil-square-o"></span> {Rename_item}</button>
+          </div>
+          <div class="btn-group btn-group-xs pull-right">
+            <button class="btn btn-default i18n explorer-open"><span class="glyphicon glyphicon-pencil"></span> {Open_with_editor}</button>
+          </div>
+        </div>
+      </div>
+      <div class="editor-body vert-scroll" id="welcome-page">
+        <div class="col-sm-12">
+          <div class="list-group list-group-thin">
+            <a href="#" class="list-group-item list-group-item-info sketch-new">
+              <h4 class="list-group-item-heading i18n"><span class="fa fa-fw fa-plus"></span> {Create_new_sketch}</h4>
+              <p class="list-group-item-text i18n">{Desc_of_new_sketch}</p>
+            </a>
+          </div>
+          <div class="template-container" id="recent-sketch-tmpl">
+            <a href="#" class="list-group-item list-group-item-warning">
+              <h4 class="list-group-item-heading"><span class="fa fa-fw fa-folder-open-o"></span> <span class="placeholder"></span></h4>
+              <p class="list-group-item-text"><span class="placeholder"></span></p>
+            </a>
+          </div>
+          <div class="list-group" id="recent-sketches">
+          </div>
+          <a href="#" class="i18n pull-right" id="clear-recent-sketch">
+            <small><span class="fa fa-fw fa-trash-o"></span>{Clear_sketch_history}</small>
+          </a><br><br>
+        </div>
+      </div>
+      <div class="editor-body" id="text-editor"></div>
+      <div class="editor-divider"></div>
+      <div class="editor-bottom"></div>
+    </div>
+    <!--include(board_catalog.html)-->
+    <!--include(about.html)-->
+    <!--include(preferences.html)-->
+    <!--include(sidebar_right.html)-->
+    <!--include(navbar_bottom.html)-->
+    <!--include(templates.html)-->
+    <div class="modal" id="modal-spin">
+      <div class="spin-text"></div>
+    </div>
+
+</body></html>

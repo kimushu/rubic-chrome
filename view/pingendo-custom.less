@@ -1,0 +1,215 @@
+/*!
+ * Pingendo customization for Bootstrap
+ * Homepage: http://pingendo.com
+ * Copyright 2015 Pingendo
+ * Licensed under MIT
+*/
+
+@border-radius-large: @border-radius-base * 1.25;
+@border-radius-small: @border-radius-base * 0.5;
+@navbar-margin-bottom: 0px;
+
+
+/* Google web fonts support */
+// @import  url('https://fonts.googleapis.com/css?family=@{headings-font-family}|@{font-family-base}');
+
+
+/* TODO: webkit need this why ?*/
+html, body{
+  height: 100%;
+}
+
+
+@section-spacing : 35px;
+
+/* text-inverse is deprecated */
+@text-inverse : contrast(@text-color);
+.text-inverse {
+  color: @text-inverse;
+}
+
+/* TODO: verify if we can touch only section */
+.jumbotron  {
+  margin-bottom: 0px !important;
+
+  h1.text-primary {
+    color: @brand-primary !important;
+  }
+
+  h1.text-inverse {
+    color: @text-inverse !important;
+  }
+
+  h1.text-info {
+    color: @brand-info !important;
+  }
+
+  h1.text-success {
+    color: @brand-success !important;
+  }
+
+  h1.text-warning {
+    color: @brand-warning !important;
+  }
+
+  h1.text-danger {
+    color: @brand-danger !important;
+  }
+}
+
+.carousel .item img {
+  min-width: 100%;
+}
+
+
+
+// Base sections
+// --------------------------------------------------
+.section {
+
+  position:relative;
+  padding: @section-spacing 0;
+
+  .background-image {
+    z-index:0;
+    position:absolute;
+    top:0px;
+    width:100%;
+    height:100%;
+    background-size: cover;
+    background-position: center;
+    &.background-image-fixed {
+      background-attachment: fixed;
+    }
+  }
+
+}
+
+// Alternate sections
+// --------------------------------------------------
+.section-primary {
+  background-color: @brand-primary !important;
+  color: @btn-primary-color;
+
+  .background-image {
+    opacity: 0.5;
+  }
+}
+
+.section-info {
+  background-color: @brand-info !important;
+  color: @btn-info-color;
+  .background-image {
+    opacity: 0.5;
+  }
+}
+
+.section-success {
+  background-color: @brand-success !important;
+  color: @btn-success-color;
+  .background-image {
+    opacity: 0.5;
+  }
+}
+
+
+.section-warning {
+  background-color: @brand-warning !important;
+  color: @btn-warning-color;
+  .background-image {
+    opacity: 0.5;
+  }
+}
+
+.section-danger {
+  background-color: @brand-danger !important;
+  color: @btn-warning-color;
+  .background-image {
+    opacity: 0.5;
+  }
+}
+
+
+
+.cover {  
+  .jumbotron();
+
+  padding: 0px 0px;
+  background-color: transparent;
+  
+  @media screen and (min-width: @screen-sm-min) {
+    padding: 0px;
+
+    .container &,
+    .container-fluid & {
+      padding-left:  0px;
+      padding-right: 0px;
+    }
+  }
+
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+
+  -webkit-align-items: center;
+  align-items: center;
+  
+  overflow:hidden;
+  position:relative;
+  min-height: 100%;
+
+  .navbar {
+    position:absolute;
+    top: 0px;
+    width: 100%;
+    border: none;
+    background-color: transparent !important;
+
+    .navbar-nav li.active a {
+      background-color: transparent !important;
+    }
+
+    // Navbar toggle
+    //
+    // Custom button for toggling the `.navbar-collapse`, powered by the collapse
+    // JavaScript plugin.
+
+    .navbar-toggle {
+      border-color: transparent;
+      &:hover,
+      &:focus {
+        background-color: transparent;
+      }
+      .icon-bar {
+        background-color: @text-color;
+      }
+    }
+
+
+    &.navbar-inverse .navbar-toggle {
+      border-color: transparent;
+      &:hover,
+      &:focus {
+        background-color: transparent;
+      }
+      .icon-bar {
+        background-color: @text-inverse;
+      }
+    }
+  }
+
+  .cover-image {
+    z-index:-1;
+    position:absolute;
+    top:0px;
+    width:100%;
+    height:100%;
+    background-size: cover;
+    background-position: center;
+    &.background-image-fixed, &.cover-image-fixed {
+      background-attachment: fixed;
+    }
+  }
+
+} 

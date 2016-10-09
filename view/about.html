@@ -1,0 +1,254 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="locale.js"></script>
+    <script type="text/javascript" src="window.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="window.css">
+  </head><body class="controller-about right-hidden">
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse"></div>
+    <div class="sidebar-left"></div>
+    <!--begin-->
+    <div class="controller-body when-about vert-scroll">
+      <div class="main-inner">
+        <div class="row">
+          <div class="col-md-12">
+            <h3 class="i18n text-muted" style="margin-top: 0px;">{About_this_app}</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 text-center">
+            <img src="images/rubic_text_black.png" id="about-rubic-logo">
+          </div>
+          <div class="col-md-8">
+            <p class="i18n">{Rubic_about}
+              <br>
+              <br>{Version}:
+              <span id="rubic-version">()</span>
+              <br>{Website}:
+              <a href="https://github.com/kimushu/rubic" target="_blank">https://github.com/kimushu/rubic/</a>
+              <br><small><a href="https://github.com/kimushu/rubic#privacy-policy" target="_blank">({Privacy_policy})</a></small>
+            </p>
+          </div>
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h4 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Rubic - {Copyright_and_license}</a></h4>
+            <pre class="fold-target license-mit">Copyright (c) 2016 Shuta Kimura (@kimu_shu)</pre>
+          </div>
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h4 class="i18n text-muted">{Rubic_supported_by}</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 about-supporter">
+            <a href="http://mruby.org/" target="_blank" title="The lightweight implementation of the Ruby language"><img src="images/mruby_logo_red_cropped.png" class="supporter-logo"></a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="http://osafune.github.io/peridot.html" target="_blank" title="Simple &amp; Compact FPGA board"><img src="images/peridotcraft_logo_1.png" class="supporter-logo"></a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="http://kripken.github.io/emscripten-site/" target="_blank" title="An LLVM-based project that compiles C and C++ into highly-optimizable JavaScript"><img src="images/emscripten_logo_full_cropped.png" class="supporter-logo"></a>
+          </div>
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-4 about-supporter">
+            <a href="https://github.com/wakayamarb/" target="_blank" title="Wakayama.rb Ruby Board">Wakayama.rb</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="http://coffeescript.org/" target="_blank" title="A little language that compiles into JavaScript">CoffeeScript</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="https://jquery.com/" target="_blank" title="A fast, small, and feature-rich JavaScript library">jQuery</a>
+          </div>
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-4 about-supporter">
+            <a href="http://getbootstrap.com/" target="_blank" title="A sleek, intuitive, and powerful movile first front-end framework for faster and easier web development">Bootstrap</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="http://ace.c9.io/" target="_blank" title="The high performance code editor for the web">Ace</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="http://fgnass.github.io/spin.js/" target="_blank" title="A spinning activity indicator">spin.js</a>
+          </div>
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-4 about-supporter">
+            <a href="http://bootboxjs.com/" target="_blank" title="Alert, confirm and flexible modal dialogs for the Bootstrap framework">Bootbox.js</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="https://github.com/joshreed/jQuery-ScrollTabs" target="_blank" title="JQuery highly configurable plugin to handle scrolling tabs horizontally when not enough space is available">jQuery-ScrollTabs</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="http://bootstrap-notify.remabledesigns.com/" target="_blank" title="Turns standard Bootstrap alerts into &quot;Growl-like&quot; notifications.">Bootstrap Notify</a>
+          </div>
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-4 about-supporter">
+            <a href="https://stuk.github.io/jszip/" target="_blank" title="A javascript library for creating, reading and editing .zip files, with a lovely and simple API">JSZip</a>
+          </div>
+          <div class="col-md-4 about-supporter">
+            <a href="https://github.com/nodeca/js-yaml" target="_blank" title="YAML 1.2 parser / writer for JavaScript">JS-YAML</a>
+          </div>
+          <!--div class="col-md-4 about-supporter">
+            <a href="https://github.com/beatgammit/base64-js" target="_blank" title="Basic base64 encoding/decoding in pure JS">base64-js</a>
+          </div-->
+          <!--div class="col-md-4 about-supporter">
+            <a href="http://michael.github.io/github/" target="_blank" title="A higher-level wrapper around the Github API. Intended for the browser.">Github.js</a>
+          </div-->
+          <!--div class="col-md-4 about-supporter">
+            <a href="http://duktape.org/" target="_blank" title="An embeddable Javascript engine, with a focus on portability and compact footprint">Duktape</a>
+          </div-->
+          <!--div class="col-md-4 about-supporter">
+            <a href="https://www.lua.org/" target="_blank" title="A powerful, fast, lightweight, embeddable scripting language">Lua</a>
+          </div-->
+          <!--div class="col-md-4 about-supporter">
+            <a href="https://github.com/shagstrom/split-pane" target="_blank" title="jQuery Split Pane plugin">split-pane</a>
+          </div-->
+        </div>
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">mruby - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2014 mruby developers</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Canarium - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (C) 2016 @kimu_shu and @s_osafune</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Emscripten - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2010-2014 Emscripten authors, see AUTHORS file.</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Node.js included in Emscripten - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright Joyent, Inc. and other Node contributors. All rights reserved.</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Wakayama.rb - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2016 Wakayama.rb Ruby Board developers</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">CoffeeScript - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2009-2015 Jeremy Ashkenas</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">jQuery - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright jQuery Foundation and other contributors, https://jquery.org/</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Bootstrap - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2011-2015 Twitter, Inc</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Ace - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-bsdnew">Copyright (c) 2010, Ajax.org B.V.
+All rights reserved.</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">spin.js - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2011-2015 Felix Gnass [fgnass at gmail dot com]</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Bootbox - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (C) 2011-2015 by Nick Payne &lt;nick@kurai.co.uk&gt;</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">jQuery-ScrollTabs - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2014 joshreed</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Bootstrap Notify - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2015 Robert McIntosh</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">JSZip - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger,
+                        Ant&oacute;nio Afonso</pre>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">JS-YAML - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (C) 2011-2015 by Vitaly Puzrin</pre>
+          </div>
+        </div>
+        <!--div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">base64-js - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2014</pre>
+          </div>
+        </div-->
+        <!--div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">split-pane - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-mit">Copyright (c) 2014 - 2016 Simon Hagstr&ouml;m</pre>
+          </div>
+        </div-->
+        <!--div class="row">
+          <div class="col-md-12">
+            <h5 class="i18n fold-header"><span class="glyphicon fold-marker text-muted"></span> <a href="#" class="fold-toggle text-muted">Github.js - {Copyright_and_license}</a></h5>
+            <pre class="fold-target license-bsdnew">Copyright (c) 2012 Michael Aufreiter, Development Seed
+All rights reserved.</pre>
+          </div>
+        </div-->
+        <div class="row">
+          <hr class="about-divider">
+        </div>
+      </div>
+    </div>
+    <!--end-->
+    <div class="sidebar-right"></div>
+    <div class="navbar navbar-default navbar-fixed-bottom navbar-inverse"></div>
+</body></html>
