@@ -507,9 +507,9 @@ module.exports = class AsyncFs extends UnJSONable
   # Internal class
   #
 
-  class PseudoFileError extends FileError
+  class PseudoFileError extends DOMError
     constructor: (id) ->
-      Object.defineProperty(this, "code", value: FileError[id])
+      Object.defineProperty(this, "code", value: DOMException[id])
       name = "_#{id}"
         .replace(/_ERR$/, "_ERROR").toLowerCase()
         .replace(/_([a-z])/g, (m, c) -> c.toUpperCase())
