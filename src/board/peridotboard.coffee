@@ -4,6 +4,9 @@ Board = require("board/board")
 I18n = require("util/i18n")
 AsyncFs = require("filesystem/asyncfs")
 BoardConsole = require("board/boardconsole")
+XhrPromise = require("util/xhrpromise")
+App = require("app/app")
+sprintf = require("util/sprintf")
 require("util/primitive")
 
 ###*
@@ -231,13 +234,28 @@ module.exports = class PeridotBoard extends Board
   requestFileSystem: (storage) ->
     switch storage
       when "internal"
-        return Promise.resolve(new PeridotFileSystemLegacy(this))
+        return Promise.resolve(
+        ).then(=>
+          return unless @_firmware.boardSpecific.duktape
+        ).then(=>
+          return Promise.resolve(new PeridotFileSystemLegacy(this))
+        )
     return Promise.reject(Error("Unknown storage"))
 
   ###*
   @inheritdoc Board#startSketch
   ###
   startSketch: (onFinished) ->
+    if @_firmware?.boardSpecific.duktape
+      return Promise.resolve(
+      ).then(=>
+        return @_canarium.avm.iord(OLIVE_SWI, SWI_MESSAGE)
+      ).then((msg) =>
+        return Promise.reject(Error("invalid state")) if (msg & MSG_READY_MSK) != MSG_READY_VAL
+        return @_canarium.avm.iowr(OLIVE_SWI, SWI_MESSAGE, MSG_RUN_VAL)
+      ).then(=>
+        return new PeridotConsoleLegacy()
+      )
     return new Promise((resolve, reject) =>
       req = @_newHttpRequest()
       req.timeout = PERIDOT_HTTP_TIMEOUT
@@ -269,6 +287,22 @@ module.exports = class PeridotBoard extends Board
   #--------------------------------------------------------------------------------
   # Private methods
   #
+
+  OLIVE_SWI = 0x10000000
+  SWI_CLASSID  = 0
+  SWI_TIMECODE = 1
+  SWI_RESETSTS = 4
+  SWI_MESSAGE  = 6
+
+  OLIVE_CLASSID = 0x72a00001
+  RST_SET_RESET = 0xdead0001
+  RST_CLR_RESET = 0xdead0000
+  MSG_READY_VAL = 0x44000000
+  MSG_READY_MSK = 0xff000000
+  MSG_DATA_MSK  = 0x00ffffff
+  MSG_RUN_VAL   = 0x55000000
+  MSG_EXIT_VAL  = 0xee000000
+  JS_MAX_SIZE   = 0x20000
 
   ###*
   @private
@@ -390,6 +424,84 @@ module.exports = class PeridotBoard extends Board
       callback?(result)
     )
 
+  ###*
+  @private
+  @method _loadDuktape
+  @return {Promise}
+  ###
+  _loadDuktape: ->
+    return Promise.resolve(
+    ).then(=>
+      unless @_canarium._base.configured
+        App.info("not configured")
+        return 0
+      return @_canarium.avm.iord(OLIVE_SWI, SWI_CLASSID)
+    ).then((clsid) =>
+      App.info(sprintf("olive classid=0x%08x", clsid))
+      return if clsid == OLIVE_CLASSID
+      return XhrPromise.getAsArrayBuffer(chrome.runtime.getURL("data/olive_std_top.rbf"))
+    ).then((xhr) =>
+      return unless xhr
+      return @_canarium.config(null, xhr.response)
+    ).then(=>
+      # App.info("resetting FPGA")
+      # return @_canarium.reset()
+    ).then(=>
+      return @_canarium.avm.iord(OLIVE_SWI, SWI_CLASSID)
+    ).then((clsid) =>
+      App.info(sprintf("olive classid=0x%08x (again)", clsid))
+      return Promise.reject(Error("RBF is not correct")) if clsid != OLIVE_CLASSID
+      App.info("pausing NiosII")
+      return @_canarium.avm.iowr(OLIVE_SWI, SWI_RESETSTS, RST_SET_RESET)
+    ).then(=>
+      App.info("reading ELF image")
+      return XhrPromise.getAsArrayBuffer(chrome.runtime.getURL("data/olive_rubic_duktape.elf"))
+    ).then((xhr) =>
+      buf = xhr.response
+      elf = new Uint32Array(buf.slice(0, 0x1000))
+      if elf[0] != 0x464c457f or elf[4] != 0x00710002
+        return Promise.reject("invalid ELF header")
+      phoff = elf[7]
+      phsiz = elf[10] >>> 16
+      phnum = elf[11] & 0xffff
+      phlist = []
+      for pnum in [0...phnum] by 1
+        i = (phoff + phsiz * pnum) / 4
+        ph = {}
+        ph.p_type   = elf[i+0]
+        ph.p_offset = elf[i+1]
+        ph.p_vaddr  = elf[i+2]
+        ph.p_paddr  = elf[i+3]
+        ph.p_filesz = elf[i+4]
+        continue if ph.p_type != 0x00000001 # PT_LOAD
+        continue if ph.p_filesz == 0
+        phlist.push(ph)
+      return phlist.reduce(
+        (promise, ph) =>
+          ph.buf = buf.slice(ph.p_offset, ph.p_offset + ph.p_filesz)
+          App.info(sprintf("writing 0x%08x-0x%08x ...", ph.p_vaddr, ph.p_vaddr + ph.p_filesz - 1))
+          return @_canarium.avm.write(ph.p_vaddr, ph.buf)
+        Promise.resolve()
+      ).then(=>
+        phlist.reduce(
+          (promise, ph) =>
+            App.info(sprintf("verifying 0x%08x-0x%08x ...", ph.p_vaddr, ph.p_vaddr + ph.p_filesz - 1))
+            return @_canarium.avm.read(ph.p_vaddr, ph.buf.byteLength).then((read) =>
+              s1 = new Uint8Array(read)
+              s2 = new Uint8Array(ph.buf)
+              i = 0
+              for i in [0...s1.byteLength] by 1
+                return Promise.reject(Error(sprintf("verify failed at 0x%08x", ph.p_vaddr + i))) if s1[i] != s2[i]
+              return
+            )
+          Promise.resolve()
+        )
+      )
+    ).then(=>
+      App.info("starting NiosII")
+      return @_canarium.avm.iowr(OLIVE_SWI, SWI_RESETSTS, RST_CLR_RESET)
+    ).delay(1000)
+
   #--------------------------------------------------------------------------------
   # Internal class
   #
@@ -407,7 +519,10 @@ module.exports = class PeridotBoard extends Board
     @inheritdoc AsyncFs#readFileImpl
     ###
     readFileImpl: (path, options) ->
-      if path == "main.mrb"
+      if @_bs.duktape
+        if path == "main.js"
+          return Promise.resolve(new ArrayBuffer(0))
+      else if path == "main.mrb"
         return Promise.resolve(new ArrayBuffer(0))
       return super(path, options)
 
@@ -415,7 +530,22 @@ module.exports = class PeridotBoard extends Board
     @inheritdoc AsyncFs#writeFileImpl
     ###
     writeFileImpl: (path, data, options) ->
-      if path == "main.mrb"
+      if @_bs.duktape
+        if path == "main.js"
+          can = @_peridot._canarium
+          addr = null
+          return Promise.reject(Error("JS is too large")) if data.byteLength > JS_MAX_SIZE
+          return @_peridot._loadDuktape().then(=>
+            return can.avm.iord(OLIVE_SWI, SWI_MESSAGE)
+          ).then((msg) =>
+            if (msg & MSG_READY_MSK) != MSG_READY_VAL
+              return Promise.reject(Error("olive: invalid state"))
+            addr = (msg & MSG_DATA_MSK)
+            return can.avm.write(addr + 4, data)
+          ).then(=>
+            return can.avm.iowr(addr, 0, data.byteLength)
+          )
+      else if path == "main.mrb"
         return new Promise((resolve, reject) =>
           req = @_peridot._newHttpRequest()
           req.timeout = PERIDOT_HTTP_TIMEOUT
@@ -446,6 +576,7 @@ module.exports = class PeridotBoard extends Board
     ###
     constructor: (@_peridot) ->
       super(AsyncFs.BOARD_INTERNAL)
+      @_bs = @_peridot._firmware?.boardSpecific or {}
       return
 
   class PeridotConsoleLegacy extends BoardConsole
