@@ -23,6 +23,22 @@ module.exports = class ES5Builder extends Builder
   ###
   @classProperty("friendlyName", value: new I18n("JavaScript (ES5)"))
 
+  ###*
+  @static
+  @inheritdoc Builder#template
+  ###
+  @classProperty("template", value: Object.freeze({
+    suffix: "js"
+    content: new I18n("// Write your code here\n")
+  }))
+
+  ###*
+  @static
+  @inheritdoc Builder#configurations
+  ###
+  @classProperty("configurations", value: Object.freeze({
+  }))
+
   #--------------------------------------------------------------------------------
   # Private variables / constants
   #

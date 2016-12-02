@@ -1,4 +1,5 @@
 "use strict"
+# Pre dependencies
 Builder = require("builder/builder")
 I18n = require("util/i18n")
 require("util/primitive")
@@ -22,6 +23,29 @@ module.exports = class CoffeeScriptBuilder extends Builder
   @readonly
   ###
   @classProperty("friendlyName", value: new I18n("CoffeeScript"))
+
+  ###*
+  @static
+  @inheritdoc Builder#template
+  ###
+  @classProperty("template", value: Object.freeze({
+    suffix: "coffee"
+    content: new I18n("#!coffee\n")
+  }))
+
+  ###*
+  @static
+  @inheritdoc Builder#configurations
+  ###
+  @classProperty("configurations", value: Object.freeze({
+    bare: {
+      type: "boolean"
+      description: new I18n(
+        en: "Compile without a top-level function wrapper"
+        ja: "最上位の関数ラッパを省略する (-b)"
+      )
+    }
+  }))
 
   ###*
   @property {boolean} bare
@@ -66,6 +90,8 @@ module.exports = class CoffeeScriptBuilder extends Builder
     js = coffee.sketch.getItem("#{baseName}.js", true)
     js.builder = null
     js.fileType = JS_FILETYPE
+    js.source = coffee
+    js.transfer = true
     return Promise.resolve()
 
   ###*
@@ -81,7 +107,7 @@ module.exports = class CoffeeScriptBuilder extends Builder
     ).then(=>
       return coffee.readContent({encoding: COFFEE_ENCODING})
     ).then((data) =>
-      return global.Libs.coffeescript.compile(data, {
+      return global.Libs.CoffeeScript.compile(data, {
         bare: @_bare
       })
     ).then((data) =>
