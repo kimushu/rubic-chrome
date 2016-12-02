@@ -57,6 +57,13 @@ module.exports = class Firmware extends JSONable
   ###
   @property("obsolete", get: -> @_obsolete)
 
+  ###*
+  @property {Object} boardSpecific
+    Get board specific information
+  @readonly
+  ###
+  @property("boardSpecific", get: -> @_boardSpecific)
+
   #--------------------------------------------------------------------------------
   # Public methods
   #

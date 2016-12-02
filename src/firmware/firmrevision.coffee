@@ -82,6 +82,13 @@ module.exports = class FirmRevision extends JSONable
   ###
   @property("assetNames", get: -> (name for name, url of @_assets))
 
+  ###*
+  @property {Object} boardSpecific
+    Get board specific information
+  @readonly
+  ###
+  @property("boardSpecific", get: -> @_boardSpecific)
+
   #--------------------------------------------------------------------------------
   # Private properties
   #
