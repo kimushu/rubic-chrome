@@ -49,7 +49,7 @@ module.exports = class CatalogCache
   EXPIRE_MS   = 12 * 60 * 60 * 1000 # 12 hours
   ROOT_OWNER  = "kimushu"
   ROOT_REPO   = "rubic-catalog"
-  ROOT_BRANCH = "master"
+  ROOT_BRANCH = "feature/peridot-duktape"
   ROOT_PATH   = "catalog.json"
 
   #--------------------------------------------------------------------------------
