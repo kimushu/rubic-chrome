@@ -7,6 +7,7 @@
     "canarium": "^0.9.16",
     "coffee-script": "^1.10.0",
     "coffeeify": "^2.0.1",
+    "es6-promise": "^4.0.5",
     "github-api": "2.2.0",
     "js-yaml": "^3.6.1",
     "jszip": "3.0.0",
