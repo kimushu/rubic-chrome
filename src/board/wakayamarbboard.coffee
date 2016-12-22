@@ -80,7 +80,7 @@ module.exports = class WakayamaRbBoard extends Board
   CMD_TIMEOUT_MS      = 200
   CMD_RETRIES         = 10
   READ1K_TIMEOUT_MS   = 1000
-  WRITE1K_TIMEOUT_MS  = 2000
+  WRITE1K_TIMEOUT_MS  = 6000
   DELETE_TIMEOUT_MS   = 1000
   V1_VERSION_NEEDLE   = "H [ENTER])"
   V1_VERSION_LINE     = /^(WAKAYAMA\.RB Board) Ver\.([^-]+)-([^,]+),([^(]+)\((?:help->)?H \[ENTER\]\)$/
@@ -537,11 +537,7 @@ module.exports = class WakayamaRbBoard extends Board
       ).then(=>
         return @_wrbb._wait("Saving").timeout(WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024))
       ).then(=>
-        return @_wrbb._pull(
-          @_wrbb._wait("\r\n>")
-          WRITE1K_TIMEOUT_MS
-          ((src.byteLength + 1024) / 1024)
-        )
+        return @_wrbb._wait("\r\n>").timeout(WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024))
       ).then(=>
         return  # Last PromiseValue
       ).finally(=>
