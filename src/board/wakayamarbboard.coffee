@@ -537,7 +537,11 @@ module.exports = class WakayamaRbBoard extends Board
       ).then(=>
         return @_wrbb._wait("Saving").timeout(WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024))
       ).then(=>
-        return @_wrbb._wait("\r\n>").timeout(WRITE1K_TIMEOUT_MS * ((src.byteLength + 1024) / 1024))
+        return @_wrbb._pull(
+          @_wrbb._wait("\r\n>")
+          WRITE1K_TIMEOUT_MS
+          ((src.byteLength + 1024) / 1024)
+        )
       ).then(=>
         return  # Last PromiseValue
       ).finally(=>
