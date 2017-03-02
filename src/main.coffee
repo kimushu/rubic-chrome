@@ -50,12 +50,14 @@ createWindow = =>
     win.setMenu(null)
 
     win.loadURL(url.format({
-      pathname: path.join(__dirname, "dist", "window.html"),
+      pathname: path.join(__dirname, "..", "dist", "window.html"),
       protocol: "file:",
       slashes: true
     }))
 
     win.webContents.openDevTools()
+
+    console.log("locale: #{app.getLocale()}")
   )
 
 app.on("ready", createWindow)
