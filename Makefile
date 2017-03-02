@@ -22,6 +22,9 @@
 #   (ただしサブモジュールではない)
 #
 
+build start watch:
+	npm run $@
+
 include common.mk
 
 dist_ver = $(shell sed -ne 's/\s\+"version": "\([^"]\+\)".*/\1/p' $(DIST_DIR)/manifest.json)

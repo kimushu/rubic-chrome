@@ -1,3 +1,6 @@
+build start watch:
+	$(MAKE) -C .. $@
+
 include ../common.mk
 
 browserify_envs = NODE_PATH=$(SRC_DIR)
