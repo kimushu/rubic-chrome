@@ -90,13 +90,13 @@ class RubicWindow
     ) # return Promise.resolve().then()...
 
   ###*
-  Message ID for debug prints
+  Channel ID for debug prints
 
   @static
-  @attribute MSGID_DEBUGPRINT
+  @attribute CHANNEL_DEBUGPRINT
   @readOnly
   ###
-  @MSGID_DEBUGPRINT: "debug-print"
+  @CHANNEL_DEBUGPRINT: "debug-print"
 
   ###*
   Output debug message
@@ -108,6 +108,7 @@ class RubicWindow
     Message string or function to generate message
   @param {Object} ...params
     Parameters for substituting by sprintf
+  @return {undefined}
   ###
   debugPrint: (level, msg, params...) ->
     timestamp = Date.now()
@@ -116,10 +117,25 @@ class RubicWindow
     else
       msg = sprintf(msg, params...)
     @_browserWindow?.webContents.send(
-      @constructor.MSGID_DEBUGPRINT
+      @constructor.CHANNEL_DEBUGPRINT
       level
       timestamp
       msg
     )
+    return
+
+  ###*
+  Notify start of renderer-process and start IPC server
+
+  @static
+  @method onRendererStart
+  @return {undefined}
+  ###
+  @onRendererStart: ->
+    {ipcRenderer} = require("electron")
+    ipcRenderer.on(@CHANNEL_DEBUGPRINT, (event, level, timestamp, msg) =>
+      console[level].call(console, msg)
+    )
+    console.log("[RubicWindow] started IPC server on renderer-process")
     return
 
