@@ -48,7 +48,7 @@ class RubicWindow
       # Create BrowserWindow instance
       console.log("[RubicWindow] creating Electron BrowserWindow")
       @_browserWindow = new BrowserWindow(
-        icon: path.join(__dirname, "..", "..", "view", "images", "rubic_cube2x2.ico")
+        icon: path.join(__dirname, "..", "..", "static", "images", "rubic_cube2x2.ico")
         width: bounds?.width ? @constructor.DEFAULT_WIDTH
         height: bounds?.height ? @constructor.DEFAULT_HEIGHT
         useContentSize: true
@@ -76,7 +76,7 @@ class RubicWindow
 
       # Load page contents
       @_browserWindow.loadURL(url.format(
-        pathname: path.join(__dirname, "..", "..", "dist", "window.html") # 仮
+        pathname: path.join(__dirname, "..", "..", "static", "index.html")
         protocol: "file:"
         slashes: true
       ))
