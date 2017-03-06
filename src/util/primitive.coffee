@@ -1,8 +1,14 @@
 Function::property = (prop, desc) ->
-  Object.defineProperty(@prototype, prop, desc)
+  Object.defineProperty(@::, prop, desc)
 
 Function::classProperty = (prop, desc) ->
   Object.defineProperty(@, prop, desc)
+
+Function::getter = (prop, get) ->
+  Object.defineProperty(@::, prop, {get, configurable: true})
+
+Function::setter = (prop, set) ->
+  Object.defineProperty(@::, prop, {set, configurable: true})
 
 Function::event = (type) ->
   (@__events__ or= []).push(type.toLowerCase())

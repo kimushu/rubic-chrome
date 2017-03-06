@@ -11,7 +11,8 @@
     "i18n": "^0.8.3",
     "js-yaml": "^3.6.1",
     "jszip": "3.0.0",
-    "node-uuid": "^1.4.7"
+    "node-uuid": "^1.4.7",
+    "sprintf-js": "^1.0.3"
   },
   "devDependencies": {
     "asar": "^0.13.0",
@@ -23,18 +24,22 @@
     "less": "^2.7.1",
     "less-plugin-cache": "^1.0.0",
     "less-plugin-clean-css": "^1.5.1",
+    "rimraf": "^2.6.1",
     "uglifyjs": "^2.4.10",
     "watch": "^1.0.2",
     "yuidocjs": "^0.10.2"
   },
-  "main": "lib/main.js",
+  "main": "lib/app/start.js",
   "author": "kimu_shu",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --dev-tools",
     "start:repeat": "npm run start && npm run start:repeat &",
+    "clean": "rimraf lib",
     "build": "npm run build:js",
     "build:js": "coffee -o lib -c src",
     "watch": "npm run watch:js",
-    "watch:js": "watch 'npm run build:js' src -d"
+    "watch:js": "watch 'npm run build:js' src -d",
+    "predoc": "npm run build:js",
+    "doc": "yuidoc -o doc lib"
   }
 }
