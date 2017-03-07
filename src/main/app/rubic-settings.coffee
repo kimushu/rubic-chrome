@@ -1,5 +1,7 @@
 "use strict"
 require("../../util/primitive")
+{createCallee} = require("../../util/promisified-call")
+{ipcMain} = require("electron")
 
 ###*
 Load and store user preferences
@@ -14,6 +16,14 @@ class RubicSettings
     Settings = Object.getPrototypeOf(require("electron-settings")).constructor
     @_settings = new Settings()
     @_barrier = Promise.resolve()
+    @_callees = {}
+    for method in ["get", "set"]
+      do (method) =>
+        @_callees[method] = createCallee(
+          "settings-#{method}"
+          ipcMain
+          (map) => return @[method](map)
+        )
     return
 
   ###*
@@ -93,23 +103,6 @@ class RubicSettings
       return  # Last PromiseValue
     )
     return @_barrier
-
-  ###*
-  Start listener for access from renderer-process
-
-  @method listen
-  @return {undefined}
-  ###
-  startListener: ->
-    {ipcMain} = require("electron")
-    ipcMain.on("settings-call", (event, id, method, args...) =>
-      @[method](args...).then((result) =>
-        event.sender.send("settings-reply", id, {result})
-      ).catch((error) =>
-        event.sender.send("settings-reply", id, {error})
-      )
-    )
-    return
 
   ###*
   Create a RubicSettings instance

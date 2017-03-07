@@ -2,6 +2,8 @@
 require("../util/primitive")
 {ipcRenderer} = require("electron")
 path = require("path")
+{Disposable} = require("event-kit")
+{createCaller} = require("../util/promisified-call")
 
 ###*
 Delegate for RubicApp (Renderer-process)
@@ -42,23 +44,19 @@ class AppDelegate
 
     # Initialize accessor for RubicSettings
     @_settings =
-      get: @_promisifiedCall.bind(this, "settings-call", "get")
-      set: @_promisifiedCall.bind(this, "settings-call", "set")
-    @_requests = {}
+      get: createCaller("settings-get", ipcRenderer)
+      set: createCaller("settings-set", ipcRenderer)
 
     # Start request receiver for RubicWindow
     ipcRenderer.on("debug-print", (event, level, timestamp, msg) =>
       console[level].call(console, msg)
     )
 
-    # Start response receiver for RubicSettings
-    ipcRenderer.on("settings-reply", (event, id, data) =>
-      req = @_requests[id]
-      return unless req?
-      delete @_requests[id]
-      return req.reject(data.error) if data.error?
-      return req.resolve(data.result)
-    )
+    # Create callers
+    @_callers = {}
+    (@_callers[name] = createCaller(name, ipcRenderer)) for name in [
+      "open-sketch", "save-sketch", "build-sketch",
+    ]
 
     @send("delegate-ready")
     return Promise.resolve(this)
@@ -104,21 +102,49 @@ class AppDelegate
     return
 
   ###*
-  Inter-process call with Promise
+  Create a new sketch or open an existing sketch.
+  (Unsaved modification of current sketch will be discarded)
 
-  @private
-  @method _promisifiedCall
-  @param {string} channel
-    Channel string
-  @param {Object} ...args
-    Arguments
-  @return {Promise|Object}
-    Promise object with results
+  @method openSketch
+  @param {string} [dir]
+    Path of sketch directory (if omitted, create a new sketch)
+  @return {Promise|undefined}
   ###
-  _promisifiedCall: (channel, args...) ->
-    id = Math.random().toString(36).substring(2)
-    return new Promise((resolve, reject) =>
-      @_requests[id] = {resolve, reject}
-      @send(channel, id, args...)
-    )
+  openSketch: (dir = null) ->
+    return @_callers["open-sketch"](dir?.toString())
+
+  ###*
+  Save current sketch
+
+  @method saveSketch
+  @param {string} [dir]
+    Path of sketch director (if omitted, overwrite the sketch)
+  @return {Promise|undefined}
+  ###
+  saveSketch: (dir = null) ->
+    return @_callers["save-sketch"](dir?.toString())
+
+  ###*
+  Build current sketch
+  (This API does not save sketch before building)
+
+  @method buildSketch
+  @return {Promise|undefined}
+  ###
+  buildSketch: ->
+    return @_callers["build-sketch"]()
+
+  ###*
+  Register event handler for switching sketch
+
+  @method onSketchSwitched
+  @param {function} callback
+  @return {Disposable}
+  ###
+  onSketchSwitched: (callback) ->
+    channel = "on-sketch-switched"
+    cb = (event) -> callback()
+    ipcRenderer.on(channel, cb)
+    return new Disposable =>
+      ipcRenderer.removeListener(channel, cb)
 

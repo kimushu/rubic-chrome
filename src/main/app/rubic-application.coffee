@@ -17,7 +17,6 @@ class RubicApplication
     console.log("new RubicApplication()")
     @_verbosity = 0
     @_settings = new RubicSettings(options)
-    @_settings.startListener()
     return
 
   ###*

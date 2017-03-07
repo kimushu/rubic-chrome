@@ -13,15 +13,15 @@ class Controller
     @_keyBinds = []
 
   ###*
-  Active controller (Use activate() to change)
+  Current controller (Use activate() to change)
 
   @static
-  @property {Controller} active
+  @property {Controller} current
   @readOnly
   ###
-  @staticProperty "active", get: -> Controller._active
+  @staticProperty "current", get: -> Controller._current
 
-  @_active: null
+  @_current: null
 
   ###*
   Is this controller activated
@@ -29,7 +29,7 @@ class Controller
   @property {boolean} activated
   @readOnly
   ###
-  @getter "activated", -> Controller._active == this
+  @getter "activated", -> Controller._current == this
 
   ###*
   Activate controller (Subclass should call this first)
@@ -39,14 +39,14 @@ class Controller
     Promise object
   ###
   activate: ->
-    return Promise.resolve() if Controller._active == this
+    return Promise.resolve() if Controller._current == this
     return Promise.resolve(
     ).then(=>
       # Deactivate current controller
-      return Controller._active?.deactivate()
+      return Controller._current?.deactivate()
     ).then(=>
       # Set current controller
-      Controller._active = this
+      Controller._current = this
       console.log("[#{@constructor.name}] Activated")
       return  # Last PromiseValue
     )
@@ -60,7 +60,7 @@ class Controller
   ###
   deactivate: ->
     console.log("[#{@constructor.name}] Deactivated")
-    Controller._active = null
+    Controller._current = null
     return Promise.resolve()
 
   #--------------------------------------------------------------------------------
