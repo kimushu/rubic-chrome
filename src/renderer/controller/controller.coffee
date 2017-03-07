@@ -24,15 +24,6 @@ class Controller
   @_active: null
 
   ###*
-  Flags for subclasses
-
-  @protected
-  @property {Object} flags
-  @readOnly
-  ###
-  @getter "flags", -> (window._controllerFlags ?= {})[@constructor.name] ?= {}
-
-  ###*
   Is this controller activated
 
   @property {boolean} activated
@@ -57,12 +48,6 @@ class Controller
       # Set current controller
       Controller._active = this
       console.log("[#{@constructor.name}] Activated")
-
-      # Install keybind listener
-      unless @flags.keyListenerInstalled
-        $(window.document).keydown(@_processKey.bind(this))
-        @flags.keyListenerInstalled = true
-
       return  # Last PromiseValue
     )
 

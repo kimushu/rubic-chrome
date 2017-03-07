@@ -1,6 +1,8 @@
 "use strict"
 require("../../util/primitive")
 WindowController = require("./window-controller")
+once = require("once")
+i18n = require("i18n")
 
 ###*
 Controller for main view (Controller, Singleton, Renderer-process)
@@ -13,6 +15,8 @@ class MainController extends WindowController
 
   constructor: ->
     super
+    @_editors = []
+    return
 
   ###*
   The singleton instance of this class
@@ -59,8 +63,24 @@ class MainController extends WindowController
   activate: ->
     return super(
     ).then(=>
-      # Setup jquery-scrollTabs (only once)
-      return if @_tabSet?
+      return @_setupMain()
+    ).then(=>
+      $("body").addClass("controller-main")
+    ).then(=>
+      #return @_regenerate()
+    ) # return super().then()...
+
+  ###*
+  Setup HTML contents for the first time
+
+  @private
+  @method _setupMain
+  @return {Promise|undefined}
+  ###
+  _setupMain: once ->
+    return Promise.resolve(
+    ).then(=>
+      # Setup jquery-scrollTabs
       @_tabSet = $("#editor-tabs").scrollTabs(
         left_arrow_size: 18
         right_arrow_size: 18
@@ -73,7 +93,7 @@ class MainController extends WindowController
             ).then(=>
               return "yes" unless editor.modified
               return App.safeConfirm_yes_no(
-                rawTitle: I18n.getMessage("File_1_has_been_modified", editor.sketchItem?.path)
+                rawTitle: i18n.__("File_1_has_been_modified", editor.sketchItem?.path)
                 message: "{Are_you_sure_to_discard_modifications}"
                 yes: "{Yes_discard_them}"
                 no: "{No_cancel_the_operation}"
@@ -87,10 +107,8 @@ class MainController extends WindowController
             @_activateEditor(editor)
           return
       )
-      return
-    ).then(=>
+
       # Setup Ace editor for output window (only once)
-      return if @_aceEditor?
       ace.Range = ace.require("ace/range").Range
       @_aceEditor = ace.edit($(".editor-bottom")[0])
       @_aceEditor.$blockScrolling = Infinity
@@ -98,10 +116,8 @@ class MainController extends WindowController
       @_aceEditor.setTheme("ace/theme/twilight")
       @_aceEditor.setShowPrintMargin(false)
       @_aceEditor.setReadOnly(true)
-      return
-    ).then(=>
+
       # Setup other HTML elements (only once)
-      return if @flags.setupDone
       $(".sketch-new")          .click(@_newSketch.bind(this))
       $(".sketch-open-latest")  .click(@_openSketch.bind(this, null, null))
       $(".sketch-open-local")   .click(@_openSketch.bind(this, "local", null))
@@ -140,27 +156,27 @@ class MainController extends WindowController
         @_board?.disconnect()
       )
       $(".board-info").click((event) =>
-        spin = @modalSpin().text(I18n.getMessage("Reading_board_info")).show()
+        spin = @modalSpin().text(i18n.__("Reading_board_info")).show()
         return Promise.resolve(
         ).then(=>
           return @_board?.getBoardInfo()
         ).timeout(
-          BOARD_INFO_TIMEOUT
+          @BOARD_INFO_TIMEOUT
         ).finally(=>
           return spin.hide(500)
         ).then((info) =>
           table = $("#template-table").children().clone()
           $("#template-tr-th11").children().clone()
             .appendTo(table.find("thead")).find("th")
-            .eq(0).text(I18n.getMessage("Board_info")).end()
+            .eq(0).text(i18n.__("Board_info")).end()
             .eq(1).text("#{@_board.friendlyName} [#{@_board.path}]").end()
           for k, v of info
             $("#template-tr-td11").children().clone()
               .appendTo(table.find("tbody")).find("td")
-              .eq(0).text(I18n.translateText(k)).end()
+              .eq(0).text(i18n.__(k)).end()
               .eq(1).text(v).end()
           return global.bootbox.alert_p({
-            # title: I18n.getMessage("Board_info")
+            # title: i18n.__("Board_info")
             message: table
           })
         ).catch((error) =>
@@ -169,22 +185,15 @@ class MainController extends WindowController
       )
       return
     ).then(=>
-      return if @flags.setupDone
       return @_updateElementsForSketch()
     ).then(=>
-      return if @flags.setupDone
       return @_updateElementsForBoard()
     ).then(=>
-      @flags.setupDone = true
       @bindKey("mod+o", ".sketch-open-latest")
       @bindKey("mod+b", ".sketch-build")
       @bindKey("mod+r", ".sketch-run")
       @bindKey("mod+s", ".sketch-save-overwrite")
-    ).then(=>
-      $("body").addClass("controller-main")
-    ).then(=>
-      #return @_regenerate()
-    ) # return super().then()...
+    ) # return Promise.resolve().then()...
 
   ###*
   @protected
@@ -362,7 +371,7 @@ class MainController extends WindowController
 
     # Construct welcome page
     @_tabSet.clearTabs()
-    @_tabSet.addTab("<li id=\"editor-welcome\">#{I18n.getMessage("Welcome")}</li>")
+    @_tabSet.addTab("<li id=\"editor-welcome\">#{i18n.__("Welcome")}</li>")
     $("#editor-welcome").click()
     tmpl = $("#recent-sketch-tmpl").children()
     container = $("#recent-sketches").empty()
@@ -375,12 +384,12 @@ class MainController extends WindowController
           $("#clear-recent-sketch").show()
           (a = tmpl.clone()).appendTo(container)
           a.find(".placeholder")
-            .eq(0).text(I18n.getMessage("Open_sketch_1", item.friendlyName)).end()
+            .eq(0).text(i18n.__n("Open_sketch_1", item.friendlyName)).end()
             .eq(1).html("""
-            #{I18n.getMessage("Stored_location")}: #{
-              I18n.getMessage("fsType_#{item.fsType}")
+            #{i18n.__("Stored_location")}: #{
+              i18n.__("fsType_#{item.fsType}")
             }&nbsp;&nbsp;/&nbsp;&nbsp;#{
-              I18n.getMessage("Last_used_time")}: #{
+              i18n.__("Last_used_time")}: #{
               new Date(item.lastUsed).toLocaleString()
             }
             """).end()
@@ -416,10 +425,10 @@ class MainController extends WindowController
     ).then(=>
       return @_board.loadFirmware()
     ).then((firmware) =>
-      elem[0].title += "#{I18n.getMessage("Firmware")} : #{firmware.friendlyName}\n"
+      elem[0].title += "#{i18n.__("Firmware")} : #{firmware.friendlyName}\n"
       return @_board.loadFirmRevision()
     ).then((firmRevision) =>
-      elem[0].title += "#{I18n.getMessage("Revision")} : #{firmRevision.friendlyName}\n"
+      elem[0].title += "#{i18n.__("Revision")} : #{firmRevision.friendlyName}\n"
     ) # return Promise.resolve()
 
   ###*
@@ -446,7 +455,7 @@ class MainController extends WindowController
       unless editor?
         editorClass = Editor.findEditor(item)
         unless editorClass?
-          App.popupError(I18n.getMessage("Cannot_find_editor"))
+          App.popupError(i18n.__("Cannot_find_editor"))
           return false
         editor = new editorClass(@$, @_sketch, item)
       @addEditor(editor, null, true)
@@ -571,10 +580,10 @@ class MainController extends WindowController
       return fs if fs?
       return Promise.resolve(
       ).then(=>
-        return {"#{KEY_DEFPLACE}": place} if place != "latest"
-        return Preferences.get({"#{KEY_DEFPLACE}": "local"})
+        return {"#{@KEY_DEFPLACE}": place} if place != "latest"
+        return global.rubic.settings.get({"#{@KEY_DEFPLACE}": "local"})
       ).then((value) =>
-        place = value[KEY_DEFPLACE]
+        place = value[@KEY_DEFPLACE]
         return @_closeSketch(true)
       ).then(=>
         switch(place)
@@ -598,8 +607,8 @@ class MainController extends WindowController
         ).then(=>
           return unless migration?
           App.popupInfo("""
-            #{I18n.getMessage("This_sketch_was_migrated_from_1", migration.from)}<br>
-            #{I18n.getMessage("Saved_as_new_version_at_next_save")}
+            #{i18n.__("This_sketch_was_migrated_from_1", migration.from)}<br>
+            #{i18n.__("Saved_as_new_version_at_next_save")}
           """)
           return unless migration.regenerate
           @_needRegenerate = true
@@ -609,7 +618,7 @@ class MainController extends WindowController
         return  # Last PromiseValue
       ).catch((error) =>
         return global.bootbox.alert_p({
-          title: I18n.getMessage("Failed_to_open_sketch")
+          title: i18n.__("Failed_to_open_sketch")
           message: error.toString()
         })
       )
@@ -625,7 +634,7 @@ class MainController extends WindowController
   ###
   _saveSketch: (place = "overwrite") ->
     return Promise.reject(Error("No sketch to save")) unless @_sketch?
-    spin = @modalSpin().text(I18n.getMessage("Saving_sketch")).show()
+    spin = @modalSpin().text(i18n.__("Saving_sketch")).show()
     oldFriendlyName = @_sketch.friendlyName?.toString()
     oldFsType = @_sketch.dirFs.fsType
     return Promise.resolve(
@@ -653,11 +662,11 @@ class MainController extends WindowController
         )
       ).then((confirm) =>
         return Promise.reject(Error("Cancelled by user")) unless confirm == "yes"
-        return Preferences.set({"#{KEY_DEFPLACE}": place})
+        return global.rubic.settings.set({"#{@KEY_DEFPLACE}": place})
       ).then(=>
         return newDirFs
       ).catch((error) =>
-        App.popupWarning(I18n.getMessage("Sketch_save_canceled"))
+        App.popupWarning(i18n.__("Sketch_save_canceled"))
         App.error(error)
         return Promise.reject()
       ) # return Promise.resolve()
@@ -672,7 +681,7 @@ class MainController extends WindowController
         id = "Sketch_was_saved_in_draft"
       else
         id = "Sketch_was_saved"
-      App.popupSuccess(I18n.getMessage(id))
+      App.popupSuccess(i18n.__(id))
       return  # Do not wait until notification closing
     ).finally(=>
       spin.hide(@MIN_SAVE_SPIN)
@@ -752,26 +761,26 @@ class MainController extends WindowController
       return sketch.build(
         force
         (path, progress, step, error) =>
-          msg = I18n.getMessage("Building_1", path)
+          msg = i18n.__("Building_1", path)
           switch step
             when Sketch.STEP_START
               @printSystem(msg, false)
             when Sketch.STEP_FINISHED
-              @printSystem("#{I18n.getMessage("Succeeded")}\n", false)
+              @printSystem("#{i18n.__("Succeeded")}\n", false)
             when Sketch.STEP_SKIPPED
-              @printSystem("#{I18n.getMessage("Skipped")}\n", false)
+              @printSystem("#{i18n.__("Skipped")}\n", false)
             when Sketch.STEP_ABORTED
-              @printSystem("#{I18n.getMessage("Failed")}\n", false)
+              @printSystem("#{i18n.__("Failed")}\n", false)
           return App.popupError(
-            I18n.getMessage("Failed_to_build_1", path)
-            I18n.getMessage("Build_failed")
+            i18n.__("Failed_to_build_1", path)
+            i18n.__("Build_failed")
           ) if error?
           spin.text(
             "#{msg} (#{Math.round(progress)}%)"
           )
           return
       ).then(=>
-        msg = I18n.getMessage("Build_succeeded")
+        msg = i18n.__("Build_succeeded")
         @printSystem(msg)
         # App.popupSuccess(msg)
         return  # Do not wait until notification closing
@@ -805,25 +814,25 @@ class MainController extends WindowController
       return sketch.transfer(
         force
         (path, progress, step, error) =>
-          msg = I18n.getMessage("Transferring_1", path)
+          msg = i18n.__("Transferring_1", path)
           switch step
             when Sketch.STEP_START
               @printSystem(msg, false)
             when Sketch.STEP_FINISHED
-              @printSystem("#{I18n.getMessage("Succeeded")}\n", false)
+              @printSystem("#{i18n.__("Succeeded")}\n", false)
             when Sketch.STEP_SKIPPED
-              @printSystem("#{I18n.getMessage("Skipped")}\n", false)
+              @printSystem("#{i18n.__("Skipped")}\n", false)
             when Sketch.STEP_ABORTED
-              @printSystem("#{I18n.getMessage("Failed")}\n", false)
+              @printSystem("#{i18n.__("Failed")}\n", false)
           return App.popupError(
-            I18n.getMessage("Failed_to_transfer_1", path)
-            I18n.getMessage("Transfer_failed")
+            i18n.__("Failed_to_transfer_1", path)
+            i18n.__("Transfer_failed")
           ) if error?
           return spin.text(
             "#{msg} (#{Math.round(progress)}%)"
           )
       ).then(=>
-        msg = I18n.getMessage("Transfer_succeeded")
+        msg = i18n.__("Transfer_succeeded")
         @printSystem(msg)
         # App.popupSuccess(msg)
         return  # Do not wait until notification closing
@@ -859,7 +868,7 @@ class MainController extends WindowController
     ).then(=>
       bootItem = sketch.bootItem
       unless bootItem?
-        App.popupError(I18n.getMessage("No_program_to_boot"))
+        App.popupError(i18n.__("No_program_to_boot"))
         return Promise.reject(Error("No program to boot"))
       return Promise.resolve(
       ).then(=>
@@ -884,7 +893,7 @@ class MainController extends WindowController
         @_console.addEventListener("close.console", this)
         return @_console.open()
       ).then(=>
-        @printSystem("-------- #{I18n.getMessage("Connected_to_console")} --------")
+        @printSystem("-------- #{i18n.__("Connected_to_console")} --------")
         return
       ).catch((error) =>
         $(".sketch-stop").hide()
@@ -1003,7 +1012,7 @@ class MainController extends WindowController
     ).then(=>
       @_deviceListUpdateTimer = window.setTimeout(
         @_updateDeviceList.bind(this)
-        SCAN_PERIOD_MS
+        @SCAN_PERIOD_MS
       )
       return
     )
@@ -1020,7 +1029,7 @@ class MainController extends WindowController
     return unless path?
     @_boardPath = path
     return unless @_board?
-    spin = @modalSpin().text(I18n.getMessage("Connecting")).show()
+    spin = @modalSpin().text(i18n.__("Connecting")).show()
     Promise.resolve(
     ).then(=>
       return unless @_board.connected
@@ -1028,11 +1037,11 @@ class MainController extends WindowController
     ).then(=>
       return @_board.connect(@_boardPath)
     ).timeout(
-      CONNECT_TIMEOUT
+      @CONNECT_TIMEOUT
     ).catch((error) =>
       App.popupError(
         error.toString()
-        I18n.getMessage("Failed_to_connect_board")
+        i18n.__("Failed_to_connect_board")
       )
       return
     ).finally(=>
@@ -1061,14 +1070,14 @@ class MainController extends WindowController
       when "save.sketch"
         @_updateTabTitle(editor) for editor in @_editors
       when "connect.board"
-        App.popupInfo(I18n.getMessage("Connected_to_board_at_1", @_boardPath))
+        App.popupInfo(i18n.__("Connected_to_board_at_1", @_boardPath))
         $("body").addClass("board-connected")
         $("#device-selected").text(@_boardPath)
         $(".sketch-run,.sketch-stop,.board-info")
           .prop("disabled", false)
           .next(".dropdown-toggle").prop("disabled", false)
       when "disconnect.board"
-        App.popupWarning(I18n.getMessage("Disconnected_from_board_at_1", @_boardPath))
+        App.popupWarning(i18n.__("Disconnected_from_board_at_1", @_boardPath))
         $("body").removeClass("board-connected")
         $("#device-selected").text("")
         $(".sketch-run,.sketch-stop,.board-info")
@@ -1086,7 +1095,7 @@ class MainController extends WindowController
           @printOutput(text)
         )
       when "close.console"
-        @printSystem("-------- #{I18n.getMessage("Disconnected_from_console")} --------")
+        @printSystem("-------- #{i18n.__("Disconnected_from_console")} --------")
         @_console = null
         $(".sketch-stop").hide()
         $(".sketch-run").closest(".btn-group").show()
@@ -1146,13 +1155,13 @@ class MainController extends WindowController
   @_getRecentSketches: ->
     return Promise.resolve(
     ).then(=>
-      return Preferences.get({
-        "#{KEY_RECENT_SKETCHES_MAX}": DEF_RECENT_SKETCHES_MAX
-        "#{KEY_RECENT_SKETCHES_ITEMS}": []
+      return global.rubic.settings.get({
+        "#{@KEY_RECENT_SKETCHES_MAX}": @DEF_RECENT_SKETCHES_MAX
+        "#{@KEY_RECENT_SKETCHES_ITEMS}": []
       })
     ).then((values) =>
-      max = values[KEY_RECENT_SKETCHES_MAX]
-      items = values[KEY_RECENT_SKETCHES_ITEMS]
+      max = values[@KEY_RECENT_SKETCHES_MAX]
+      items = values[@KEY_RECENT_SKETCHES_ITEMS]
       items.sort((a, b) =>
         return b.lastUsed - a.lastUsed
       )
@@ -1202,7 +1211,7 @@ class MainController extends WindowController
           retainInfo: retainInfo
         })
         items = items.slice(0, max)
-        return Preferences.set({"#{KEY_RECENT_SKETCHES_ITEMS}": items})
+        return global.rubic.settings.set({"#{@KEY_RECENT_SKETCHES_ITEMS}": items})
       ) # return sketch.dirFs.retainfs().then()
     ).then(=>
       return true
@@ -1222,15 +1231,3 @@ class MainController extends WindowController
   _clearRecentSketch: (event) ->
     return
 
-## Post dependencies
-#I18n = require("util/i18n")
-#Preferences = require("app/preferences")
-#App = require("app/app")
-#Sketch = require("sketch/sketch")
-#AsyncFs = require("filesystem/asyncfs")
-#SketchItem = require("sketch/sketchitem")
-#Editor = require("editor/editor")
-#SketchEditor = require("editor/sketcheditor")
-#BoardCatalog = require("firmware/boardcatalog")
-#sprintf = require("util/sprintf")
-#ab2str = require("util/ab2str")

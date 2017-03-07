@@ -1,6 +1,7 @@
 "use strict"
 require("../util/primitive")
 {ipcRenderer} = require("electron")
+path = require("path")
 
 ###*
 Delegate for RubicApp (Renderer-process)
@@ -69,6 +70,26 @@ class AppDelegate
   @readOnly
   ###
   @getter "settings", -> @_settings
+
+  ###*
+  Name of this application
+
+  @property {string} name
+  @readOnly
+  ###
+  @getter "name", -> "Rubic"
+
+  ###*
+  Version string of this application
+
+  @property {string} version
+  @readOnly
+  ###
+  @getter "version", ->
+    @_version = require(
+      path.join(__dirname, "..", "..", "package.json")
+    ).version unless @_version?
+    return @_version
 
   ###*
   Send a message to main-process

@@ -1,6 +1,7 @@
 "use strict"
 require("../../util/primitive")
 WindowController = require("./window-controller")
+i18n = require("i18n")
 
 ###*
 Controller for preference view (Controller, Singleton, Renderer-process)
@@ -16,7 +17,7 @@ class PrefController extends WindowController
   ###*
   The singleton instance of this class
 
-  @property {MainController} instance
+  @property {PrefController} instance
     The instance of this class
   @readOnly
   ###
@@ -36,6 +37,7 @@ class PrefController extends WindowController
   activate: ->
     return super(
     ).then(=>
+      @setTitle(i18n.__("Preferences"))
       $("#config-for-testers").prop("checked", false).click((event) =>
         state = $(event.target).prop("checked")
         $("body").toggleClass("show-testers", state)
