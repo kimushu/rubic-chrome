@@ -1,7 +1,7 @@
 "use strict"
 require("../util/primitive")
 {sprintf} = require("sprintf-js")
-{BrowserWindow} = require("electron")
+{BrowserWindow, ipcMain} = require("electron")
 path = require("path")
 url = require("url")
 delayed = require("../util/delayed")
@@ -41,38 +41,77 @@ class RubicWindow
     return Promise.resolve(
     ).then(=>
       return global.rubic.settings.get({window: null, debug: null})
-    ).then(({window: values, debug}) =>
-      bounds = values?.bounds
-      zoom_ratio = (values?.zoom_ratio_x10 ? 10) / 10
+    ).then(({window, debug}) =>
+      bounds = window?.bounds
+      zoom_ratio = (window?.zoom_ratio_x10 ? 10) / 10
 
       # Create BrowserWindow instance
       console.log("[RubicWindow] creating Electron BrowserWindow")
       @_browserWindow = new BrowserWindow(
         icon: path.join(__dirname, "..", "..", "static", "images", "rubic_cube2x2.ico")
+        x: if bounds?.x? and bounds?.y? then bounds.x else null
+        y: if bounds?.x? and bounds?.y? then bounds.y else null
         width: bounds?.width ? @constructor.DEFAULT_WIDTH
         height: bounds?.height ? @constructor.DEFAULT_HEIGHT
         useContentSize: true
         minWidth: @constructor.MINIMUM_WIDTH * zoom_ratio
         minHeight: @constructor.MINIMUM_HEIGHT * zoom_ratio
+        show: false
         webPreferences:
           zoomFactor: zoom_ratio
       )
+
+      @_browserWindow.maximize() if window?.maximized
+      @_browserWindow.show()
 
       # Register event handlers for this window
       @_browserWindow.on("closed", =>
         console.log("[RubicWindow] closed")
         @_browserWindow = null
       )
+      move_or_resize = =>
+        maximized = @_browserWindow.isMaximized()
+        minimized = @_browserWindow.isMinimized()
+        if maximized
+          console.log("[RubicWindow] maximized")
+          global.rubic.settings.set(
+            "window.maximized": true
+          )
+        else if minimized
+          console.log("[RubicWindow] minimized")
+        else
+          {x, y} = @_browserWindow.getBounds()
+          {width, height} = @_browserWindow.getContentBounds()
+          global.rubic.settings.set(
+            "window.bounds": {width, height, x, y}
+            "window.maximized": false
+          )
+      @_browserWindow.on("move", delayed @constructor.EVENT_DELAY_MS, =>
+        console.log("[RubicWindow] move (delayed)")
+        move_or_resize()
+      )
       @_browserWindow.on("resize", delayed @constructor.EVENT_DELAY_MS, =>
         console.log("[RubicWindow] resize (delayed)")
-        {width, height} = @_browserWindow.getContentBounds()
-        global.rubic.settings.set(
-          "window.bounds": {width, height}
-        )
+        move_or_resize()
       )
 
       # Disable menu bar
       @_browserWindow.setMenu(null)
+
+      # Open devTools for debugging
+      if @_options.dev_tools or debug?.devTools
+        @_browserWindow.webContents.openDevTools()
+
+      # Register listener
+      promise = new Promise((resolve) =>
+        ipcMain.on("bridge-opened", (event) =>
+          console.log("[RubicWindow] received bridge-opened message")
+          resolve()
+        )
+        ipcMain.on("translation-complete", (event) =>
+          console.log("[RubicWindow] received translation-complete message")
+        )
+      )
 
       # Load page contents
       @_browserWindow.loadURL(url.format(
@@ -81,22 +120,9 @@ class RubicWindow
         slashes: true
       ))
 
-      # Open devTools for debugging
-      if @_options.dev_tools or debug?.devTools
-        @_browserWindow.webContents.openDevTools()
-
       console.log("[RubicWindow] waiting BrowserWindow open")
-      return  # Last PromiseValue
+      return promise
     ) # return Promise.resolve().then()...
-
-  ###*
-  Channel ID for debug prints
-
-  @static
-  @attribute CHANNEL_DEBUGPRINT
-  @readOnly
-  ###
-  @CHANNEL_DEBUGPRINT: "debug-print"
 
   ###*
   Output debug message
@@ -117,25 +143,10 @@ class RubicWindow
     else
       msg = sprintf(msg, params...)
     @_browserWindow?.webContents.send(
-      @constructor.CHANNEL_DEBUGPRINT
+      "debug-print"
       level
       timestamp
       msg
     )
-    return
-
-  ###*
-  Notify start of renderer-process and start IPC server
-
-  @static
-  @method onRendererStart
-  @return {undefined}
-  ###
-  @onRendererStart: ->
-    {ipcRenderer} = require("electron")
-    ipcRenderer.on(@CHANNEL_DEBUGPRINT, (event, level, timestamp, msg) =>
-      console[level].call(console, msg)
-    )
-    console.log("[RubicWindow] started IPC server on renderer-process")
     return
 

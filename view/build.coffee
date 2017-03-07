@@ -123,7 +123,7 @@ GENERATED_CSSS =
 COPIED_DIRS =
   "images":
     source: "images"
-    ignore: [".*", "*.xcf", "*.svg", "*.ico"]
+    ignore: [".*", "*.xcf", "*.svg"]
 
 install_module = (name, mod) ->
   title = "#{name} @ #{mod.version}"

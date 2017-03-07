@@ -1,52 +1,52 @@
 "use strict"
-# Pre dependencies
-WindowController = require("controller/windowcontroller")
-require("util/primitive")
+require("../util/primitive")
+WindowController = require("./window-controller")
 
 ###*
+Controller for main view (Controller, Singleton, Renderer-process)
+
 @class MainController
-  Controller for main view (Controller, Singleton)
 @extends WindowController
 ###
-module.exports = class MainController extends WindowController
-  instance = null
+module.exports =
+class MainController extends WindowController
 
-  #--------------------------------------------------------------------------------
-  # Public properties
-  #
+  constructor: ->
+    super
 
   ###*
-  @static
-  @property {MainController}
+  The singleton instance of this class
+
+  @property {MainController} instance
     The instance of this class
-  @readonly
+  @readOnly
   ###
-  @classProperty("instance", get: ->
-    return instance or= new MainController(window)
+  @staticProperty("instance", get: ->
+    return @_instance or= new MainController()
   )
+
+  @_instance: null
 
   #--------------------------------------------------------------------------------
   # Private variables / constants
   #
 
-  SCAN_TIMEOUT = 2000
-  SCAN_PERIOD_MS = 1000
-  CONNECT_TIMEOUT = 5000
-  BOARD_INFO_TIMEOUT = 5000
-  CATALOG_TIMEOUT = 10000
-  KEY_RECENT_SKETCHES_MAX = "recent_sketches.max"
-  DEF_RECENT_SKETCHES_MAX = 10
-  KEY_RECENT_SKETCHES_ITEMS = "recent_sketches.items"
-  KEY_DEFPLACE = "default_place"
-  PLACES = ["local", "googledrive", "dropbox", "onedrive"]
-  MIN_SAVE_SPIN = 400
-  TAB_SELECTOR = "li.editor-tab"
+  SCAN_TIMEOUT: 2000
+  SCAN_PERIOD_MS: 1000
+  CONNECT_TIMEOUT: 5000
+  BOARD_INFO_TIMEOUT: 5000
+  CATALOG_TIMEOUT: 10000
+  KEY_RECENT_SKETCHES_MAX: "recent_sketches.max"
+  DEF_RECENT_SKETCHES_MAX: 10
+  KEY_RECENT_SKETCHES_ITEMS: "recent_sketches.items"
+  KEY_DEFPLACE: "default_place"
+  PLACES: ["local", "googledrive", "dropbox", "onedrive"]
+  MIN_SAVE_SPIN: 400
+  TAB_SELECTOR: "li.editor-tab"
 
-  firstActivation = true  # Flag for first activation
-  tabSet = null           # jquery-scrollTabs instance for editor tabs
-  Ace = null              # Ace class
-  aceEditor = null        # Ace editor for output window
-  nextEditorId = 1        # Next editor ID
+  _firstActivation: true  # Flag for first activation
+  _tabSet: null           # jquery-scrollTabs instance for editor tabs
+  _aceEditor: null        # Ace editor for output window
 
   #--------------------------------------------------------------------------------
   # Protected methods
@@ -57,16 +57,15 @@ module.exports = class MainController extends WindowController
   @inheritdoc Controller#activate
   ###
   activate: ->
-    $ = @$
     return super(
     ).then(=>
       # Setup jquery-scrollTabs (only once)
-      return unless firstActivation
-      tabSet or= $("#editor-tabs").scrollTabs({
+      return if @_tabSet?
+      @_tabSet = $("#editor-tabs").scrollTabs(
         left_arrow_size: 18
         right_arrow_size: 18
         click_callback: (event) =>
-          index = $(event.currentTarget).prevAll(TAB_SELECTOR).length
+          index = $(event.currentTarget).prevAll(@TAB_SELECTOR).length
           editor = @_editors[index]
           return unless editor?
           if $(event.target).hasClass("editor-close-button")
@@ -87,25 +86,22 @@ module.exports = class MainController extends WindowController
           else
             @_activateEditor(editor)
           return
-      })
-      App.log("MainController.tabSet: %o", tabSet)
+      )
       return
     ).then(=>
       # Setup Ace editor for output window (only once)
-      return unless firstActivation
-      Ace = window.ace
-      Ace.Range = Ace.require("ace/range").Range
-      aceEditor = Ace.edit($(".editor-bottom")[0])
-      App.log("MainController.aceEditor: %o", aceEditor)
-      aceEditor.$blockScrolling = Infinity
-      aceEditor.renderer.setShowGutter(false)
-      aceEditor.setTheme("ace/theme/twilight")
-      aceEditor.setShowPrintMargin(false)
-      aceEditor.setReadOnly(true)
+      return if @_aceEditor?
+      ace.Range = ace.require("ace/range").Range
+      @_aceEditor = ace.edit($(".editor-bottom")[0])
+      @_aceEditor.$blockScrolling = Infinity
+      @_aceEditor.renderer.setShowGutter(false)
+      @_aceEditor.setTheme("ace/theme/twilight")
+      @_aceEditor.setShowPrintMargin(false)
+      @_aceEditor.setReadOnly(true)
       return
     ).then(=>
       # Setup other HTML elements (only once)
-      return unless firstActivation
+      return if @flags.setupDone
       $(".sketch-new")          .click(@_newSketch.bind(this))
       $(".sketch-open-latest")  .click(@_openSketch.bind(this, null, null))
       $(".sketch-open-local")   .click(@_openSketch.bind(this, "local", null))
@@ -171,14 +167,15 @@ module.exports = class MainController extends WindowController
           App.popupError(error?.message or error)
         ) # return Promise.resolve().then()...
       )
+      return
     ).then(=>
-      return unless firstActivation
+      return if @flags.setupDone
       return @_updateElementsForSketch()
     ).then(=>
-      return unless firstActivation
+      return if @flags.setupDone
       return @_updateElementsForBoard()
     ).then(=>
-      firstActivation = false
+      @flags.setupDone = true
       @bindKey("mod+o", ".sketch-open-latest")
       @bindKey("mod+b", ".sketch-build")
       @bindKey("mod+r", ".sketch-run")
@@ -186,7 +183,7 @@ module.exports = class MainController extends WindowController
     ).then(=>
       $("body").addClass("controller-main")
     ).then(=>
-      return @_regenerate()
+      #return @_regenerate()
     ) # return super().then()...
 
   ###*
@@ -194,7 +191,6 @@ module.exports = class MainController extends WindowController
   @inheritdoc Controller#deactivate
   ###
   deactivate: ->
-    $ = @$
     $("body").removeClass("controller-main")
     return super()
 
@@ -211,15 +207,14 @@ module.exports = class MainController extends WindowController
     Promise object
   ###
   addEditor: (editor, position = null, activate = false) ->
-    $ = @$
     exists = @_editors.indexOf(editor)
     if exists >= 0
       position = exists
     else
       position ?= @_editors.length
       @_editors.splice(position, 0, editor)
-      s = TAB_SELECTOR.split(".")
-      tabSet.addTab("""
+      s = @TAB_SELECTOR.split(".")
+      @_tabSet.addTab("""
       <#{s[0]} class="#{s[1]}">
         <span class="editor-modified fa fa-pencil"></span>
         <span class="editor-readonly fa fa-lock"></span>
@@ -227,7 +222,7 @@ module.exports = class MainController extends WindowController
         <span class="editor-close-button glyphicon glyphicon-remove"></span>
       </#{s[0]}>
       """, position)
-      tab = $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
+      tab = $(@_tabSet.domObject).find(@TAB_SELECTOR).eq(position)
       tab.find("a").eq(0).text(editor.title or "")
       tab.find("span.editor-modified").hide() unless editor.modified
       tab.find("span.editor-readonly").hide() if editor.editable
@@ -235,7 +230,7 @@ module.exports = class MainController extends WindowController
       editor.addEventListener("changetitle.editor", this)
       editor.addEventListener("change.editor", this)
       App.log("New editor (%o) at index %d", editor, position)
-    $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if activate
+    $(@_tabSet.domObject).find(@TAB_SELECTOR).eq(position).click() if activate
     return Promise.resolve(true)
 
   ###*
@@ -259,9 +254,9 @@ module.exports = class MainController extends WindowController
     ).then(=>
       editor.destroy()
       @_editors.splice(position, 1)
-      $(tabSet.domObject).find(TAB_SELECTOR).eq(position).remove()
+      $(@_tabSet.domObject).find(@TAB_SELECTOR).eq(position).remove()
       position = Math.min(position, @_editors.length - 1)
-      $(tabSet.domObject).find(TAB_SELECTOR).eq(position).click() if position >= 0
+      $(@_tabSet.domObject).find(@TAB_SELECTOR).eq(position).click() if position >= 0
       return true # Last PromiseValue
     ) # return Promise.resolve().then()...
 
@@ -273,7 +268,7 @@ module.exports = class MainController extends WindowController
   clearOutput: ->
     session = Ace.createEditSession("", "ace/mode/text")
     session.setUseWrapMode(true)
-    aceEditor.setSession(session)
+    @_aceEditor.setSession(session)
     return
 
   ###*
@@ -288,7 +283,7 @@ module.exports = class MainController extends WindowController
   @return {undefined}
   ###
   printOutput: (text, marker = null, newline = false) ->
-    session = aceEditor.getSession()
+    session = @_aceEditor.getSession()
     range = new Ace.Range
     row = session.getLength() - 1
     range.start = {
@@ -299,8 +294,8 @@ module.exports = class MainController extends WindowController
       range.start = session.insert(range.start, "\n")
     range.end = session.insert(range.start, text)
     # session.addMarker(range, "marker-#{marker}", "line") if marker?
-    aceEditor.navigateFileEnd()
-    aceEditor.scrollToRow(range.end.row)
+    @_aceEditor.navigateFileEnd()
+    @_aceEditor.scrollToRow(range.end.row)
     return
 
   ###*
@@ -328,7 +323,7 @@ module.exports = class MainController extends WindowController
   @param {Window} window
     window object
   ###
-  constructor: (window) ->
+  caonstructor: (window) ->
     super(window)
     @_sketch = App.sketch
     @_board = @_sketch?.board
@@ -350,7 +345,7 @@ module.exports = class MainController extends WindowController
     unless typeof(position) == "number"
       position = @_editors.indexOf(position)
     return null if position < 0
-    return $(tabSet.domObject).find(TAB_SELECTOR).eq(position)
+    return $(@_tabSet.domObject).find(@TAB_SELECTOR).eq(position)
 
   ###*
   @private
@@ -360,15 +355,14 @@ module.exports = class MainController extends WindowController
     Promise object
   ###
   _updateElementsForSketch: ->
-    $ = @$
     noSketch = !@_sketch?
     $("body").toggleClass("no-sketch", noSketch)
     $(".when-main > .editor-body").hide()
     return Promise.resolve() unless noSketch
 
     # Construct welcome page
-    tabSet.clearTabs()
-    tabSet.addTab("<li id=\"editor-welcome\">#{I18n.getMessage("Welcome")}</li>")
+    @_tabSet.clearTabs()
+    @_tabSet.addTab("<li id=\"editor-welcome\">#{I18n.getMessage("Welcome")}</li>")
     $("#editor-welcome").click()
     tmpl = $("#recent-sketch-tmpl").children()
     container = $("#recent-sketches").empty()
@@ -405,7 +399,6 @@ module.exports = class MainController extends WindowController
     Promise object
   ###
   _updateElementsForBoard: ->
-    $ = @$
     noBoard = !@_board?
     $(".sketch-build").prop("disabled", noBoard)
     $(".device-list").prop("disabled", noBoard)
@@ -469,7 +462,6 @@ module.exports = class MainController extends WindowController
   @return {undefined}
   ###
   _setSketch: (sketch) ->
-    $ = @$
 
     # Unregister old sketch and board
     App.sketch?.removeEventListener("setboard.sketch", this)
@@ -488,7 +480,7 @@ module.exports = class MainController extends WindowController
     $(".sketch-stop").hide()
     $(".sketch-run").closest(".btn-group").show()
     @_editors = []
-    tabSet.clearTabs()
+    @_tabSet.clearTabs()
     @_updateElementsForSketch()
     @_board = @_sketch?.board
     @_board?.addEventListener("connect.board", this)
@@ -683,7 +675,7 @@ module.exports = class MainController extends WindowController
       App.popupSuccess(I18n.getMessage(id))
       return  # Do not wait until notification closing
     ).finally(=>
-      spin.hide(MIN_SAVE_SPIN)
+      spin.hide(@MIN_SAVE_SPIN)
     ).catch((error) =>
       App.popupError(error) if error?
       return  # Do not wait until notification closing
@@ -852,7 +844,6 @@ module.exports = class MainController extends WindowController
   _runSketch: (force) ->
     force = force.shiftKey if typeof(force) == "object"
     force = !!force
-    $ = @$
     sketch = App.sketch
     return Promise.reject(Error("No sketch to run")) unless sketch?
     board = sketch.board
@@ -942,7 +933,6 @@ module.exports = class MainController extends WindowController
   @return {undefined}
   ###
   _popupDeviceList: (state) ->
-    $ = @$
     tmpl = $("#device-list-tmpl").hide()
     unless state
       id = @_deviceListUpdateTimer
@@ -962,7 +952,6 @@ module.exports = class MainController extends WindowController
     Update board device list
   ###
   _updateDeviceList: ->
-    $ = @$
     board = App.sketch?.board
     return Promise.reject(Error("No board")) unless board?
     id = @_deviceListUpdateTimer
@@ -1059,7 +1048,6 @@ module.exports = class MainController extends WindowController
   @return {undefined}
   ###
   handleEvent: (event) ->
-    $ = @$
     switch event.type
       when "setboard.sketch"
         @_board?.disconnect() if @_board?.connected
@@ -1113,7 +1101,7 @@ module.exports = class MainController extends WindowController
     @_activeEditor?.deactivate()
     @_activeEditor = null
     @_editors.splice(0, @_editors.length)
-    $(tabSet.domObject).find(TAB_SELECTOR).remove()
+    $(@_tabSet.domObject).find(@TAB_SELECTOR).remove()
     return
 
   ###*
@@ -1234,15 +1222,15 @@ module.exports = class MainController extends WindowController
   _clearRecentSketch: (event) ->
     return
 
-# Post dependencies
-I18n = require("util/i18n")
-Preferences = require("app/preferences")
-App = require("app/app")
-Sketch = require("sketch/sketch")
-AsyncFs = require("filesystem/asyncfs")
-SketchItem = require("sketch/sketchitem")
-Editor = require("editor/editor")
-SketchEditor = require("editor/sketcheditor")
-BoardCatalog = require("firmware/boardcatalog")
-sprintf = require("util/sprintf")
-ab2str = require("util/ab2str")
+## Post dependencies
+#I18n = require("util/i18n")
+#Preferences = require("app/preferences")
+#App = require("app/app")
+#Sketch = require("sketch/sketch")
+#AsyncFs = require("filesystem/asyncfs")
+#SketchItem = require("sketch/sketchitem")
+#Editor = require("editor/editor")
+#SketchEditor = require("editor/sketcheditor")
+#BoardCatalog = require("firmware/boardcatalog")
+#sprintf = require("util/sprintf")
+#ab2str = require("util/ab2str")

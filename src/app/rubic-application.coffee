@@ -16,6 +16,7 @@ class RubicApplication
   constructor: (options) ->
     console.log("new RubicApplication()")
     @_settings = new RubicSettings(options)
+    @_settings.startListener()
     return
 
   ###*

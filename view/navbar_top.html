@@ -13,86 +13,86 @@
       <div class="container">
         <div class="btn-group btn-group-xs">
           <a class="btn hidden"></a>
-          <a class="btn btn-link i18n hide-left" title="{Hide_menu}"><span class="fa fa-bars fa-lg"></span></a>
-          <a class="btn btn-link i18n show-left" title="{Show_menu}"><span class="fa fa-bars fa-lg"></span></a>
+          <a class="btn btn-link hide-left" title="{{t 'Hide_menu'}}"><span class="fa fa-bars fa-lg"></span></a>
+          <a class="btn btn-link show-left" title="{{t 'Show_menu'}}"><span class="fa fa-bars fa-lg"></span></a>
         </div>
         <div class="btn-group btn-group-xs">
           <img src="images/rubic_text_white.png" id="rubic-brand">
         </div>
         <div class="btn-group btn-group-xs when-main">
-          <button class="btn btn-default i18n dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{New} <span class="caret"></span></button>
+          <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{t 'New'}} <span class="caret"></span></button>
           <ul class="dropdown-menu">
             <li>
-              <a href="#" class="btn-xs i18n sketch-new">{New_sketch}</a>
+              <a href="#" class="btn-xs sketch-new">{{t 'New_sketch'}}</a>
             </li>
           </ul>
         </div>
         <div class="btn-group btn-group-xs when-main">
-          <button class="btn btn-default i18n sketch-open-latest" title="{Open_sketch/} ({Open_from_local/})"><span class="glyphicon glyphicon-open"></span> {Open}</button>
+          <button class="btn btn-default sketch-open-latest" title="{{t 'Open_sketch_'}} ({{t 'Open_from_local_'}})"><span class="glyphicon glyphicon-open"></span> {{t 'Open'}}</button>
           <button class="btn btn-default btn-thin dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&nbsp;<span class="caret"></span>&nbsp;</button>
           <ul class="dropdown-menu">
             <li>
-              <a href="#" class="btn-xs i18n sketch-open-local"><span class="fa-fw glyphicon glyphicon-open"></span> {Open_from_local}</a>
+              <a href="#" class="btn-xs sketch-open-local"><span class="fa-fw glyphicon glyphicon-open"></span> {{t 'Open_from_local'}}</a>
             </li>
             <li class="when-googledrive">
-              <a href="#" class="btn-xs i18n sketch-open-googledrive"><span class="fa fa-fw"></span> {Open_from_Google_Drive}</a>
+              <a href="#" class="btn-xs sketch-open-googledrive"><span class="fa fa-fw"></span> {{t 'Open_from_Google_Drive'}}</a>
             </li>
             <li class="when-dropbox">
-              <a href="#" class="btn-xs i18n sketch-open-dropbox"><span class="fa fa-fw"></span> {Open_from_Dropbox}</a>
+              <a href="#" class="btn-xs sketch-open-dropbox"><span class="fa fa-fw"></span> {{t 'Open_from_Dropbox'}}</a>
             </li>
             <li class="when-onedrive">
-              <a href="#" class="btn-xs i18n sketch-open-onedrive"><span class="fa fa-fw"></span> {Open_from_OneDrive}</a>
+              <a href="#" class="btn-xs sketch-open-onedrive"><span class="fa fa-fw"></span> {{t 'Open_from_OneDrive'}}</a>
             </li>
             <!--<li class="when-no-cloud">
-              <a href="#config-cloud-service" class="btn-xs i18n activate-pref"><span class="fa fa-fw fa-cloud"></span> {Open_from_cloud}</a>
+              <a href="#config-cloud-service" class="btn-xs activate-pref"><span class="fa fa-fw fa-cloud"></span> {{t 'Open_from_cloud'}}</a>
             </li>-->
           </ul>
         </div>
         <div class="btn-group btn-group-xs when-main when-sketch">
-          <button class="btn btn-default sketch-save-overwrite i18n" title="{Save_sketch} ({Save_overwrite})"><span class="glyphicon glyphicon-save"></span> {Save}</button>
+          <button class="btn btn-default sketch-save-overwrite" title="{{t 'Save_sketch'}} ({{t 'Save_overwrite'}})"><span class="glyphicon glyphicon-save"></span> {{t 'Save'}}</button>
           <button class="btn btn-default dropdown-toggle btn-thin" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
           <ul class="dropdown-menu" role="menu">
             <li>
-              <a href="#" class="btn-xs i18n sketch-save-overwrite"><span class="fa-fw glyphicon glyphicon-save"></span> {Save_overwrite}</a>
+              <a href="#" class="btn-xs sketch-save-overwrite"><span class="fa-fw glyphicon glyphicon-save"></span> {{t 'Save_overwrite'}}</a>
             </li>
             <li class="divider"></li>
             <li>
-              <a href="#" class="btn-xs i18n sketch-save-local"><span class="fa fa-fw fa-laptop"></span> {Save_to_local}</a>
+              <a href="#" class="btn-xs sketch-save-local"><span class="fa fa-fw fa-laptop"></span> {{t 'Save_to_local'}}</a>
             </li>
             <li class="when-googledrive">
-              <a href="#" class="btn-xs i18n sketch-save-googledrive"><span class="fa fa-fw"></span> {Save_to_Google_Drive}</a>
+              <a href="#" class="btn-xs sketch-save-googledrive"><span class="fa fa-fw"></span> {{t 'Save_to_Google_Drive'}}</a>
             </li>
             <li class="when-dropbox">
-              <a href="#" class="btn-xs i18n sketch-save-dropbox"><span class="fa fa-fw"></span> {Save_to_Dropbox}</a>
+              <a href="#" class="btn-xs sketch-save-dropbox"><span class="fa fa-fw"></span> {{t 'Save_to_Dropbox'}}</a>
             </li>
             <li class="when-onedrive">
-              <a href="#" class="btn-xs i18n sketch-save-onedrive"><span class="fa fa-fw"></span> {Save_to_OneDrive}</a>
+              <a href="#" class="btn-xs sketch-save-onedrive"><span class="fa fa-fw"></span> {{t 'Save_to_OneDrive'}}</a>
             </li>
             <!--<li class="when-no-cloud">
-              <a href="#config-cloud-service" class="btn-xs i18n activate-pref"><span class="fa fa-fw fa-cloud"></span> {Save_to_cloud}</a>
+              <a href="#config-cloud-service" class="btn-xs activate-pref"><span class="fa fa-fw fa-cloud"></span> {{t 'Save_to_cloud'}}</a>
             </li>-->
           </ul>
         </div>
         <div class="btn-group btn-group-xs pull-right when-board">
-          <button class="btn btn-default i18n board-catalog-refresh"><span class="fa fa-fw fa-refresh"></span> {Refresh_catalog}</button>
+          <button class="btn btn-default board-catalog-refresh"><span class="fa fa-fw fa-refresh"></span> {{t 'Refresh_catalog'}}</button>
         </div>
         <div class="btn-group btn-group-xs pull-right when-sketch when-main">
-          <button class="btn btn-danger i18n sketch-stop"><span class="fa fa-fw fa-stop"></span> {Stop}</button>
+          <button class="btn btn-danger sketch-stop"><span class="fa fa-fw fa-stop"></span> {{t 'Stop'}}</button>
         </div>
         <div class="btn-group btn-group-xs pull-right when-sketch when-main">
-          <button class="btn btn-primary i18n sketch-run key-stroke" title="{Run_sketch} (_KEYS_)"><span class="fa fa-fw fa-play"></span> {Run}</button>
+          <button class="btn btn-primary sketch-run key-stroke" title="{{t 'Run_sketch'}} (_KEYS_)"><span class="fa fa-fw fa-play"></span> {{t 'Run'}}</button>
           <button class="btn btn-primary btn-thin dropdown-toggle" data-toggle="dropdown">&nbsp;<span class="caret"></span>&nbsp;</button>
           <ul class="dropdown-menu" role="menu">
             <li>
-              <a href="#" class="btn-xs i18n sketch-run"><span class="fa fa-fw fa-play"></span> {Run}</a>
+              <a href="#" class="btn-xs sketch-run"><span class="fa fa-fw fa-play"></span> {{t 'Run'}}</a>
             </li>
             <li>
-              <a href="#" class="btn-xs i18n sketch-debug"><span class="fa fa-fw fa-bug"></span> {Debug}</a>
+              <a href="#" class="btn-xs sketch-debug"><span class="fa fa-fw fa-bug"></span> {{t 'Debug'}}</a>
             </li>
           </ul>
         </div>
         <div class="btn-group btn-group-xs pull-right when-sketch when-main">
-          <button class="btn btn-default i18n sketch-build key-stroke" title="{Build_sketch} (_KEYS_)"><span class="fa fa-fw fa-cogs"></span> {Build}</button>
+          <button class="btn btn-default sketch-build key-stroke" title="{{t 'Build_sketch'}} (_KEYS_)"><span class="fa fa-fw fa-cogs"></span> {{t 'Build'}}</button>
         </div>
       </div>
     </div>

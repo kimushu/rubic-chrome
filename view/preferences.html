@@ -17,22 +17,22 @@
           <div class="col-md-12">
             <div class="panel panel-info">
               <div class="panel-heading">
-                <h3 class="i18n panel-title">
-                  <b>{Appearance}</b>
+                <h3 class="panel-title">
+                  <b>{{t 'Appearance'}}</b>
                 </h3>
               </div>
               <div class="panel-body">
-                <p class="i18n">{Desc_of_appearance}</p>
+                <p>{{t 'Desc_of_appearance'}}</p>
                 <div class="form-horizontal">
                   <div class="form-group">
                     <div class="col-sm-4">
-                      <label class="control-label i18n">{Zoom_ratio}</label>
+                      <label class="control-label">{{t 'Zoom_ratio'}}</label>
                     </div>
                     <div class="col-sm-8">
                       <select class="form-control" id="config-zoom-ratio">
-                        <option class="i18n" value="10">{Zoom_1_0}</option>
-                        <option class="i18n" value="15">{Zoom_1_5}</option>
-                        <option class="i18n" value="20">{Zoom_2_0}</option>
+                        <option value="10">{{t 'Zoom_1_0'}}</option>
+                        <option value="15">{{t 'Zoom_1_5'}}</option>
+                        <option value="20">{{t 'Zoom_2_0'}}</option>
                       </select>
                     </div>
                   </div>
@@ -41,26 +41,26 @@
             </div>
             <div class="panel panel-info">
               <div class="panel-heading">
-                <h3 class="i18n panel-title">
-                  <b>{History}</b>
+                <h3 class="panel-title">
+                  <b>{{t 'History'}}</b>
                 </h3>
               </div>
               <div class="panel-body">
                 <div class="form-horizontal">
                   <div class="form-group">
                     <div class="col-sm-4">
-                      <label class="control-label i18n">{Max_recent_sketches}</label>
+                      <label class="control-label">{{t 'Max_recent_sketches'}}</label>
                     </div>
                     <div class="col-sm-8">
                       <select class="form-control" id="config-max-recent-sketches">
-                        <option class="i18n" value="5">{Count_5}</option>
-                        <option class="i18n" value="10">{Count_10}</option>
-                        <option class="i18n" value="20">{Count_20}</option>
-                        <option class="i18n" value="50">{Count_50}</option>
+                        <option value="5">{{t 'Count_5'}}</option>
+                        <option value="10">{{t 'Count_10'}}</option>
+                        <option value="20">{{t 'Count_20'}}</option>
+                        <option value="50">{{t 'Count_50'}}</option>
                       </select>
                     </div>
                     <div class="col-sm-12">
-                      <p class="help-block i18n"><small>{Desc_of_max_recent_sketches}</small></p>
+                      <p class="help-block"><small>{{t 'Desc_of_max_recent_sketches'}}</small></p>
                     </div>
                   </div>
                 </div>
@@ -68,61 +68,61 @@
             </div>
             <div class="panel panel-info">
               <div class="panel-heading">
-                <h3 class="panel-title i18n">
-                  <b>{Internet_access}</b>
+                <h3 class="panel-title">
+                  <b>{{t 'Internet_access'}}</b>
                 </h3>
               </div>
               <div class="panel-body">
-                <p class="i18n">{Desc_of_internet_access}</p>
+                <p>{{t 'Desc_of_internet_access'}}</p>
                 <div class="checkbox">
-                  <label class="i18n">
-                    <input type="checkbox" id="config-noconfirm-net">{Do_not_confirm_internet_access}</label>
+                  <label>
+                    <input type="checkbox" id="config-noconfirm-net">{{t 'Do_not_confirm_internet_access'}}</label>
                 </div>
-                <p class="help-block i18n">
-                  <small>{Privacy_statement_for_internet_access} <a href="https://github.com/kimushu/rubic#privacy-policy" target="_blank">({Privacy_policy})</a></small>
+                <p class="help-block">
+                  <small>{{t 'Privacy_statement_for_internet_access'}} <a href="https://github.com/kimushu/rubic#privacy-policy" target="_blank">({{t 'Privacy_policy'}})</a></small>
                 </p>
               </div>
             </div>
             <!--<div class="panel panel-primary">
               <div class="panel-heading">
-                <h3 class="panel-title i18n">
-                  <a id="config-cloud-service"><b>{Cloud_service_auth}</b></a>
+                <h3 class="panel-title">
+                  <a id="config-cloud-service"><b>{{t 'Cloud_service_auth'}}</b></a>
                 </h3>
               </div>
               <div class="panel-body">
-                <p class="i18n">{Desc_of_cloud_services}
-                  <a href="#" class="link-privacy-policy">{See_privacy_policy}</a>
+                <p>{{t 'Desc_of_cloud_services'}}
+                  <a href="#" class="link-privacy-policy">{{t 'See_privacy_policy'}}</a>
                   <br>
-                  <br>{Desc_of_cloud_auth}</p>
+                  <br>{{t 'Desc_of_cloud_auth'}}</p>
                 <div class="form-horizontal">
                   <div class="form-group">
                     <div class="col-sm-3">
-                      <label for="inputEmail3" class="control-label i18n">{Google_Drive}</label>
+                      <label for="inputEmail3" class="control-label">{{t 'Google_Drive'}}</label>
                     </div>
                     <div class="col-sm-9">
-                      <button type="button" class="btn btn-success i18n when-not-googledrive">{Acquire_access}</button>
-                      <button type="button" class="btn btn-danger i18n when-googledrive">{Revoke_access}</button>
-                      <span class="i18n when-googledrive">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                      <button type="button" class="btn btn-success when-not-googledrive">{{t 'Acquire_access'}}</button>
+                      <button type="button" class="btn btn-danger when-googledrive">{{t 'Revoke_access'}}</button>
+                      <span class="when-googledrive">&nbsp;{{t 'Authed_by'}} : <span class="placeholder">(User)</span></span>
                     </div>
                   </div>
                   <div class="form-group">
                     <div class="col-sm-3">
-                      <label for="inputEmail3" class="control-label i18n">{Dropbox}</label>
+                      <label for="inputEmail3" class="control-label">{{t 'Dropbox'}}</label>
                     </div>
                     <div class="col-sm-9">
-                      <button type="button" class="btn btn-success i18n when-not-dropbox">{Acquire_access}</button>
-                      <button type="button" class="btn btn-danger i18n when-dropbox">{Revoke_access}</button>
-                      <span class="i18n when-dropbox">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                      <button type="button" class="btn btn-success when-not-dropbox">{{t 'Acquire_access'}}</button>
+                      <button type="button" class="btn btn-danger when-dropbox">{{t 'Revoke_access'}}</button>
+                      <span class="when-dropbox">&nbsp;{{t 'Authed_by'}} : <span class="placeholder">(User)</span></span>
                     </div>
                   </div>
                   <div class="form-group">
                     <div class="col-sm-3">
-                      <label for="inputEmail3" class="control-label i18n">{OneDrive}</label>
+                      <label for="inputEmail3" class="control-label">{{t 'OneDrive'}}</label>
                     </div>
                     <div class="col-sm-9">
-                      <button type="button" class="btn btn-success i18n when-not-onedrive">{Acquire_access}</button>
-                      <button type="button" class="btn btn-danger i18n when-onedrive">{Revoke_access}</button>
-                      <span class="i18n when-onedrive">&nbsp;{Authed_by} : <span class="placeholder">(User)</span></span>
+                      <button type="button" class="btn btn-success when-not-onedrive">{{t 'Acquire_access'}}</button>
+                      <button type="button" class="btn btn-danger when-onedrive">{{t 'Revoke_access'}}</button>
+                      <span class="when-onedrive">&nbsp;{{t 'Authed_by'}} : <span class="placeholder">(User)</span></span>
                     </div>
                   </div>
                 </div>
@@ -130,69 +130,69 @@
             </div>-->
             <div class="panel panel-danger">
               <div class="panel-heading">
-                <h3 class="i18n panel-title">
-                  <b>{For_Rubic_testers}</b>
+                <h3 class="panel-title">
+                  <b>{{t 'For_Rubic_testers'}}</b>
                 </h3>
               </div>
               <div class="panel-body">
-                <p class="i18n">{Desc_of_for_testers}</p>
+                <p>{{t 'Desc_of_for_testers'}}</p>
                 <div class="checkbox">
-                  <label class="i18n">
-                    <input type="checkbox" id="config-for-testers">{Show_tester_settings}</label>
+                  <label>
+                    <input type="checkbox" id="config-for-testers">{{t 'Show_tester_settings'}}</label>
                 </div>
                 <div class="only-testers">
-                  <p class="i18n">{Thanks_testers}</p>
+                  <p>{{t 'Thanks_testers'}}</p>
                   <div class="form-horizontal">
                     <div class="form-group">
                       <div class="col-sm-4">
-                        <label class="control-label i18n">{Beta_firmware}</label>
+                        <label class="control-label">{{t 'Beta_firmware'}}</label>
                       </div>
                       <div class="col-sm-8">
                         <select class="form-control" id="config-beta-firmware">
-                          <option class="i18n" value="false">{Hide_beta_versions}</option>
-                          <option class="i18n" value="true">{Show_beta_versions}</option>
+                          <option value="false">{{t 'Hide_beta_versions'}}</option>
+                          <option value="true">{{t 'Show_beta_versions'}}</option>
                         </select>
                       </div>
                       <div class="col-sm-12">
-                        <p class="help-block i18n"><small>{Desc_of_beta_firmware}</small></p>
+                        <p class="help-block"><small>{{t 'Desc_of_beta_firmware'}}</small></p>
                       </div>
                     </div>
                     <div class="form-group">
                       <div class="col-sm-4">
-                        <label class="control-label i18n">{Log_verbosity}</label>
+                        <label class="control-label">{{t 'Log_verbosity'}}</label>
                       </div>
                       <div class="col-sm-8">
                         <select class="form-control" id="config-log-verbosity">
-                          <option class="i18n" value="0">{Simple_logs}</option>
-                          <option class="i18n" value="1">{Detail_logs}</option>
+                          <option value="0">{{t 'Simple_logs'}}</option>
+                          <option value="1">{{t 'Detail_logs'}}</option>
                         </select>
                       </div>
                       <div class="col-sm-12">
-                        <p class="help-block i18n"><small>{Desc_of_log_verbosity}</small></p>
+                        <p class="help-block"><small>{{t 'Desc_of_log_verbosity'}}</small></p>
                       </div>
                     </div>
                     <div class="form-group">
                       <div class="col-sm-4">
-                        <label class="control-label i18n">{Init_cache}</label>
+                        <label class="control-label">{{t 'Init_cache'}}</label>
                       </div>
                       <div class="col-sm-8">
                         <select class="form-control" id="config-reset-all">
-                          <option class="i18n" value="false">{Do_not_init_cache}</option>
-                          <option class="i18n" value="true">{Init_cache_at_next_boot}</option>
+                          <option value="false">{{t 'Do_not_init_cache'}}</option>
+                          <option value="true">{{t 'Init_cache_at_next_boot'}}</option>
                         </select>
                       </div>
                       <div class="col-sm-12">
-                        <p class="help-block i18n"><small>{Desc_of_init_cache}</small></p>
+                        <p class="help-block"><small>{{t 'Desc_of_init_cache'}}</small></p>
                       </div>
                     </div>
                     <!--<div class="form-group">
                       <div class="col-sm-4">
-                        <label class="control-label i18n">{Catalog_editor}</label>
+                        <label class="control-label">{{t 'Catalog_editor'}}</label>
                       </div>
                       <div class="col-sm-8">
                         <div class="checkbox">
-                          <label class="i18n">
-                            <input type="checkbox" id="config-cateditor">{Enable_catalog_editor}</label>
+                          <label>
+                            <input type="checkbox" id="config-cateditor">{{t 'Enable_catalog_editor'}}</label>
                         </div>
                       </div>
                     </div>-->

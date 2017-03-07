@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "canarium": "^0.9.18",
+    "delay": "^1.3.1",
     "electron-settings": "^2.2.2",
     "github-api": "2.2.0",
     "handlebars": "^4.0.6",
@@ -12,6 +13,7 @@
     "js-yaml": "^3.6.1",
     "jszip": "3.0.0",
     "node-uuid": "^1.4.7",
+    "once": "^1.4.0",
     "sprintf-js": "^1.0.3"
   },
   "devDependencies": {

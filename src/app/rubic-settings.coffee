@@ -1,6 +1,5 @@
 "use strict"
 require("../util/primitive")
-Settings = Object.getPrototypeOf(require("electron-settings")).constructor
 
 ###*
 Load and store user preferences
@@ -12,6 +11,7 @@ class RubicSettings
 
   constructor: (options) ->
     console.log("new RubicSettings()")
+    Settings = Object.getPrototypeOf(require("electron-settings")).constructor
     @_settings = new Settings()
     return
 
@@ -87,6 +87,23 @@ class RubicSettings
     return @_settings.clear().then(=>
       return  # Last PromiseValue
     )
+
+  ###*
+  Start listener for access from renderer-process
+
+  @method listen
+  @return {undefined}
+  ###
+  startListener: ->
+    {ipcMain} = require("electron")
+    ipcMain.on("settings-call", (event, id, method, args...) =>
+      @[method](args...).then((result) =>
+        event.sender.send("settings-reply", id, {result})
+      ).catch((error) =>
+        event.sender.send("settings-reply", id, {error})
+      )
+    )
+    return
 
   ###*
   Create a RubicSettings instance

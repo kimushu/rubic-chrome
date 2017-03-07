@@ -14,15 +14,15 @@
     <div class="controller-body when-board bottom-hidden">
       <div class="editor-header">
         <ul class="scroll_tabs_theme_compact" id="board-tabs">
-          <li class="i18n board-page-select" data-page="catalog">{Select_board}</li>
-          <li class="i18n board-page-select" data-page="features">{Select_features}</li>
-          <li class="i18n board-page-select" data-page="iodef">{Configure_io_pins}</li>
-          <li class="i18n board-page-select" data-page="savecfg">{Save_your_settings}</li>
+          <li class="board-page-select" data-page="catalog">{{t 'Select_board'}}</li>
+          <li class="board-page-select" data-page="features">{{t 'Select_features'}}</li>
+          <li class="board-page-select" data-page="iodef">{{t 'Configure_io_pins'}}</li>
+          <li class="board-page-select" data-page="savecfg">{{t 'Save_your_settings'}}</li>
         </ul>
       </div>
       <div class="editor-body" id="board-page-noboard">
         <div class="col-md-12">
-          <h4 class="i18n spin-text">{Select_board_before}</h4>
+          <h4 class="spin-text">{{t 'Select_board_before'}}</h4>
         </div>
       </div>
       <div class="editor-body vert-scroll" id="board-page-catalog">
@@ -33,16 +33,16 @@
             </div>
             <div class="media-body">
               <h4 class="media-heading"><span class="placeholder">(Board name)</span>
-                <button class="board-use-this pull-right btn btn-info btn-xs i18n"><span class="glyphicon glyphicon-ok board-when-selected">&nbsp;</span>{Use_this_board}</button>
+                <button class="board-use-this pull-right btn btn-info btn-xs"><span class="glyphicon glyphicon-ok board-when-selected">&nbsp;</span>{{t 'Use_this_board'}}</button>
               </h4>
               <span class="placeholder">(Board Description)</span>
-              <br><span class="i18n">{Author}</span>:
+              <br>{{t 'Author'}}
               <span class="placeholder">(author)</span>&nbsp;/&nbsp;
-              <a href="#" class="placeholder i18n" target="_blank">{Website}</a>
+              <a href="#" class="placeholder" target="_blank">{{t 'Website'}}</a>
             </div>
           </div>
-          <div class="when-not-last-child text-center i18n">
-            <br>{No_catalog_data_available}
+          <div class="when-not-last-child text-center">
+            <br>{{t 'No_catalog_data_available'}}
           </div>
         </div>
       </div>

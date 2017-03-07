@@ -29,23 +29,23 @@
         <div class="explorer-right vert-scroll"></div>
         <div class="explorer-footer">
           <div class="btn-group btn-group-xs dropup">
-            <button class="btn btn-default i18n explorer-add"><span class="glyphicon glyphicon-plus"></span> {Add_item}</button>
+            <button class="btn btn-default explorer-add"><span class="glyphicon glyphicon-plus"></span> {{t 'Add_item'}}</button>
             <button class="btn btn-default btn-thin dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&nbsp;<span class="caret"></span>&nbsp;</button>
             <ul class="dropdown-menu">
               <li>
-                <a href="#" class="btn-xs i18n explorer-add-existing">{Add_existing_file}</a>
+                <a href="#" class="btn-xs explorer-add-existing">{{t 'Add_existing_file'}}</a>
               </li>
               <li class="divider"></li>
             </ul>
           </div>
           <div class="btn-group btn-group-xs pull-right">
-            <button class="btn btn-default i18n explorer-remove"><span class="glyphicon glyphicon-remove"></span> {Remove_item}</button>
+            <button class="btn btn-default explorer-remove"><span class="glyphicon glyphicon-remove"></span> {{t 'Remove_item'}}</button>
           </div>
           <div class="btn-group btn-group-xs pull-right">
-            <button class="btn btn-default i18n explorer-rename"><span class="fa fa-fw fa-pencil-square-o"></span> {Rename_item}</button>
+            <button class="btn btn-default explorer-rename"><span class="fa fa-fw fa-pencil-square-o"></span> {{t 'Rename_item'}}</button>
           </div>
           <div class="btn-group btn-group-xs pull-right">
-            <button class="btn btn-default i18n explorer-open"><span class="glyphicon glyphicon-pencil"></span> {Open_with_editor}</button>
+            <button class="btn btn-default explorer-open"><span class="glyphicon glyphicon-pencil"></span> {{t 'Open_with_editor'}}</button>
           </div>
         </div>
       </div>
@@ -53,8 +53,8 @@
         <div class="col-sm-12">
           <div class="list-group list-group-thin">
             <a href="#" class="list-group-item list-group-item-info sketch-new">
-              <h4 class="list-group-item-heading i18n"><span class="fa fa-fw fa-plus"></span> {Create_new_sketch}</h4>
-              <p class="list-group-item-text i18n">{Desc_of_new_sketch}</p>
+              <h4 class="list-group-item-heading"><span class="fa fa-fw fa-plus"></span> {{t 'Create_new_sketch'}}</h4>
+              <p class="list-group-item-text">{{t 'Desc_of_new_sketch'}}</p>
             </a>
           </div>
           <div class="template-container" id="recent-sketch-tmpl">
@@ -65,8 +65,8 @@
           </div>
           <div class="list-group" id="recent-sketches">
           </div>
-          <a href="#" class="i18n pull-right" id="clear-recent-sketch">
-            <small><span class="fa fa-fw fa-trash-o"></span>{Clear_sketch_history}</small>
+          <a href="#" class="pull-right" id="clear-recent-sketch">
+            <small><span class="fa fa-fw fa-trash-o"></span>{{t 'Clear_sketch_history'}}</small>
           </a><br><br>
         </div>
       </div>
@@ -85,3 +85,5 @@
     </div>
 
 </body></html>
+<!--end-->
+<!--vim: set et sts=2 sw=2: -->

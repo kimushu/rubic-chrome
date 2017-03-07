@@ -1,128 +1,86 @@
 "use strict"
-# Pre dependencies
-UnJSONable = require("util/unjsonable")
-require("util/primitive")
+require("../util/primitive")
 
 ###*
+Base class of controller (Controller, Renderer-process)
+
 @class Controller
-  Base class of controller (Controller)
-@extends UnJSONable
 ###
-module.exports = class Controller extends UnJSONable
-  null
+module.exports =
+class Controller
 
-  #--------------------------------------------------------------------------------
-  # Public properties
-  #
-
-  ###*
-  @property {boolean} activated
-    Is this controller activated
-  @readonly
-  ###
-  @property("activated",
-    get: -> @window.controller == this
-  )
+  constructor: ->
+    @_keyBinds = []
 
   ###*
+  Active controller (Use activate() to change)
+
   @static
-  @property {AppWindow} appWindow
-    The AppWindow instance
-  @readonly
+  @property {Controller} active
+  @readOnly
   ###
-  @property("appWindow", get: -> chrome?.app.window?.current())
+  @staticProperty "active", get: -> Controller._active
+
+  @_active: null
 
   ###*
-  @property {Window} window
-    window object
-  @readonly
+  Flags for subclasses
+
+  @protected
+  @property {Object} flags
+  @readOnly
   ###
-  @property("window", get: -> @_window)
+  @getter "flags", -> (window._controllerFlags ?= {})[@constructor.name] ?= {}
 
   ###*
-  @property {Function} $
-    jQuery core function
-  @readonly
+  Is this controller activated
+
+  @property {boolean} activated
+  @readOnly
   ###
-  @property("$", get: -> @window.$)
-
-  #--------------------------------------------------------------------------------
-  # Private variables / constants
-  #
-
-  DELAY_AFTER_LOADING = 1000
-
-  #--------------------------------------------------------------------------------
-  # Public methods
-  #
+  @getter "activated", -> Controller._active == this
 
   ###*
-  @method
-    Activate controller
-  @return {Promise}
+  Activate controller (Subclass should call this first)
+
+  @method activate
+  @return {Promise|undefined}
     Promise object
   ###
   activate: ->
-    if @window.controller == this
-      return Promise.reject(Error("Already activated"))
+    return Promise.resolve() if Controller._active == this
     return Promise.resolve(
     ).then(=>
-      return @window.controller?.deactivate()
+      # Deactivate current controller
+      return Controller._active?.deactivate()
     ).then(=>
-      body = @$("body")
-      return unless body.hasClass("loading")
-      return Promise.delay(DELAY_AFTER_LOADING).then(=>
-        body.removeClass("loading")
-        if @window.reset_all
-          App.popupInfo(I18n.getMessage("Cache_has_been_initialized"))
-        return
-      )
-    ).then(=>
-      @window.controller = this
-      App.info.verbose("Controller#activate(%o)", this)
-      doc = @window.document
+      # Set current controller
+      Controller._active = this
+      console.log("[#{@constructor.name}] Activated")
 
-      unless doc.translated
-        doc.translated = true
-        console.log("Translating document (#{I18n.lang})")
-        I18n.translateDocument(doc)
+      # Install keybind listener
+      unless @flags.keyListenerInstalled
+        $(window.document).keydown(@_processKey.bind(this))
+        @flags.keyListenerInstalled = true
 
-      unless doc.keyListenerInstalled
-        doc.keyListenerInstalled = true
-        @$(doc).keydown(@_processKey.bind(this))
-
-      @_keyBinds = []
-      return
-    ) # return Promise.resolve().then()...
+      return  # Last PromiseValue
+    )
 
   ###*
-  @method
-    Deactivate controller
-  @return {Promise}
+  Deactivate controller (Subclass should call this last)
+
+  @method deactivate
+  @return {Promise|undefined}
     Promise object
   ###
   deactivate: ->
-    return Promise.resolve(
-    ).then(=>
-      @_keyBinds = null
-      App.info.verbose("Controller#deactivate(%o)", this)
-    ).then(=>
-      @window.controller = null
-    ) # return Promise.resolve().then()...
+    console.log("[#{@constructor.name}] Deactivated")
+    Controller._active = null
+    return Promise.resolve()
 
   #--------------------------------------------------------------------------------
   # Protected methods
   #
-
-  ###*
-  @protected
-  @method constructor
-    Constructor of Controller class
-  @param {Window} _window
-    window object
-  ###
-  constructor: (@_window) ->
-    return
 
   ###*
   @protected
@@ -180,7 +138,7 @@ module.exports = class Controller extends UnJSONable
     Key presentation for UI (platform dependent)
   ###
   bindKey: (keys, selector_callback) ->
-    isMac = (Preferences.os == "mac")
+    isMac = (process.platform == "darwin")
     cond = {shiftKey: false, ctrlKey: false, altKey: false, metaKey: false}
     ui = ""
     if keys.includes("ctrl+") or (!isMac and keys.includes("mod+"))
@@ -202,7 +160,6 @@ module.exports = class Controller extends UnJSONable
       callback = selector_callback
     else if selector_callback?
       selector = selector_callback
-      $ = @$
       obj = $(selector)
       for element in $(selector).filter(".key-stroke")
         obj = $(element)
@@ -237,7 +194,3 @@ module.exports = class Controller extends UnJSONable
       break
     return
 
-# Post dependencies
-App = require("app/app")
-I18n = require("util/i18n")
-Preferences = require("app/preferences")

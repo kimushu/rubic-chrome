@@ -1,6 +1,9 @@
 Function::property = (prop, desc) ->
   Object.defineProperty(@::, prop, desc)
 
+Function::staticProperty = (prop, desc) ->
+  Object.defineProperty(@, prop, desc)
+
 Function::classProperty = (prop, desc) ->
   Object.defineProperty(@, prop, desc)
 
