@@ -1,10 +1,10 @@
 "use strict"
-require("../util/primitive")
+require("../../util/primitive")
 {sprintf} = require("sprintf-js")
 {BrowserWindow, ipcMain} = require("electron")
 path = require("path")
 url = require("url")
-delayed = require("../util/delayed")
+delayed = require("../../util/delayed")
 
 ###*
 Window manager for Main-process
@@ -21,12 +21,14 @@ class RubicWindow
     @_browserWindow = null
     return
 
-  @DEFAULT_WIDTH:   640
-  @DEFAULT_HEIGHT:  480
-  @MINIMUM_WIDTH:   560
-  @MINIMUM_HEIGHT:  240
+  DEFAULT_WIDTH:  640
+  DEFAULT_HEIGHT: 480
+  MINIMUM_WIDTH:  560
+  MINIMUM_HEIGHT: 240
 
-  @EVENT_DELAY_MS:  500
+  EVENT_DELAY_MS: 500
+
+  STATIC_DIR: path.join(__dirname, "..", "..", "..", "static")
 
   ###*
   Open main window
@@ -48,14 +50,14 @@ class RubicWindow
       # Create BrowserWindow instance
       console.log("[RubicWindow] creating Electron BrowserWindow")
       @_browserWindow = new BrowserWindow(
-        icon: path.join(__dirname, "..", "..", "static", "images", "rubic_cube2x2.ico")
+        icon: path.join(@STATIC_DIR, "images", "rubic_cube2x2.ico")
         x: if bounds?.x? and bounds?.y? then bounds.x else null
         y: if bounds?.x? and bounds?.y? then bounds.y else null
-        width: bounds?.width ? @constructor.DEFAULT_WIDTH
-        height: bounds?.height ? @constructor.DEFAULT_HEIGHT
+        width: bounds?.width ? @DEFAULT_WIDTH
+        height: bounds?.height ? @DEFAULT_HEIGHT
         useContentSize: true
-        minWidth: @constructor.MINIMUM_WIDTH * zoom_ratio
-        minHeight: @constructor.MINIMUM_HEIGHT * zoom_ratio
+        minWidth: @MINIMUM_WIDTH * zoom_ratio
+        minHeight: @MINIMUM_HEIGHT * zoom_ratio
         show: false
         webPreferences:
           zoomFactor: zoom_ratio
@@ -86,11 +88,11 @@ class RubicWindow
             "window.bounds": {width, height, x, y}
             "window.maximized": false
           )
-      @_browserWindow.on("move", delayed @constructor.EVENT_DELAY_MS, =>
+      @_browserWindow.on("move", delayed @EVENT_DELAY_MS, =>
         console.log("[RubicWindow] move (delayed)")
         move_or_resize()
       )
-      @_browserWindow.on("resize", delayed @constructor.EVENT_DELAY_MS, =>
+      @_browserWindow.on("resize", delayed @EVENT_DELAY_MS, =>
         console.log("[RubicWindow] resize (delayed)")
         move_or_resize()
       )
@@ -109,7 +111,7 @@ class RubicWindow
 
       # Load page contents
       @_browserWindow.loadURL(url.format(
-        pathname: path.join(__dirname, "..", "..", "static", "index.html")
+        pathname: path.join(@STATIC_DIR, "index.html")
         protocol: "file:"
         slashes: true
       ))

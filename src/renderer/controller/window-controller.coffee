@@ -1,5 +1,5 @@
 "use strict"
-require("../util/primitive")
+require("../../util/primitive")
 Controller = require("./controller")
 
 ###*
@@ -44,6 +44,17 @@ class WindowController extends Controller
 
   deactivate: ->
     return super()
+
+  ###*
+  Launch controller
+
+  @static
+  @method launch
+  @return {undefined}
+  ###
+  @launch: ->
+    MainController.instance.activate()
+    return
 
 MainController = require("./main-controller")
 PrefController = require("./pref-controller")

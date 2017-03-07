@@ -1,5 +1,5 @@
 "use strict"
-require("../util/primitive")
+require("../../util/primitive")
 path = require("path")
 RubicSettings = require("./rubic-settings")
 RubicWindow = require("./rubic-window")

@@ -6,10 +6,9 @@
 i18n = require("i18n")
 path = require("path")
 handlebars = require("handlebars")
-ApplicationDelegate = require("./application-delegate")
+AppDelegate = require("./app-delegate")
 delay = require("delay")
-require("./controller/window-controller")
-MainController = require("./controller/main-controller")
+WindowController = require("./controller/window-controller")
 
 global.rubic = {}
 
@@ -22,10 +21,9 @@ splashDelay = delay(1000)
 Promise.resolve(
 ).then(=>
   # Create delegate
-  return ApplicationDelegate.open()
+  return AppDelegate.open()
 ).then(=>
   # Wait for finish loading
-  console.log("Waiting for finish of document load")
   return loading
 ).then(=>
   # Load settings
@@ -34,7 +32,7 @@ Promise.resolve(
   # Translate DOM elements
   console.log("Translating: #{locale}")
   i18n.configure(
-    directory: path.join(__dirname, "..", "locales")
+    directory: path.join(__dirname, "..", "..", "locales")
     fallbacks:
       ja: "en"
     autoReload: false
@@ -50,6 +48,7 @@ Promise.resolve(
   body.html(handlebars.compile(body.html()))
   global.rubic.send("translation-complete")
 ).then(splashDelay).then(=>
-  MainController.instance.activate()
+  # Activate first controller
+  WindowController.launch()
   $("body").removeClass("loading")
 )

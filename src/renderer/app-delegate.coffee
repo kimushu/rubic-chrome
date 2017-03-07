@@ -1,42 +1,42 @@
 "use strict"
-require("./util/primitive")
+require("../util/primitive")
 {ipcRenderer} = require("electron")
 
 ###*
-Delegate for RubicApplication (Renderer-process)
+Delegate for RubicApp (Renderer-process)
 
-@class ApplicationDelegate
+@class AppDelegate
 ###
 module.exports =
-class ApplicationDelegate
+class AppDelegate
 
   constructor: ->
     return
 
   ###*
-  Create a ApplicationDelegate instance
+  Create a AppDelegate instance
 
   @static
   @method open
-  @return {Promise|ApplicationDelegate}
+  @return {Promise|AppDelegate}
     Promise object with instance
   ###
   @open: () ->
-    console.log("ApplicationDelegate.open()")
-    return new ApplicationDelegate()._initialize()
+    console.log("AppDelegate.open()")
+    return new AppDelegate()._initialize()
 
   ###*
   Initialize instance
 
   @private
   @method _initialize
-  @return {Promise|ApplicationDelegate}
+  @return {Promise|AppDelegate}
     Promise object with instance
   ###
   _initialize: ->
-    console.log("ApplicationDelegate#_initialize()")
+    console.log("AppDelegate#_initialize()")
 
-    # Register ApplicationDelegate instance to global
+    # Register AppDelegate instance to global
     global.rubic = this
 
     # Initialize accessor for RubicSettings

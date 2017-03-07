@@ -1,5 +1,5 @@
 "use strict"
-require("../util/primitive")
+require("../../util/primitive")
 WindowController = require("./window-controller")
 
 ###*

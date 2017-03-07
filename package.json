@@ -37,7 +37,7 @@
     "watch": "^1.0.2",
     "yuidocjs": "^0.10.2"
   },
-  "main": "lib/app/start.js",
+  "main": "lib/main/app/start.js",
   "author": "kimu_shu",
   "scripts": {
     "start": "electron . --dev-tools",

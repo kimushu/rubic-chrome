@@ -1,5 +1,5 @@
 "use strict"
-require("../util/primitive")
+require("../../util/primitive")
 
 ###*
 Base class of controller (Controller, Renderer-process)

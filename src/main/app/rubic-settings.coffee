@@ -1,5 +1,5 @@
 "use strict"
-require("../util/primitive")
+require("../../util/primitive")
 
 ###*
 Load and store user preferences
@@ -13,6 +13,7 @@ class RubicSettings
     console.log("new RubicSettings()")
     Settings = Object.getPrototypeOf(require("electron-settings")).constructor
     @_settings = new Settings()
+    @_barrier = Promise.resolve()
     return
 
   ###*
@@ -37,7 +38,7 @@ class RubicSettings
     if Object::toString.call(map) == "[object String]"
       map = {"#{map}": undefined}
     result = {}
-    return Object.keys(map).reduce(
+    @_barrier = Object.keys(map).reduce(
       (promise, key) =>
         return promise.then(=>
           return @_settings.get(key)
@@ -48,10 +49,11 @@ class RubicSettings
             result[key] = value
           return
         )
-      Promise.resolve()
+      @_barrier
     ).then(=>
       return result # Last PromiseValue
     )
+    return @_barrier
 
   ###*
   Set or delete values
@@ -63,7 +65,7 @@ class RubicSettings
     Promise object
   ###
   set: (map) ->
-    return Object.keys(map).reduce(
+    @_barrier = Object.keys(map).reduce(
       (promise, key) =>
         return promise.then(=>
           if map[key] == undefined
@@ -71,10 +73,11 @@ class RubicSettings
           else
             return @_settings.set(key, map[key])
         )
-      Promise.resolve()
+      @_barrier
     ).then(=>
       return  # Last PromiseValue
     )
+    return @_barrier
 
   ###*
   Clear all settings
@@ -84,9 +87,12 @@ class RubicSettings
     Promise object
   ###
   clear: ->
-    return @_settings.clear().then(=>
+    @_barrier = @_barrier.then(=>
+      return @_settings.clear()
+    ).then(=>
       return  # Last PromiseValue
     )
+    return @_barrier
 
   ###*
   Start listener for access from renderer-process
