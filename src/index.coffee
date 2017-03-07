@@ -6,7 +6,7 @@
 i18n = require("i18n")
 path = require("path")
 handlebars = require("handlebars")
-RubicBridge = require("./rubic-bridge")
+ApplicationDelegate = require("./application-delegate")
 delay = require("delay")
 require("./controller/window-controller")
 MainController = require("./controller/main-controller")
@@ -21,17 +21,15 @@ splashDelay = delay(1000)
 
 Promise.resolve(
 ).then(=>
-  # Make bridge between main-process
-  console.log("bridge open")
-  return RubicBridge.open()
+  # Create delegate
+  return ApplicationDelegate.open()
 ).then(=>
   # Wait for finish loading
   console.log("Waiting for finish of document load")
   return loading
 ).then(=>
   # Load settings
-  console.log("setting")
-  return global.bridge.settings.get({locale: window.navigator.language})
+  return global.rubic.settings.get({locale: window.navigator.language})
 ).then(({locale}) =>
   # Translate DOM elements
   console.log("Translating: #{locale}")
@@ -50,7 +48,7 @@ Promise.resolve(
   handlebars.registerHelper("t", (str) => i18n.__(str))
   body = $("body")
   body.html(handlebars.compile(body.html()))
-  global.bridge.send("translation-complete")
+  global.rubic.send("translation-complete")
 ).then(splashDelay).then(=>
   MainController.instance.activate()
   $("body").removeClass("loading")

@@ -3,7 +3,7 @@ require("../util/primitive")
 path = require("path")
 RubicSettings = require("./rubic-settings")
 RubicWindow = require("./rubic-window")
-{app} = require("electron")
+{app, ipcMain} = require("electron")
 
 ###*
 Application top class
@@ -15,6 +15,7 @@ class RubicApplication
 
   constructor: (options) ->
     console.log("new RubicApplication()")
+    @_verbosity = 0
     @_settings = new RubicSettings(options)
     @_settings.startListener()
     return
@@ -81,6 +82,13 @@ class RubicApplication
     @_sketch = null
     @_window = new RubicWindow(options)
 
+    @_delegateReady = new Promise((resolve) =>
+      ipcMain.on("delegate-ready", (event) =>
+        console.log("[RubicApplication] received delegate-ready message")
+        resolve()
+      )
+    )
+
     # Register Electron event handlers
     app.on("ready", =>
       console.log("[RubicApplication] ready")
@@ -91,11 +99,15 @@ class RubicApplication
         return @_settings.get({reset_all: false}).then(({reset_all}) =>
           return unless reset_all
           notifyReset = true
+          console.log("[RubicApplication] cleared all preferences")
           return @_settings.clear()
         )
       ).then(=>
         return @_window.open()
       ).then(=>
+        return @_delegateReady
+      ).then(=>
+        @log(0, "Established link between main and renderer process")
         return unless notifyReset
         @warn(0, "All preferences has been reset")
         return
@@ -113,7 +125,10 @@ class RubicApplication
     )
 
     console.log("[RubicApplication] waiting for Electron ready")
-    return Promise.resolve(this)  # Last PromiseValue
+
+    return @_delegateReady.then(=>
+      return this # Last PromiseValue
+    )
 
   ###*
   Abort application with error message
@@ -148,8 +163,8 @@ class RubicApplication
   @param {Object} ...params
     Parameters for substituting by sprintf
   ###
-  log: (args...) ->
-    return @_window?.debugPrint("log", args)
+  log: (verbosity, msg, params...) ->
+    return @_window?.debugPrint("log", msg, params...) if verbosity <= @_verbosity
 
   ###*
   Output debug message (level=info)
@@ -162,8 +177,8 @@ class RubicApplication
   @param {Object} ...params
     Parameters for substituting by sprintf
   ###
-  info: (args...) ->
-    return @_window?.debugPrint("info", args)
+  info: (verbosity, msg, params...) ->
+    return @_window?.debugPrint("info", msg, params...) if verbosity <= @_verbosity
 
   ###*
   Output debug message (level=warning)
@@ -176,8 +191,8 @@ class RubicApplication
   @param {Object} ...params
     Parameters for substituting by sprintf
   ###
-  warn: (args...) ->
-    return @_window?.debugPrint("warn", args)
+  warn: (verbosity, msg, params...) ->
+    return @_window?.debugPrint("warn", msg, params...) if verbosity <= @_verbosity
 
   ###*
   Output debug message (level=error)
@@ -190,8 +205,8 @@ class RubicApplication
   @param {Object} ...params
     Parameters for substituting by sprintf
   ###
-  error: (args...) ->
-    return @_window?.debugPrint("error", args)
+  error: (verbosity, msg, params...) ->
+    return @_window?.debugPrint("error", msg, params...) if verbosity <= @_verbosity
 
   #-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
 

@@ -40,7 +40,7 @@ class PrefController extends WindowController
         state = $(event.target).prop("checked")
         $("body").toggleClass("show-testers", state)
       )
-      return global.bridge.settings.get({
+      return global.rubic.settings.get({
         "window.zoom_ratio_x10": 10
         # device_filter: true
         confirm_net: true
@@ -64,7 +64,7 @@ class PrefController extends WindowController
         #)
         #bounds?.setMinimumSize(newMinWidth, newMinHeight)
         #window.document.body.style.zoom = newRatio
-        #global.bridge.settings.set({"window.zoom_ratio_x10": value})
+        #global.rubic.settings.set({"window.zoom_ratio_x10": value})
       )
       # $("#config-device-filter").prop("checked", !!items.device_filter).click((event) =>
       #   value = !!$(event.target).prop("checked")
@@ -72,19 +72,19 @@ class PrefController extends WindowController
       # )
       $("#config-noconfirm-net").prop("checked", !items.confirm_net).click((event) =>
         value = !($(event.currentTarget).prop("checked"))
-        global.bridge.settings.set({confirm_net: value})
+        global.rubic.settings.set({confirm_net: value})
       )
       $("#config-beta-firmware").val("#{items.beta_firmware}").change((event) =>
         value = ($(event.currentTarget).val() != "false")
-        global.bridge.settings.set({beta_firmware: value})
+        global.rubic.settings.set({beta_firmware: value})
       )
       $("#config-log-verbosity").val("#{items.log_verbosity}").change((event) =>
         value = parseInt($(event.currentTarget).val())
-        global.bridge.settings.set({log_verbosity: value})
+        global.rubic.settings.set({log_verbosity: value})
       )
       $("#config-reset-all").val("#{items.reset_all}").change((event) =>
         value = ($(event.currentTarget).val() != "false")
-        global.bridge.settings.set({reset_all: value})
+        global.rubic.settings.set({reset_all: value})
         console.warn("All preferences will be cleared at the next boot!") if value
       )
       # $("#config-cateditor").prop("checked", !!items.catalog_editor).click((event) =>

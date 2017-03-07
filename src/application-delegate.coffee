@@ -3,41 +3,41 @@ require("./util/primitive")
 {ipcRenderer} = require("electron")
 
 ###*
-Bridge to main-process
+Delegate for RubicApplication (Renderer-process)
 
-@class RubicBridge
+@class ApplicationDelegate
 ###
 module.exports =
-class RubicBridge
+class ApplicationDelegate
 
   constructor: ->
     return
 
   ###*
-  Create a RubicBridge instance
+  Create a ApplicationDelegate instance
 
   @static
   @method open
-  @return {Promise|RubicBridge}
+  @return {Promise|ApplicationDelegate}
     Promise object with instance
   ###
   @open: () ->
-    console.log("RubicBridge.open()")
-    return new RubicBridge()._initialize()
+    console.log("ApplicationDelegate.open()")
+    return new ApplicationDelegate()._initialize()
 
   ###*
   Initialize instance
 
   @private
   @method _initialize
-  @return {Promise|RubicBridge}
+  @return {Promise|ApplicationDelegate}
     Promise object with instance
   ###
   _initialize: ->
-    console.log("RubicBridge#_initialize")
+    console.log("ApplicationDelegate#_initialize()")
 
-    # Register RubicBridge instance to global
-    global.bridge = this
+    # Register ApplicationDelegate instance to global
+    global.rubic = this
 
     # Initialize accessor for RubicSettings
     @_settings =
@@ -59,7 +59,7 @@ class RubicBridge
       return req.resolve(data.result)
     )
 
-    @send("bridge-opened")
+    @send("delegate-ready")
     return Promise.resolve(this)
 
   ###*

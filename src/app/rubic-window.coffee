@@ -103,14 +103,8 @@ class RubicWindow
         @_browserWindow.webContents.openDevTools()
 
       # Register listener
-      promise = new Promise((resolve) =>
-        ipcMain.on("bridge-opened", (event) =>
-          console.log("[RubicWindow] received bridge-opened message")
-          resolve()
-        )
-        ipcMain.on("translation-complete", (event) =>
-          console.log("[RubicWindow] received translation-complete message")
-        )
+      ipcMain.on("translation-complete", (event) =>
+        console.log("[RubicWindow] received translation-complete message")
       )
 
       # Load page contents
@@ -121,7 +115,7 @@ class RubicWindow
       ))
 
       console.log("[RubicWindow] waiting BrowserWindow open")
-      return promise
+      return  # Last PromiseValue
     ) # return Promise.resolve().then()...
 
   ###*
@@ -138,10 +132,11 @@ class RubicWindow
   ###
   debugPrint: (level, msg, params...) ->
     timestamp = Date.now()
+    console.log(msg)
     if typeof(msg) == "function"
       msg = msg()
     else
-      msg = sprintf(msg, params...)
+      msg = sprintf(msg.toString(), params...)
     @_browserWindow?.webContents.send(
       "debug-print"
       level
