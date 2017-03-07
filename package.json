@@ -44,6 +44,7 @@
     "start": "electron . --dev-tools",
     "start:repeat": "npm run start && npm run start:repeat &",
     "clean": "rimraf lib static",
+    "rebuild": "npm-run-all -s clean build",
     "build": "npm-run-all -p build:*",
     "build:js": "coffee -M -o lib -c src",
     "build:html": "coffee view/build.coffee",

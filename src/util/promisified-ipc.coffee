@@ -1,5 +1,16 @@
 "use strict"
 
+###*
+Create promisified IPC caller (sender)
+
+@method createCaller
+@param {string} channel
+  Channel name
+@param {Object} ipc
+  IPC sender object (ipcMain / ipcRenderer)
+@return {function}
+  Caller function
+###
 createCaller = (channel, ipc) ->
   replyId = "#{channel}-reply"
   callId = "#{channel}-call"
@@ -23,6 +34,19 @@ createCaller = (channel, ipc) ->
     ipc.removeListener(replyId, listener)
   return caller
 
+###*
+Create promisified IPC callee (receiver)
+
+@method createCallee
+@param {string} channel
+  Channel name
+@param {Object} ipc
+  IPC receiver object (ipcMain / ipcRenderer)
+@param {function} callback
+  Callback function with Promise result
+@return {Object}
+  Disposable object
+###
 createCallee = (channel, ipc, callback) ->
   replyId = "#{channel}-reply"
   callId = "#{channel}-call"

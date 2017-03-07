@@ -1,6 +1,6 @@
 "use strict"
 require("../../util/primitive")
-{createCallee} = require("../../util/promisified-call")
+{createCallee} = require("../../util/promisified-ipc")
 {ipcMain} = require("electron")
 
 ###*

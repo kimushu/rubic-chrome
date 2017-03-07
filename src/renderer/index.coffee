@@ -9,6 +9,7 @@ handlebars = require("handlebars")
 AppDelegate = require("./app-delegate")
 delay = require("delay")
 WindowController = require("./controller/window-controller")
+{shell} = require("electron")
 
 global.rubic = {}
 
@@ -47,6 +48,12 @@ Promise.resolve(
   body = $("body")
   body.html(handlebars.compile(body.html()))
   global.rubic.send("translation-complete")
+).then(=>
+  # Make links open in external browser
+  $(window.document).on("click", "a[href^='http']", (event) ->  # Keep "this"
+    event.preventDefault()
+    shell.openExternal(@href)
+  )
 ).then(splashDelay).then(=>
   # Activate first controller
   WindowController.launch()

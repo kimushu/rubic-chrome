@@ -3,7 +3,7 @@ require("../util/primitive")
 {ipcRenderer} = require("electron")
 path = require("path")
 {Disposable} = require("event-kit")
-{createCaller} = require("../util/promisified-call")
+{createCaller} = require("../util/promisified-ipc")
 
 ###*
 Delegate for RubicApp (Renderer-process)
@@ -135,14 +135,34 @@ class AppDelegate
     return @_callers["build-sketch"]()
 
   ###*
-  Register event handler for switching sketch
+  Register event handler for opening sketch
 
-  @method onSketchSwitched
+  @method onSketchOpened
   @param {function} callback
   @return {Disposable}
   ###
-  onSketchSwitched: (callback) ->
-    channel = "on-sketch-switched"
+  onSketchOpened: (callback) ->
+    return @_bind("on-sketch-opened", callback)
+
+  ###*
+  Register event handler for closing sketch
+
+  @method onSketchClosed
+  @param {function} callback
+  @return {Disposable}
+  ###
+  onSketchClosed: (callback) ->
+    return @_bind("on-sketch-closed", callback)
+
+  ###*
+  Register event handler
+
+  @private
+  @method _bind
+  @param {function} callback
+  @return {Disposable}
+  ###
+  _bind: (channel, callback) ->
     cb = (event) -> callback()
     ipcRenderer.on(channel, cb)
     return new Disposable =>
