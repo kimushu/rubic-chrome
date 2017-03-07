@@ -6,3 +6,5 @@ node_modules
 *.dep
 /*.zip
 Gemfile.lock
+/static
+/lib
